@@ -36,7 +36,6 @@
             --success: #2a9d8f;
             --warning: #e9b741;
             --sidebar-width: 260px;
-            --sidebar-collapsed: 0px;
         }
         body {
             font-family: "Inter", sans-serif;
@@ -223,7 +222,18 @@
             background: rgba(201, 168, 76, 0.10);
             border-radius: var(--radius-sm);
             border-right: 4px solid var(--gold);
-            margin-bottom: 24px;
+            margin-bottom: 16px;
+        }
+        .login-card .motivation {
+            text-align: center;
+            font-style: italic;
+            color: var(--gold-dark);
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.5);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--gold);
         }
         .form-group {
             margin-bottom: 18px;
@@ -957,6 +967,7 @@
             border-radius: var(--radius-sm);
             margin-bottom: 10px;
             border-left: 4px solid var(--gold);
+            position: relative;
         }
         .feedback-item .feedback-meta {
             font-size: 0.8rem;
@@ -965,6 +976,16 @@
         }
         .feedback-item .feedback-text {
             font-size: 0.95rem;
+        }
+        .feedback-item .delete-feedback {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1rem;
         }
 
         /* BK */
@@ -1019,6 +1040,7 @@
             max-width: 80%;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             border-left: 4px solid var(--gold);
+            position: relative;
         }
         .chat-msg .sender {
             font-weight: 700;
@@ -1038,6 +1060,20 @@
             align-self: flex-end;
             border-left-color: var(--success);
             background: #e8f5e9;
+        }
+        .chat-msg .delete-chat {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        .chat-msg .delete-chat:hover {
+            opacity: 1;
         }
 
         .profile-photo-upload {
@@ -1148,9 +1184,9 @@
                 <div class="logo-sub">✦ SMP CAHAYA QURAN ✦</div>
             </div>
             <div class="greeting">
-                <i class="fas fa-hand-peace"></i> Assalaamu'alaykum warahmatullah hiwabarakaatuh<br />
-                <span style="font-weight:700;color:var(--gold-dark);">Guru Hebat!</span>
+                <i class="fas fa-hand-peace"></i> Assalaamu'alaykum warahmatullah hiwabarakaatuh
             </div>
+            <div class="motivation" id="motivationText">"Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain."</div>
             <div id="loginError" class="login-error"><i class="fas fa-exclamation-circle"></i> Username atau password salah!</div>
             <form id="loginForm">
                 <div class="form-group">
@@ -1990,7 +2026,6 @@
                     });
                 }
             });
-            // Chat default
             db.ref('chat').once('value', (snap) => {
                 if (!snap.exists()) {
                     db.ref('chat').set({
@@ -2049,6 +2084,7 @@
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
+        let lastNotifTimestamp = 0;
 
         // Speech recognition
         let recognition = null;
@@ -2089,51 +2125,21 @@
         if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
         // ============================================================
-        // NOTIFICATIONS
+        // NOTIFIKASI BROWSER (Desktop & HP)
         // ============================================================
-        function addNotification(type, title, message, data = {}) {
-            const notif = {
-                id: genId(),
-                type: type,
-                title: title,
-                message: message,
-                data: data,
-                createdAt: Date.now(),
-                read: false,
-                timestamp: new Date().toLocaleString('id-ID')
-            };
-            db.ref('notifications/' + notif.id).set(notif);
-        }
-
-        function renderNotifications() {
-            const list = document.getElementById('notifList');
-            if (!list) return;
-            const items = Object.values(notificationsCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            if (!items.length) {
-                list.innerHTML = '<div class="notif-empty">Belum ada notifikasi.</div>';
-                return;
-            }
-            list.innerHTML = items.map(n => `
-                <div class="notif-item ${n.type === 'violation' ? 'violation' : n.type === 'reward' ? 'reward' : ''}">
-                    <div><strong>${escapeHtml(n.title)}</strong></div>
-                    <div>${escapeHtml(n.message)}</div>
-                    <div class="notif-time">${escapeHtml(n.timestamp || '-')}</div>
-                </div>
-            `).join('');
-            const unread = items.filter(n => !n.read).length;
-            notifCount = unread;
-            const countEl = document.getElementById('notifCount');
-            if (countEl) {
-                countEl.textContent = unread;
-                countEl.style.display = unread > 0 ? 'block' : 'none';
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
             }
         }
 
-        function markAllNotificationsRead() {
-            const items = Object.values(notificationsCache || {});
-            items.forEach(n => {
-                if (!n.read) db.ref('notifications/' + n.id).update({ read: true });
-            });
+        function sendBrowserNotification(title, body, icon = 'https://via.placeholder.com/192?text=📚') {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            try {
+                new Notification(title, { body, icon });
+            } catch (e) {
+                console.warn('Notifikasi gagal:', e);
+            }
         }
 
         // ============================================================
@@ -2157,7 +2163,6 @@
                 if (errEl) errEl.classList.remove('show');
                 currentUser = found;
                 sessionStorage.setItem('cq_currentUser', JSON.stringify(found));
-                // Set online status
                 db.ref('onlineStatus/' + found.id).set({
                     online: true,
                     lastSeen: Date.now(),
@@ -2172,6 +2177,8 @@
                     localStorage.removeItem('cq_remembered_user');
                     localStorage.setItem('cq_remember_me', 'false');
                 }
+                // Tampilkan motivasi setelah login
+                showMotivationQuote();
                 renderApp();
             });
         }
@@ -2199,6 +2206,30 @@
         }
 
         // ============================================================
+        // KATA PENYEMANGAT (AI generated quotes)
+        // ============================================================
+        const quotes = [
+            "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain.",
+            "Guru adalah pahlawan tanpa tanda jasa, teruslah menginspirasi.",
+            "Ilmu tanpa amal bagai pohon tanpa buah.",
+            "Senyummu adalah sedekah, semangatmu adalah cahaya.",
+            "Setiap anak adalah bintang, tugasmu adalah membuatnya bersinar.",
+            "Pendidikan adalah senjata paling ampuh untuk mengubah dunia.",
+            "Jadilah guru yang membuka pintu, bukan hanya mengisi pikiran.",
+            "Kesabaran adalah kunci, cinta adalah bahasamu.",
+            "Hari ini adalah kesempatan baru untuk menebar kebaikan.",
+            "Jangan lelah menjadi baik, karena kebaikan itu menular."
+        ];
+
+        function showMotivationQuote() {
+            const el = document.getElementById('motivationText');
+            if (el) {
+                const random = quotes[Math.floor(Math.random() * quotes.length)];
+                el.textContent = `"${random}"`;
+            }
+        }
+
+        // ============================================================
         // RENDER APP
         // ============================================================
         function renderApp() {
@@ -2211,7 +2242,6 @@
             const avatar = document.getElementById('userAvatar');
             if (avatar) {
                 avatar.innerHTML = currentUser.name.charAt(0).toUpperCase();
-                // Load photo
                 loadUserPhoto(currentUser.id, avatar);
             }
             const nameEl = document.getElementById('userName');
@@ -2237,6 +2267,9 @@
             populateChatRecipients();
             currentLeaderboardTab = 'violation';
             loadLeaderboard(currentLeaderboardTab);
+
+            // Request notification permission
+            requestNotificationPermission();
         }
 
         function loadUserPhoto(userId, element) {
@@ -2272,8 +2305,17 @@
         function setupRealtimeListeners() {
             if (listenersAttached) return;
             listenersAttached = true;
-            db.ref('violations').on('value', (snap) => { violationsCache = snap.val() || {}; refreshActivePage(); });
-            db.ref('rewards').on('value', (snap) => { rewardsCache = snap.val() || {}; refreshActivePage(); });
+            db.ref('violations').on('value', (snap) => {
+                violationsCache = snap.val() || {};
+                refreshActivePage();
+                // Notifikasi pelanggaran baru (hanya jika baru)
+                checkNewViolations();
+            });
+            db.ref('rewards').on('value', (snap) => {
+                rewardsCache = snap.val() || {};
+                refreshActivePage();
+                checkNewRewards();
+            });
             db.ref('siswa').on('value', (snap) => {
                 let data = snap.val();
                 if (!data) {
@@ -2331,6 +2373,7 @@
             db.ref('chat').on('value', (snap) => {
                 chatCache = snap.val() || {};
                 if (isPageActive('chat')) loadChat();
+                checkNewChatMessages();
             });
             db.ref('onlineStatus').on('value', (snap) => {
                 if (isPageActive('chat')) loadOnlineTeachers();
@@ -2347,6 +2390,52 @@
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
                 'notifications', 'moneyRewardRules', 'feedback', 'bk', 'chat', 'onlineStatus', 'userProfiles'
             ].forEach(r => db.ref(r).off());
+        }
+
+        // ============================================================
+        // NOTIFIKASI BARU (Pelanggaran, Reward, Chat)
+        // ============================================================
+        let lastViolationCheck = 0;
+        let lastRewardCheck = 0;
+        let lastChatCheck = 0;
+
+        function checkNewViolations() {
+            const items = Object.values(violationsCache || {});
+            if (!items.length) return;
+            const latest = items.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+            if (latest.createdAt && latest.createdAt > lastViolationCheck) {
+                lastViolationCheck = latest.createdAt;
+                const msg = `${latest.nama} - ${latest.pelanggaran} (${latest.poin} poin) oleh ${latest.guru}`;
+                sendBrowserNotification('⚠️ Pelanggaran Baru', msg);
+            }
+        }
+
+        function checkNewRewards() {
+            const items = Object.values(rewardsCache || {});
+            if (!items.length) return;
+            const latest = items.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+            if (latest.createdAt && latest.createdAt > lastRewardCheck) {
+                lastRewardCheck = latest.createdAt;
+                const msg = `${latest.nama} - ${latest.bentuk} (+${latest.poin} poin) oleh ${latest.guru}`;
+                sendBrowserNotification('⭐ Reward Baru', msg);
+            }
+        }
+
+        function checkNewChatMessages() {
+            const items = Object.values(chatCache || {});
+            if (!items.length) return;
+            const latest = items.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
+            if (latest.timestamp && latest.timestamp > lastChatCheck && latest.senderId !== currentUser?.id) {
+                lastChatCheck = latest.timestamp;
+                // Only notify if chat page is not active or user is not focused
+                if (!isPageActive('chat') || document.hidden) {
+                    const recipient = document.getElementById('chatRecipient').value;
+                    // If message is for group or for current user
+                    if (latest.recipientId === 'grup' || latest.recipientId === currentUser?.id || !latest.recipientId) {
+                        sendBrowserNotification('💬 Pesan Chat Baru', `${latest.sender}: ${latest.message}`);
+                    }
+                }
+            }
         }
 
         // ============================================================
@@ -2809,7 +2898,7 @@
         });
 
         // ============================================================
-        // LEADERBOARD (dua tab)
+        // LEADERBOARD (dua tab) + klik nama
         // ============================================================
         function loadLeaderboard(type = 'violation') {
             currentLeaderboardTab = type;
@@ -2827,13 +2916,13 @@
 
             if (type === 'violation') {
                 items.forEach(v => {
-                    if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, total: 0, count: 0 };
+                    if (!map[v.nis]) map[v.nis] = { nis: v.nis, nama: v.nama, kelas: v.kelas, total: 0, count: 0 };
                     map[v.nis].total += (v.poin || 0);
                     map[v.nis].count += 1;
                 });
             } else {
                 items.forEach(r => {
-                    if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
+                    if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
                     map[r.nis].total += (r.poin || 0);
                     map[r.nis].count += 1;
                 });
@@ -2931,12 +3020,12 @@
         });
 
         // ============================================================
-        // BK (Bimbingan Konseling) - Speech Recognition only
+        // BK (Bimbingan Konseling) - Speech Recognition
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                showToast('Browser Anda tidak mendukung Speech Recognition. Gunakan Chrome.', 'error');
+                showToast('Browser tidak mendukung Speech Recognition. Gunakan Chrome.', 'error');
                 return null;
             }
             const rec = new SpeechRecognition();
@@ -2972,7 +3061,7 @@
                 recognition.onerror = function(event) {
                     console.error('Speech error', event);
                     if (event.error === 'not-allowed') {
-                        showToast('Izin mikrofon ditolak.', 'error');
+                        showToast('Izin mikrofon ditolak. Beri izin di pengaturan browser.', 'error');
                     } else {
                         showToast('Error: ' + event.error, 'error');
                     }
@@ -3058,7 +3147,9 @@
             document.getElementById('bkSolution').textContent = solution;
         }
 
-        // Proses AI (ringkasan & solusi dari transkrip manual)
+        document.getElementById('bkRecordBtn').addEventListener('click', startRecording);
+        document.getElementById('bkStopBtn').addEventListener('click', stopRecording);
+
         document.getElementById('bkTranscribeBtn').addEventListener('click', function() {
             const transcript = document.getElementById('bkTranscript').textContent;
             if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
@@ -3070,7 +3161,6 @@
             showToast('Ringkasan dan solusi telah dibuat!', 'success');
         });
 
-        // BK form submit
         document.getElementById('bkForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('bkStudent').value;
@@ -3101,7 +3191,6 @@
             };
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
-                // Reset form
                 document.getElementById('bkStudent').value = '';
                 document.getElementById('bkStudentSearch').value = '';
                 document.getElementById('bkClass').value = '';
@@ -3185,7 +3274,6 @@
             loadBkList();
         });
 
-        // Export BK to Excel (CSV)
         document.getElementById('exportBkExcelBtn').addEventListener('click', function() {
             const items = Object.values(bkCache || {});
             if (!items.length) { showToast('Tidak ada data BK.', 'error'); return; }
@@ -3207,7 +3295,7 @@
         });
 
         // ============================================================
-        // CHAT (Private + Group)
+        // CHAT (Private + Group) + Hapus Pesan
         // ============================================================
         function populateChatRecipients() {
             const select = document.getElementById('chatRecipient');
@@ -3234,8 +3322,6 @@
             const recipient = document.getElementById('chatRecipient').value;
             let items = Object.values(chatCache || {});
 
-            // Filter: jika recipient = 'grup' -> tampilkan semua pesan dengan recipientId = 'grup' atau tanpa recipientId (default)
-            // jika recipient adalah userId -> tampilkan pesan yang dikirim dari atau ke userId tersebut
             if (recipient === 'grup') {
                 items = items.filter(msg => msg.recipientId === 'grup' || !msg.recipientId);
             } else {
@@ -3243,7 +3329,7 @@
                     (msg.senderId === currentUser.id && msg.recipientId === recipient) ||
                     (msg.senderId === recipient && msg.recipientId === currentUser.id) ||
                     (msg.senderId === currentUser.id && !msg.recipientId) ||
-                    (msg.senderId === recipient && !msg.recipientId) // fallback
+                    (msg.senderId === recipient && !msg.recipientId)
                 );
             }
 
@@ -3255,14 +3341,31 @@
             }
             container.innerHTML = items.map(msg => {
                 const isOwn = msg.senderId === currentUser.id;
+                const canDelete = isOwn || isAdmin();
                 return `
                     <div class="chat-msg ${isOwn ? 'own' : ''}">
                         <div class="sender">${escapeHtml(msg.sender)} <span class="badge">${escapeHtml(msg.jabatan || 'Guru')}</span> <span class="time">${escapeHtml(msg.time || '-')}</span></div>
                         <div class="text">${escapeHtml(msg.message)}</div>
+                        ${canDelete ? `<button class="delete-chat" data-chat-id="${msg.id || ''}" title="Hapus pesan"><i class="fas fa-trash"></i></button>` : ''}
                     </div>
                 `;
             }).join('');
             container.scrollTop = container.scrollHeight;
+
+            // Event listener untuk hapus pesan
+            container.querySelectorAll('.delete-chat').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.getAttribute('data-chat-id');
+                    if (!id) return;
+                    if (confirm('Hapus pesan ini?')) {
+                        db.ref('chat/' + id).remove().then(() => {
+                            showToast('Pesan dihapus.');
+                            loadChat();
+                        }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
+                    }
+                });
+            });
         }
 
         document.getElementById('chatRecipient').addEventListener('change', loadChat);
@@ -3275,7 +3378,9 @@
             if (!currentUser) { showToast('Anda belum login.', 'error'); return; }
 
             const recipientId = document.getElementById('chatRecipient').value;
+            const id = genId();
             const chatMsg = {
+                id: id,
                 sender: currentUser.name,
                 senderId: currentUser.id,
                 recipientId: recipientId,
@@ -3284,9 +3389,18 @@
                 timestamp: Date.now(),
                 time: new Date().toLocaleString('id-ID')
             };
-            db.ref('chat/' + genId()).set(chatMsg).then(() => {
+            db.ref('chat/' + id).set(chatMsg).then(() => {
                 input.value = '';
                 loadChat();
+                // Kirim notifikasi browser untuk pesan baru (kecuali untuk grup atau jika penerima offline)
+                if (recipientId !== 'grup') {
+                    const recipientUser = usersCache[recipientId];
+                    if (recipientUser) {
+                        sendBrowserNotification('💬 Pesan Pribadi', `${currentUser.name} mengirim pesan: ${message}`);
+                    }
+                } else {
+                    sendBrowserNotification('💬 Pesan Grup', `${currentUser.name}: ${message}`);
+                }
             }).catch(err => showToast('Gagal kirim: ' + err.message, 'error'));
         });
 
@@ -3313,7 +3427,7 @@
         }
 
         // ============================================================
-        // FEEDBACK
+        // FEEDBACK + HAPUS SARAN
         // ============================================================
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3352,8 +3466,21 @@
                     <div class="feedback-text"><strong>${escapeHtml(f.name)}</strong> <span class="badge">${escapeHtml(f.type)}</span></div>
                     <div class="feedback-text">${escapeHtml(f.message)}</div>
                     <div class="feedback-meta">${escapeHtml(f.guru || 'Guru')} • ${escapeHtml(f.timestamp || '-')}</div>
+                    ${isAdmin() ? `<button class="delete-feedback" data-feedback-id="${f.id}" title="Hapus saran"><i class="fas fa-trash"></i></button>` : ''}
                 </div>
             `).join('');
+
+            container.querySelectorAll('.delete-feedback').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-feedback-id');
+                    if (confirm('Hapus saran ini?')) {
+                        db.ref('feedback/' + id).remove().then(() => {
+                            showToast('Saran dihapus.');
+                            loadFeedbackList();
+                        }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
+                    }
+                });
+            });
         }
 
         // ============================================================
@@ -3419,6 +3546,7 @@
                             `${nama} mendapat ${formatRupiah(awarded)} karena mencapai ${threshold} poin reward!`,
                             { nis, nama, kelas, amount: awarded, threshold });
                         showToast(`🎉 ${nama} mendapat ${formatRupiah(awarded)}!`, 'success');
+                        sendBrowserNotification('💰 Reward Uang', `${nama} mendapat ${formatRupiah(awarded)}!`);
                     });
                 }
             }
@@ -3800,6 +3928,7 @@
                         pelanggaran: t.nama,
                         poin: t.poin
                     });
+                sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
@@ -3837,6 +3966,7 @@
                         bentuk: t.nama,
                         poin: t.poin
                     });
+                sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama} (+${t.poin} poin)`);
                 const allRewards = Object.values(rewardsCache || {});
                 const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
                 checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
@@ -3882,6 +4012,9 @@
                 const passInput = document.getElementById('loginPassword');
                 if (passInput) passInput.focus();
             }
+
+            // Tampilkan motivasi di halaman login
+            showMotivationQuote();
 
             const userData = sessionStorage.getItem('cq_currentUser');
             if (userData) {
