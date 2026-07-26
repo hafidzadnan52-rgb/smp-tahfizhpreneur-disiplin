@@ -967,7 +967,6 @@
             border-radius: var(--radius-sm);
             margin-bottom: 10px;
             border-left: 4px solid var(--gold);
-            position: relative;
         }
         .feedback-item .feedback-meta {
             font-size: 0.8rem;
@@ -976,16 +975,6 @@
         }
         .feedback-item .feedback-text {
             font-size: 0.95rem;
-        }
-        .feedback-item .delete-feedback {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 1rem;
         }
 
         /* BK */
@@ -1040,7 +1029,6 @@
             max-width: 80%;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             border-left: 4px solid var(--gold);
-            position: relative;
         }
         .chat-msg .sender {
             font-weight: 700;
@@ -1060,20 +1048,6 @@
             align-self: flex-end;
             border-left-color: var(--success);
             background: #e8f5e9;
-        }
-        .chat-msg .delete-chat {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 0.8rem;
-            opacity: 0.6;
-        }
-        .chat-msg .delete-chat:hover {
-            opacity: 1;
         }
 
         .profile-photo-upload {
@@ -2084,7 +2058,6 @@
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
-        let lastNotifTimestamp = 0;
 
         // Speech recognition
         let recognition = null;
@@ -2177,7 +2150,6 @@
                     localStorage.removeItem('cq_remembered_user');
                     localStorage.setItem('cq_remember_me', 'false');
                 }
-                // Tampilkan motivasi setelah login
                 showMotivationQuote();
                 renderApp();
             });
@@ -2206,7 +2178,7 @@
         }
 
         // ============================================================
-        // KATA PENYEMANGAT (AI generated quotes)
+        // KATA PENYEMANGAT
         // ============================================================
         const quotes = [
             "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain.",
@@ -2268,7 +2240,6 @@
             currentLeaderboardTab = 'violation';
             loadLeaderboard(currentLeaderboardTab);
 
-            // Request notification permission
             requestNotificationPermission();
         }
 
@@ -2308,7 +2279,6 @@
             db.ref('violations').on('value', (snap) => {
                 violationsCache = snap.val() || {};
                 refreshActivePage();
-                // Notifikasi pelanggaran baru (hanya jika baru)
                 checkNewViolations();
             });
             db.ref('rewards').on('value', (snap) => {
@@ -2407,6 +2377,8 @@
                 lastViolationCheck = latest.createdAt;
                 const msg = `${latest.nama} - ${latest.pelanggaran} (${latest.poin} poin) oleh ${latest.guru}`;
                 sendBrowserNotification('⚠️ Pelanggaran Baru', msg);
+                // Simpan notifikasi internal
+                saveNotif('violation', 'Pelanggaran Baru', msg);
             }
         }
 
@@ -2418,6 +2390,7 @@
                 lastRewardCheck = latest.createdAt;
                 const msg = `${latest.nama} - ${latest.bentuk} (+${latest.poin} poin) oleh ${latest.guru}`;
                 sendBrowserNotification('⭐ Reward Baru', msg);
+                saveNotif('reward', 'Reward Baru', msg);
             }
         }
 
@@ -2427,15 +2400,57 @@
             const latest = items.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
             if (latest.timestamp && latest.timestamp > lastChatCheck && latest.senderId !== currentUser?.id) {
                 lastChatCheck = latest.timestamp;
-                // Only notify if chat page is not active or user is not focused
-                if (!isPageActive('chat') || document.hidden) {
-                    const recipient = document.getElementById('chatRecipient').value;
-                    // If message is for group or for current user
-                    if (latest.recipientId === 'grup' || latest.recipientId === currentUser?.id || !latest.recipientId) {
-                        sendBrowserNotification('💬 Pesan Chat Baru', `${latest.sender}: ${latest.message}`);
-                    }
+                const recipient = document.getElementById('chatRecipient').value;
+                if (latest.recipientId === 'grup' || latest.recipientId === currentUser?.id || !latest.recipientId) {
+                    const msg = `${latest.sender}: ${latest.message}`;
+                    sendBrowserNotification('💬 Pesan Chat Baru', msg);
+                    saveNotif('chat', 'Pesan Chat', msg);
                 }
             }
+        }
+
+        function saveNotif(type, title, message) {
+            const id = genId();
+            db.ref('notifications/' + id).set({
+                id: id,
+                type: type,
+                title: title,
+                message: message,
+                createdAt: Date.now(),
+                read: false,
+                timestamp: new Date().toLocaleString('id-ID')
+            });
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notifList');
+            if (!list) return;
+            const items = Object.values(notificationsCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) {
+                list.innerHTML = '<div class="notif-empty">Belum ada notifikasi.</div>';
+                return;
+            }
+            list.innerHTML = items.map(n => `
+                <div class="notif-item ${n.type === 'violation' ? 'violation' : n.type === 'reward' ? 'reward' : ''}">
+                    <div><strong>${escapeHtml(n.title)}</strong></div>
+                    <div>${escapeHtml(n.message)}</div>
+                    <div class="notif-time">${escapeHtml(n.timestamp || '-')}</div>
+                </div>
+            `).join('');
+            const unread = items.filter(n => !n.read).length;
+            notifCount = unread;
+            const countEl = document.getElementById('notifCount');
+            if (countEl) {
+                countEl.textContent = unread;
+                countEl.style.display = unread > 0 ? 'block' : 'none';
+            }
+        }
+
+        function markAllNotificationsRead() {
+            const items = Object.values(notificationsCache || {});
+            items.forEach(n => {
+                if (!n.read) db.ref('notifications/' + n.id).update({ read: true });
+            });
         }
 
         // ============================================================
@@ -3295,7 +3310,7 @@
         });
 
         // ============================================================
-        // CHAT (Private + Group) + Hapus Pesan
+        // CHAT (Private + Group) - tanpa hapus
         // ============================================================
         function populateChatRecipients() {
             const select = document.getElementById('chatRecipient');
@@ -3341,31 +3356,14 @@
             }
             container.innerHTML = items.map(msg => {
                 const isOwn = msg.senderId === currentUser.id;
-                const canDelete = isOwn || isAdmin();
                 return `
                     <div class="chat-msg ${isOwn ? 'own' : ''}">
                         <div class="sender">${escapeHtml(msg.sender)} <span class="badge">${escapeHtml(msg.jabatan || 'Guru')}</span> <span class="time">${escapeHtml(msg.time || '-')}</span></div>
                         <div class="text">${escapeHtml(msg.message)}</div>
-                        ${canDelete ? `<button class="delete-chat" data-chat-id="${msg.id || ''}" title="Hapus pesan"><i class="fas fa-trash"></i></button>` : ''}
                     </div>
                 `;
             }).join('');
             container.scrollTop = container.scrollHeight;
-
-            // Event listener untuk hapus pesan
-            container.querySelectorAll('.delete-chat').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const id = this.getAttribute('data-chat-id');
-                    if (!id) return;
-                    if (confirm('Hapus pesan ini?')) {
-                        db.ref('chat/' + id).remove().then(() => {
-                            showToast('Pesan dihapus.');
-                            loadChat();
-                        }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
-                    }
-                });
-            });
         }
 
         document.getElementById('chatRecipient').addEventListener('change', loadChat);
@@ -3392,7 +3390,6 @@
             db.ref('chat/' + id).set(chatMsg).then(() => {
                 input.value = '';
                 loadChat();
-                // Kirim notifikasi browser untuk pesan baru (kecuali untuk grup atau jika penerima offline)
                 if (recipientId !== 'grup') {
                     const recipientUser = usersCache[recipientId];
                     if (recipientUser) {
@@ -3427,7 +3424,7 @@
         }
 
         // ============================================================
-        // FEEDBACK + HAPUS SARAN
+        // FEEDBACK (tanpa hapus)
         // ============================================================
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3466,21 +3463,8 @@
                     <div class="feedback-text"><strong>${escapeHtml(f.name)}</strong> <span class="badge">${escapeHtml(f.type)}</span></div>
                     <div class="feedback-text">${escapeHtml(f.message)}</div>
                     <div class="feedback-meta">${escapeHtml(f.guru || 'Guru')} • ${escapeHtml(f.timestamp || '-')}</div>
-                    ${isAdmin() ? `<button class="delete-feedback" data-feedback-id="${f.id}" title="Hapus saran"><i class="fas fa-trash"></i></button>` : ''}
                 </div>
             `).join('');
-
-            container.querySelectorAll('.delete-feedback').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-feedback-id');
-                    if (confirm('Hapus saran ini?')) {
-                        db.ref('feedback/' + id).remove().then(() => {
-                            showToast('Saran dihapus.');
-                            loadFeedbackList();
-                        }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
-                    }
-                });
-            });
         }
 
         // ============================================================
@@ -3542,9 +3526,8 @@
                         isMoneyReward: true
                     };
                     db.ref('rewards/' + genId()).set(moneyRecord).then(() => {
-                        addNotification('money', '💰 Reward Uang!',
-                            `${nama} mendapat ${formatRupiah(awarded)} karena mencapai ${threshold} poin reward!`,
-                            { nis, nama, kelas, amount: awarded, threshold });
+                        saveNotif('money', '💰 Reward Uang!',
+                            `${nama} mendapat ${formatRupiah(awarded)} karena mencapai ${threshold} poin reward!`);
                         showToast(`🎉 ${nama} mendapat ${formatRupiah(awarded)}!`, 'success');
                         sendBrowserNotification('💰 Reward Uang', `${nama} mendapat ${formatRupiah(awarded)}!`);
                     });
@@ -3921,13 +3904,8 @@
             };
             db.ref('violations/' + genId()).set(record).then(() => {
                 showToast('Pelanggaran berhasil dicatat!');
-                addNotification('violation', '⚠️ Pelanggaran',
-                    `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`, {
-                        nis,
-                        nama: s.nama,
-                        pelanggaran: t.nama,
-                        poin: t.poin
-                    });
+                saveNotif('violation', '⚠️ Pelanggaran',
+                    `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
@@ -3959,13 +3937,8 @@
             };
             db.ref('rewards/' + genId()).set(record).then(() => {
                 showToast('Reward berhasil diberikan!');
-                addNotification('reward', '⭐ Reward Kebaikan',
-                    `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`, {
-                        nis,
-                        nama: s.nama,
-                        bentuk: t.nama,
-                        poin: t.poin
-                    });
+                saveNotif('reward', '⭐ Reward Kebaikan',
+                    `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama} (+${t.poin} poin)`);
                 const allRewards = Object.values(rewardsCache || {});
                 const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
@@ -4013,7 +3986,6 @@
                 if (passInput) passInput.focus();
             }
 
-            // Tampilkan motivasi di halaman login
             showMotivationQuote();
 
             const userData = sessionStorage.getItem('cq_currentUser');
