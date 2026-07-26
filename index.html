@@ -7,8 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
     <style>
         /* ===== RESET & VARIABEL ===== */
         * {
@@ -33,6 +35,8 @@
             --danger: #d1453b;
             --success: #2a9d8f;
             --warning: #e9b741;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 0px;
         }
         body {
             font-family: "Inter", sans-serif;
@@ -86,6 +90,10 @@
             background: #e0f5f0;
             color: var(--success);
         }
+        .badge-gold {
+            background: var(--gold);
+            color: #fff;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -99,6 +107,7 @@
             transition: 0.3s ease;
             background: var(--primary);
             color: #fff;
+            text-decoration: none;
         }
         .btn:hover {
             transform: translateY(-2px);
@@ -135,6 +144,20 @@
         .btn-outline:hover {
             background: var(--primary);
             color: #fff;
+        }
+        .btn-icon {
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-light);
+            transition: 0.3s;
+        }
+        .btn-icon:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--primary);
         }
 
         /* LOGIN */
@@ -273,13 +296,15 @@
         #app.active {
             display: flex;
         }
+
+        /* TOPBAR */
         .topbar {
             background: var(--primary);
             color: #fff;
-            padding: 12px 0;
+            padding: 10px 0;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
         .topbar .container {
@@ -300,6 +325,25 @@
             font-size: 0.55rem;
             letter-spacing: 3px;
             opacity: 0.8;
+        }
+        .topbar .left-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar .menu-toggle {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: none;
+            transition: 0.3s;
+        }
+        .topbar .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
         .topbar .user-info {
             display: flex;
@@ -331,21 +375,55 @@
         .topbar .logout-btn:hover {
             background: rgba(255, 255, 255, 0.25);
         }
+        .topbar .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 10px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            transition: 0.3s;
+        }
+        .topbar .notification-bell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .topbar .notification-bell .badge-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
 
+        /* APP BODY */
         .app-body {
             display: flex;
             flex: 1;
+            position: relative;
         }
+
+        /* SIDEBAR - slide out */
         .sidebar {
-            width: 240px;
+            width: var(--sidebar-width);
             background: #fff;
             border-right: 1px solid #eee8e0;
-            padding: 20px 0;
+            padding: 16px 0;
             flex-shrink: 0;
-            height: calc(100vh - 68px);
+            height: calc(100vh - 64px);
             position: sticky;
-            top: 68px;
+            top: 64px;
             overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease;
+            z-index: 150;
+            transform: translateX(0);
         }
         .sidebar .nav-item {
             display: flex;
@@ -358,6 +436,7 @@
             cursor: pointer;
             border-left: 4px solid transparent;
             transition: 0.3s;
+            text-decoration: none;
         }
         .sidebar .nav-item:hover {
             background: #f8f5f0;
@@ -381,12 +460,45 @@
             background: #eee8e0;
             margin: 12px 24px;
         }
+        .sidebar .sidebar-brand {
+            padding: 0 24px 16px 24px;
+            border-bottom: 1px solid #eee8e0;
+            margin-bottom: 12px;
+        }
+        .sidebar .sidebar-brand .brand-text {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        .sidebar .sidebar-brand .brand-text span {
+            color: var(--gold);
+        }
+        .sidebar .sidebar-brand .brand-sub {
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--text-light);
+        }
 
+        /* overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 140;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* MAIN CONTENT */
         .main-content {
             flex: 1;
             padding: 28px 32px;
             overflow-y: auto;
-            max-height: calc(100vh - 68px);
+            max-height: calc(100vh - 64px);
+            min-width: 0;
         }
         .page-section {
             display: none;
@@ -421,9 +533,10 @@
             margin-top: 4px;
         }
 
+        /* STAT CARDS */
         .stat-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 16px;
             margin-bottom: 28px;
         }
@@ -435,15 +548,16 @@
             border: 1px solid #f0ece4;
         }
         .stat-card .stat-number {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
             color: var(--primary);
         }
         .stat-card .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-light);
         }
 
+        /* CARDS */
         .card {
             background: #fff;
             border-radius: var(--radius);
@@ -543,6 +657,7 @@
             background: #145a24;
         }
 
+        /* LEADERBOARD */
         .leaderboard-item {
             display: flex;
             align-items: center;
@@ -587,7 +702,11 @@
             font-size: 1.1rem;
             color: var(--danger);
         }
+        .leaderboard-item .points.reward-points {
+            color: var(--success);
+        }
 
+        /* MODAL */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -625,6 +744,8 @@
             cursor: pointer;
             color: var(--text-light);
         }
+
+        /* TOAST */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -641,6 +762,7 @@
             transform: translateY(120px);
             opacity: 0;
             transition: 0.4s;
+            max-width: 400px;
         }
         .toast.show {
             transform: translateY(0);
@@ -653,52 +775,222 @@
             background: var(--danger);
         }
 
-        .password-history {
+        /* NOTIFICATION PANEL */
+        .notification-panel {
+            position: fixed;
+            top: 64px;
+            right: 0;
+            width: 380px;
+            max-height: calc(100vh - 64px);
+            background: #fff;
+            box-shadow: -4px 0 30px rgba(0, 0, 0, 0.12);
+            z-index: 300;
+            transform: translateX(100%);
+            transition: transform 0.35s ease;
+            overflow-y: auto;
+            padding: 16px 20px;
+            border-left: 1px solid #eee8e0;
+        }
+        .notification-panel.open {
+            transform: translateX(0);
+        }
+        .notification-panel .notif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0ece4;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .notification-panel .notif-item {
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            background: #faf8f5;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--gold);
+            font-size: 0.85rem;
+        }
+        .notification-panel .notif-item .notif-time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        .notification-panel .notif-item.violation {
+            border-left-color: var(--danger);
+        }
+        .notification-panel .notif-item.reward {
+            border-left-color: var(--success);
+        }
+        .notification-panel .notif-empty {
+            color: var(--text-light);
+            text-align: center;
+            padding: 30px 0;
+        }
+        .notification-panel .notif-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        /* ADMIN ACCORDION */
+        .accordion-section {
+            margin-bottom: 12px;
+            border: 1px solid #f0ece4;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .accordion-header {
+            background: #f8f5f0;
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            transition: 0.3s;
+            user-select: none;
+        }
+        .accordion-header:hover {
+            background: #f0ece4;
+        }
+        .accordion-header i {
+            transition: transform 0.3s;
+        }
+        .accordion-header.open i {
+            transform: rotate(180deg);
+        }
+        .accordion-body {
+            padding: 16px 20px;
+            display: none;
+            background: #fff;
+        }
+        .accordion-body.open {
+            display: block;
+        }
+
+        /* POINT REWARD BADGE */
+        .reward-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .reward-badge.gold {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+
+        /* STUDENT AUTOCOMPLETE (simple search) */
+        .student-search-wrap {
+            position: relative;
+        }
+        .student-search-wrap .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 2px solid #e8e4dc;
+            border-top: none;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .student-search-wrap .search-results .result-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0ece4;
+            transition: 0.2s;
+        }
+        .student-search-wrap .search-results .result-item:hover {
+            background: #f8f5f0;
+        }
+        .student-search-wrap .search-results .result-item .sub {
             font-size: 0.75rem;
             color: var(--text-light);
         }
 
-        @media (max-width: 768px) {
-            .app-body {
-                flex-direction: column;
-            }
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: static;
-                border-right: none;
-                border-bottom: 1px solid #eee8e0;
-                padding: 12px 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 4px;
-                justify-content: center;
+                transform: translateX(-100%);
+                position: fixed;
+                top: 64px;
+                left: 0;
+                height: calc(100vh - 64px);
+                z-index: 160;
+                box-shadow: 4px 0 30px rgba(0, 0, 0, 0.1);
             }
-            .sidebar .nav-item {
-                padding: 8px 16px;
-                border-left: none;
-                border-bottom: 3px solid transparent;
-                font-size: 0.8rem;
+            .sidebar.open {
+                transform: translateX(0);
             }
-            .sidebar .nav-item.active {
-                border-left: none;
-                border-bottom-color: var(--gold);
+            .topbar .menu-toggle {
+                display: block;
+            }
+            .sidebar-overlay.show {
+                display: block;
             }
             .main-content {
-                max-height: none;
                 padding: 16px;
+                max-height: none;
             }
+            .notification-panel {
+                width: 100%;
+                max-width: 380px;
+            }
+        }
+        @media (max-width: 768px) {
             .stat-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
             .login-card {
                 padding: 32px 24px;
             }
+            .main-content {
+                padding: 12px;
+            }
+            .card {
+                padding: 16px 18px;
+            }
+            .topbar .brand .logo-icon .sub {
+                display: none;
+            }
+            .topbar .user-info .name {
+                display: none;
+            }
+            .notification-panel {
+                max-width: 100%;
+                right: 0;
+                width: 100%;
+            }
         }
         @media (max-width: 480px) {
             .stat-cards {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0ece4;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -746,23 +1038,38 @@
     <div id="app">
         <header class="topbar">
             <div class="container">
-                <div class="brand">
-                    <div class="logo-icon">
-                        <div class="main">Tahfizh <span>Preneur</span></div>
-                        <div class="sub">✦ SMP CAHAYA QURAN ✦</div>
+                <div class="left-group">
+                    <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                    <div class="brand">
+                        <div class="logo-icon">
+                            <div class="main">Tahfizh <span>Preneur</span></div>
+                            <div class="sub">✦ SMP CAHAYA QURAN ✦</div>
+                        </div>
                     </div>
                 </div>
                 <div class="user-info">
+                    <button class="notification-bell" id="notifBell">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-count" id="notifCount">0</span>
+                    </button>
                     <span class="avatar" id="userAvatar">A</span>
                     <span class="name" id="userName">Admin</span>
-                    <!-- PERBAIKAN: tambahkan id="userRole" -->
                     <span class="role-badge" id="userRole" style="background:rgba(255,255,255,0.15);padding:2px 12px;border-radius:20px;font-size:0.7rem;">ADMIN</span>
                     <button class="logout-btn" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Keluar</button>
                 </div>
             </div>
         </header>
+
         <div class="app-body">
+            <!-- Sidebar Overlay -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+            <!-- Sidebar -->
             <nav class="sidebar" id="sidebar">
+                <div class="sidebar-brand">
+                    <div class="brand-text">Tahfizh <span>Preneur</span></div>
+                    <div class="brand-sub">✦ SMP CAHAYA QURAN ✦</div>
+                </div>
                 <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 <a class="nav-item" data-page="record"><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</a>
                 <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
@@ -772,6 +1079,7 @@
                 <a class="nav-item" data-page="admin" id="adminNav"><i class="fas fa-user-gear"></i> Panel Admin</a>
                 <a class="nav-item" data-page="profile"><i class="fas fa-user"></i> Profil & Sandi</a>
             </nav>
+
             <main class="main-content">
                 <!-- DASHBOARD -->
                 <section class="page-section active" id="page-dashboard">
@@ -783,6 +1091,7 @@
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statToday">0</div><div class="stat-label">Hari Ini</div></div><i class="fas fa-calendar-day" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statHighest">0</div><div class="stat-label">Poin Tertinggi</div></div><i class="fas fa-arrow-up" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward</div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statMoneyReward">Rp0</div><div class="stat-label">Total Uang Reward</div></div><i class="fas fa-money-bill-wave" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
@@ -794,7 +1103,12 @@
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
-                                <div class="form-group"><label>Siswa <span class="text-muted">*</span></label><select id="recStudent" required><option value="">— Pilih siswa —</option></select></div>
+                                <div class="form-group student-search-wrap">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <input type="text" id="recStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <select id="recStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
+                                    <div class="search-results" id="recStudentResults"></div>
+                                </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
@@ -817,7 +1131,12 @@
                     <div class="card">
                         <form id="rewardForm">
                             <div class="form-row">
-                                <div class="form-group"><label>Siswa <span class="text-muted">*</span></label><select id="rewardStudent" required><option value="">— Pilih siswa —</option></select></div>
+                                <div class="form-group student-search-wrap">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <input type="text" id="rewardStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <select id="rewardStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
+                                    <div class="search-results" id="rewardStudentResults"></div>
+                                </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
@@ -827,6 +1146,17 @@
                             <div class="form-group"><label>Poin Reward <span class="text-muted">(otomatis)</span></label><input type="text" id="rewardPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
                             <button type="submit" class="btn btn-success"><i class="fas fa-star"></i> Berikan Reward</button>
                         </form>
+                    </div>
+                    <!-- Daftar Reward yang Diberikan -->
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-list"></i> Riwayat Reward</h3></div>
+                        <div class="filter-bar">
+                            <input type="text" id="rewardFilterStudent" placeholder="Cari nama siswa..." />
+                            <select id="rewardFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <button class="btn btn-sm btn-outline" id="clearRewardFilters"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Bentuk Kebaikan</th><th>Poin</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="rewardsTableBody"></tbody></table></div>
+                        <div id="rewardsEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data reward.</p></div>
                     </div>
                 </section>
 
@@ -848,23 +1178,78 @@
 
                 <!-- LEADERBOARD -->
                 <section class="page-section" id="page-leaderboard">
-                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Total poin pelanggaran (tertinggi → terendah) & total reward.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Total poin pelanggaran (tertinggi → terendah) & total reward + uang reward.</p></div>
                     <div class="card"><div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div></div>
                 </section>
 
                 <!-- ADMIN -->
                 <section class="page-section" id="page-admin">
                     <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, dan pengguna. <span class="text-muted">(Data tersimpan di Cloud Firebase)</span></p></div>
-                    <div class="card"><div class="card-header"><h3><i class="fas fa-list-check"></i> Jenis Pelanggaran</h3><button class="btn btn-sm btn-gold" id="addViolationTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="violationTypesTable"></tbody></table></div></div>
-                    <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Jenis Reward</h3><button class="btn btn-sm btn-success" id="addRewardTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div><div class="table-wrap"><table><thead><tr><th>Bentuk Kebaikan</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="rewardTypesTable"></tbody></table></div></div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-users"></i> Manajemen Pengguna & Guru</h3><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
-                        <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Terakhir Ubah Sandi</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
-                        <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
+
+                    <!-- Accordion: Jenis Pelanggaran -->
+                    <div class="accordion-section">
+                        <div class="accordion-header open" data-target="accViolationTypes">
+                            <span><i class="fas fa-list-check" style="color:var(--gold);"></i> Jenis Pelanggaran</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body open" id="accViolationTypes">
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addViolationTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="violationTypesTable"></tbody></table></div>
+                        </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-chalkboard-user"></i> Daftar Guru (Database)</h3></div>
-                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Nama Guru</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
+
+                    <!-- Accordion: Jenis Reward -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accRewardTypes">
+                            <span><i class="fas fa-star" style="color:var(--success);"></i> Jenis Reward</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accRewardTypes">
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-success" id="addRewardTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Bentuk Kebaikan</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="rewardTypesTable"></tbody></table></div>
+                        </div>
+                    </div>
+
+                    <!-- Accordion: Manajemen Pengguna -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accUsers">
+                            <span><i class="fas fa-users"></i> Manajemen Pengguna & Guru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accUsers">
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Terakhir Ubah Sandi</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                            <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
+                        </div>
+                    </div>
+
+                    <!-- Accordion: Daftar Guru -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accGuru">
+                            <span><i class="fas fa-chalkboard-user"></i> Daftar Guru (Database)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accGuru">
+                            <div class="table-wrap"><table><thead><tr><th>#</th><th>Nama Guru</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
+                        </div>
+                    </div>
+
+                    <!-- Accordion: Aturan Reward Uang -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accMoneyReward">
+                            <span><i class="fas fa-money-bill-wave" style="color:var(--gold);"></i> Aturan Reward Uang</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accMoneyReward">
+                            <div class="form-row">
+                                <div class="form-group"><label>Poin 50 → Rp</label><input type="number" id="rewardMoney50" value="100000" /></div>
+                                <div class="form-group"><label>Poin 80 → Rp</label><input type="number" id="rewardMoney80" value="20000" /></div>
+                                <div class="form-group"><label>Poin 90 → Rp</label><input type="number" id="rewardMoney90" value="30000" /></div>
+                                <div class="form-group"><label>Poin 100 → Rp</label><input type="number" id="rewardMoney100" value="50000" /></div>
+                            </div>
+                            <button class="btn btn-sm btn-gold" id="saveMoneyRewardBtn"><i class="fas fa-save"></i> Simpan Aturan</button>
+                            <div style="margin-top:8px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Ketika siswa mencapai poin reward tertentu, uang reward akan otomatis tercatat.</div>
+                        </div>
                     </div>
                 </section>
 
@@ -883,6 +1268,17 @@
                     </div>
                 </section>
             </main>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION PANEL -->
+    <div class="notification-panel" id="notifPanel">
+        <div class="notif-header">
+            <span><i class="fas fa-bell" style="color:var(--gold);"></i> Notifikasi</span>
+            <button class="notif-close" id="notifClose">&times;</button>
+        </div>
+        <div id="notifList">
+            <div class="notif-empty">Belum ada notifikasi.</div>
         </div>
     </div>
 
@@ -910,7 +1306,7 @@
         const db = firebase.database();
 
         // ============================================================
-        // DATA DEFAULT (hanya diisi jika database masih kosong)
+        // DATA DEFAULT (diisi jika database kosong)
         // ============================================================
         const GURU_LIST = [
             "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
@@ -1025,41 +1421,230 @@
             { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
         ];
 
+        // Data dari dokumen konsekuensi & reward (digabung)
         const VIOLATION_TYPES_INIT = [
-            { nama: "Terlambat masuk kelas", kategori: "ringan", poin: 2, konsekuensi: "Menulis surat permohonan maaf" },
-            { nama: "Tidak mengerjakan PR", kategori: "ringan", poin: 3, konsekuensi: "Mengerjakan tugas tambahan sepulang sekolah" },
-            { nama: "Atribut seragam tidak lengkap", kategori: "ringan", poin: 2, konsekuensi: "Teguran lisan & catatan wali kelas" },
-            { nama: "Makan/minum saat pelajaran", kategori: "ringan", poin: 2, konsekuensi: "Teguran lisan" },
-            { nama: "Membuang sampah sembarangan", kategori: "ringan", poin: 3, konsekuensi: "Membersihkan area sekitar kelas" },
-            { nama: "Ribut/mengganggu KBM", kategori: "ringan", poin: 5, konsekuensi: "Duduk di depan & menulis refleksi diri" },
-            { nama: "Tidak mengikuti sholat berjamaah", kategori: "sedang", poin: 15, konsekuensi: "Sholat munfarid didampingi & hafalan doa" },
-            { nama: "Bolos pelajaran/kegiatan", kategori: "sedang", poin: 20, konsekuensi: "Panggilan orang tua & surat pernyataan" },
-            { nama: "Menyontek saat ujian", kategori: "sedang", poin: 25, konsekuensi: "Ujian ulang & pembinaan akhlak" },
-            { nama: "Berkata kasar/tidak sopan", kategori: "sedang", poin: 15, konsekuensi: "Pembinaan akhlak oleh wali kelas" },
-            { nama: "Membawa HP tanpa izin", kategori: "sedang", poin: 10, konsekuensi: "HP disita sementara & pembinaan" },
-            { nama: "Merusak fasilitas sekolah", kategori: "sedang", poin: 20, konsekuensi: "Mengganti/memperbaiki fasilitas" },
-            { nama: "Berkelahi dengan teman", kategori: "berat", poin: 50, konsekuensi: "Panggilan orang tua & bimbingan konseling" },
-            { nama: "Merokok di lingkungan sekolah", kategori: "berat", poin: 75, konsekuensi: "Panggilan orang tua & surat perjanjian" },
-            { nama: "Perundungan (bullying)", kategori: "berat", poin: 100, konsekuensi: "Konseling intensif & panggilan orang tua" },
-            { nama: "Mengambil barang bukan miliknya", kategori: "berat", poin: 100, konsekuensi: "Panggilan orang tua & pembinaan khusus" },
-            { nama: "Membawa barang terlarang", kategori: "berat", poin: 100, konsekuensi: "Panggilan orang tua & tindak lanjut pihak sekolah" }
+            // Ringan
+            { nama: "Terlambat lebih dari 15 menit", kategori: "ringan", poin: 5,
+            konsekuensi: "Memungut sampah 15 menit + istighfar 3x" },
+            { nama: "Tidak membawa kartu pelajar", kategori: "ringan", poin: 3,
+            konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Tidak mengenakan seragam sesuai ketentuan", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit + menulis tata tertib seragam" },
+            { nama: "Tidak memakai sepatu dari rumah (kecuali sakit)", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Tidak memakai kaos kaki", kategori: "ringan", poin: 3, konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Tidak memakai ciput (banat)", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit + menulis ayat tentang aurat" },
+            { nama: "Tidak memakai peci (banin)", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit + menulis hadits tentang peci" },
+            { nama: "Rambut gondrong/diwarnai/khoza (banin)", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit + menulis tata tertib rambut" },
+            { nama: "Berkata kasar/berkata kotor", kategori: "ringan", poin: 5,
+                konsekuensi: "Menulis istighfar 20x + memungut sampah 15 menit" },
+            { nama: "Membawa barang berhubungan dengan K-Pop, anime, western, dll", kategori: "ringan", poin: 5,
+                konsekuensi: "Barang disita sementara + memungut sampah 15 menit" },
+            { nama: "Berjualan di lingkungan sekolah (kecuali market day)", kategori: "ringan", poin: 2,
+                konsekuensi: "Memungut sampah 10 menit + menghentikan jualan" },
+            { nama: "Membeli makanan/minuman di luar area sekolah saat jam sekolah", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit" },
+            { nama: "Mengambil makan siang/snack tanpa izin", kategori: "ringan", poin: 5,
+                konsekuensi: "Mengembalikan + memungut sampah 15 menit" },
+            { nama: "Tidak menaruh sepatu/sandal di rak atau menaruh berantakan", kategori: "ringan", poin: 3,
+                konsekuensi: "Merapikan sepatu/sandal + memungut sampah 10 menit" },
+            { nama: "Menyimpan sepatu/sandal di rak lewat dari jam kepulangan", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit" },
+            { nama: "Meninggalkan halaqah tanpa izin", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit + menulis surat pernyataan" },
+            { nama: "Makan dan minum di mushola", kategori: "ringan", poin: 5,
+                konsekuensi: "Membersihkan mushola + memungut sampah" },
+            { nama: "Mengotori mushola", kategori: "ringan", poin: 5, konsekuensi: "Membersihkan mushola + memungut sampah" },
+            { nama: "Berperilaku tidak sopan di mushola (duduk selonjoran, bercanda berlebihan, keributan saat ibadah)",
+                kategori: "ringan", poin: 3, konsekuensi: "Menulis adab ke masjid + memungut sampah" },
+            { nama: "Menaruh mushaf atau buku agama sembarangan", kategori: "ringan", poin: 5,
+                konsekuensi: "Merapikan mushaf/buku + memungut sampah" },
+            { nama: "Telat mengembalikan buku perpustakaan", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Tidur, makan, dan minum di perpustakaan", kategori: "ringan", poin: 5,
+                konsekuensi: "Membersihkan perpustakaan + memungut sampah" },
+            { nama: "Tidak mengenakan seragam olahraga saat jam olahraga", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit" },
+            { nama: "Menggunakan lapangan di luar waktu dan jadwal yang ditetapkan", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Menggunakan lapangan saat kondisi tidak aman (hujan deras, banyak mobil, dll)", kategori: "ringan",
+                poin: 2, konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Membuang sampah sembarangan", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 15 menit di seluruh area" },
+            { nama: "Menggunakan peralatan olahraga selain di lapangan", kategori: "ringan", poin: 2,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Membawa makanan/minuman ke lab komputer", kategori: "ringan", poin: 5,
+                konsekuensi: "Membersihkan lab + memungut sampah" },
+            { nama: "Menggunakan komputer/akses internet tanpa izin guru", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit" },
+            { nama: "Makan saat KBM", kategori: "ringan", poin: 5, konsekuensi: "Memungut sampah 15 menit" },
+            { nama: "Berada di sekitar sekolah saat KBM (perpustakaan, kantin, mushola, lab, lapangan, UKS tanpa izin)",
+                kategori: "ringan", poin: 5, konsekuensi: "Memungut sampah 15 menit + kembali ke kelas" },
+            { nama: "Berada di dalam kelas ketika jam pulang", kategori: "ringan", poin: 2,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Menaruh wadah makan terlambat/tidak di tempat pengembalian", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Tidak mengenakan alas kaki di area lapangan", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Bermain bola/basket setelah jam kepulangan", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 10 menit" },
+            // Sedang
+            { nama: "Meninggalkan area sekolah tanpa izin saat KBM", kategori: "sedang", poin: 10,
+                konsekuensi: "Membersihkan lingkungan 1 jam + surat pernyataan" },
+            { nama: "Melakukan tindakan tidak menyenangkan ke siswa lain", kategori: "sedang", poin: 10,
+                konsekuensi: "Membersihkan lingkungan + mediasi + surat maaf ke korban" },
+            { nama: "Membawa buku perpustakaan tanpa izin", kategori: "sedang", poin: 10,
+                konsekuensi: "Mengembalikan buku + membersihkan perpustakaan" },
+            { nama: "Pulang sebelum waktunya tanpa izin", kategori: "sedang", poin: 15,
+                konsekuensi: "Membersihkan lingkungan 1 jam + surat pernyataan" },
+            { nama: "Merusak/mencoret sarana prasarana sekolah", kategori: "sedang", poin: 15,
+                konsekuensi: "Ganti rugi + membersihkan lingkungan 1 jam" },
+            { nama: "Melindungi/menutupi teman yang melakukan pelanggaran", kategori: "sedang", poin: 10,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Membawa dan/atau menggunakan kosmetik", kategori: "sedang", poin: 15,
+                konsekuensi: "Barang disita + membersihkan lingkungan" },
+            { nama: "Menghilangkan buku perpustakaan", kategori: "sedang", poin: 15,
+                konsekuensi: "Ganti rugi buku + membersihkan perpustakaan" },
+            { nama: "Melipat, mencoret, mengotori, merusak buku perpustakaan", kategori: "sedang", poin: 15,
+                konsekuensi: "Ganti rugi + membersihkan perpustakaan" },
+            { nama: "Mengambil dagangan kantin tanpa bayar", kategori: "sedang", poin: 21,
+                konsekuensi: "Mengembalikan uang + membersihkan lingkungan" },
+            { nama: "Melakukan pemerasan kepada siswa lain", kategori: "sedang", poin: 21,
+                konsekuensi: "Membersihkan lingkungan + mediasi + surat pernyataan" },
+            { nama: "Siswa SD membawa gadget atau smartwatch", kategori: "sedang", poin: 21,
+                konsekuensi: "Barang disita + membersihkan lingkungan" },
+            { nama: "Siswa SMP membawa gadget/smartwatch/laptop (kecuali keperluan akademik)", kategori: "sedang",
+                poin: 21, konsekuensi: "Barang disita + membersihkan lingkungan" },
+            { nama: "Menggunakan pakaian bebas yang tidak sesuai syariat", kategori: "sedang", poin: 25,
+                konsekuensi: "Mengganti pakaian + membersihkan lingkungan 1 jam" },
+            // Berat
+            { nama: "Berkelahi", kategori: "berat", poin: 30, konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Ketahuan tidak salat wajib (kecuali banat sedang haid)", kategori: "berat", poin: 30,
+                konsekuensi: "Membersihkan lingkungan 1 minggu + menulis makna salat" },
+            { nama: "Siswa membawa teman luar sekolah ke dalam sekolah tanpa izin dengan tujuan negatif",
+                kategori: "berat", poin: 40, konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Membawa atau menggunakan rokok maupun vape di lingkungan sekolah", kategori: "berat", poin: 50,
+                konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Tawuran", kategori: "berat", poin: 50, konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Bergabung dengan geng motor atau geng membahayakan di luar sekolah", kategori: "berat", poin: 50,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Membawa buku komik, novel, majalah, foto, CD, memory card, dll yang bersifat pornografi",
+                kategori: "berat", poin: 50, konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Mengakses/menonton hal berkaitan dengan pornografi/LGBT", kategori: "berat", poin: 50,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Mencemarkan nama baik sekolah di dalam maupun di luar sekolah", kategori: "berat", poin: 50,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Melakukan pembulian baik secara verbal atau non-verbal", kategori: "berat", poin: 75,
+                konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan + mediasi" },
+            { nama: "Melakukan penghinaan terhadap guru", kategori: "berat", poin: 80,
+                konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Tato tubuh", kategori: "berat", poin: 80, konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Membawa senjata tajam atau sejenisnya tanpa izin", kategori: "berat", poin: 80,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Berpacaran", kategori: "berat", poin: 80, konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Melakukan perilaku yang dilarang syariat LGBT", kategori: "berat", poin: 100,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Melakukan tindakan kekerasan kepada guru", kategori: "berat", poin: 100,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Meminum minuman keras, menghisap lem, atau berjudi", kategori: "berat", poin: 100,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Menyimpan, membawa, memakai, mengedarkan obat terlarang", kategori: "berat", poin: 100,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" },
+            { nama: "Hamil diluar nikah", kategori: "berat", poin: 100,
+                konsekuensi: "Membersihkan lingkungan + surat pernyataan" }
         ];
 
         const REWARD_TYPES_INIT = [
-            { nama: "Membantu teman kesulitan", kategori: "kecil", poin: 1 },
+            // Kecil
+            { nama: "Memungut sampah di lingkungan sekolah", kategori: "kecil", poin: 1 },
+            { nama: "Membuang sampah pada tempatnya", kategori: "kecil", poin: 1 },
+            { nama: "Mengembalikan barang teman yang terjatuh", kategori: "kecil", poin: 1 },
+            { nama: "Mengucapkan salam terlebih dahulu kepada guru/teman", kategori: "kecil", poin: 1 },
+            { nama: "Membuka pintu untuk guru/teman", kategori: "kecil", poin: 1 },
+            { nama: "Merapikan sepatu/sandal di rak", kategori: "kecil", poin: 1 },
+            { nama: "Membersihkan papan tulis", kategori: "kecil", poin: 1 },
+            { nama: "Merapikan meja dan kursi setelah belajar", kategori: "kecil", poin: 1 },
+            { nama: "Mengingatkan teman untuk shalat", kategori: "kecil", poin: 1 },
+            { nama: "Menertibkan teman yang ribut di kelas", kategori: "kecil", poin: 1 },
+            { nama: "Meminjamkan alat tulis kepada teman", kategori: "kecil", poin: 1 },
+            { nama: "Menawarkan bantuan kepada teman yang kesulitan", kategori: "kecil", poin: 1 },
+            { nama: "Membantu guru membawa buku/bahan ajar", kategori: "kecil", poin: 1 },
+            { nama: "Menyapa guru dengan senyum", kategori: "kecil", poin: 1 },
+            { nama: "Tidak berbicara kasar/kotor", kategori: "kecil", poin: 1 },
             { nama: "Menjaga kebersihan kelas", kategori: "kecil", poin: 1 },
-            { nama: "Disiplin & tepat waktu", kategori: "kecil", poin: 2 },
-            { nama: "Aktif bertanya/menjawab di kelas", kategori: "kecil", poin: 1 },
-            { nama: "Menghafal juz baru tepat waktu", kategori: "sedang", poin: 4 },
-            { nama: "Memimpin doa/menjadi imam", kategori: "sedang", poin: 3 },
-            { nama: "Membantu guru mengajar teman", kategori: "sedang", poin: 3 },
-            { nama: "Menolong teman yang kesulitan/sakit", kategori: "sedang", poin: 4 },
-            { nama: "Juara lomba akademik/non-akademik", kategori: "besar", poin: 5 },
-            { nama: "Menunjukkan akhlak teladan", kategori: "besar", poin: 5 }
+            { nama: "Merapikan rak buku di kelas", kategori: "kecil", poin: 1 },
+            { nama: "Mengembalikan buku ke perpustakaan tepat waktu", kategori: "kecil", poin: 1 },
+            { nama: "Memakai seragam dengan lengkap dan rapi", kategori: "kecil", poin: 1 },
+            { nama: "Mengembalikan barang temuan ke pemiliknya", kategori: "kecil", poin: 2 },
+            { nama: "Membersihkan area mushola/masjid", kategori: "kecil", poin: 2 },
+            { nama: "Merapikan rak mushaf Al-Qur'an", kategori: "kecil", poin: 2 },
+            { nama: "Membantu teman yang jatuh", kategori: "kecil", poin: 2 },
+            { nama: "Berbagi makanan dengan teman", kategori: "kecil", poin: 1 },
+            { nama: "Menjaga kebersihan toilet/kamar mandi", kategori: "kecil", poin: 2 },
+            { nama: "Mengucapkan terima kasih kepada guru", kategori: "kecil", poin: 1 },
+            { nama: "Membaca doa sebelum dan sesudah belajar", kategori: "kecil", poin: 1 },
+            { nama: "Menjaga adab saat di mushola", kategori: "kecil", poin: 1 },
+            { nama: "Memakai peci/ciput dengan benar", kategori: "kecil", poin: 1 },
+            { nama: "Menjaga kerapihan rambut", kategori: "kecil", poin: 1 },
+            // Sedang
+            { nama: "Membantu guru/ustadz membawa barang berat", kategori: "sedang", poin: 3 },
+            { nama: "Menjadi imam shalat berjamaah", kategori: "sedang", poin: 3 },
+            { nama: "Memimpin doa di kelas", kategori: "sedang", poin: 3 },
+            { nama: "Mengajar teman yang kesulitan belajar (tutor sebaya)", kategori: "sedang", poin: 3 },
+            { nama: "Mengingatkan teman yang akan berbuat salah", kategori: "sedang", poin: 3 },
+            { nama: "Memberikan nasihat positif kepada teman", kategori: "sedang", poin: 3 },
+            { nama: "Mengajak teman ke mushola/masjid", kategori: "sedang", poin: 3 },
+            { nama: "Mengumpulkan sampah di area sekolah", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi ketua kelas yang bertanggung jawab", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi koordinator kebersihan kelas", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi tutor sebaya secara rutin", kategori: "sedang", poin: 4 },
+            { nama: "Membantu guru mengkondisikan kelas", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi perantara damai antar teman yang bertengkar", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi pengurus perpustakaan aktif", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi pengurus mushola aktif", kategori: "sedang", poin: 4 },
+            { nama: "Mengikuti kegiatan ekstrakurikuler dengan baik", kategori: "sedang", poin: 3 },
+            { nama: "Menjadi contoh disiplin bagi teman-temannya", kategori: "sedang", poin: 4 },
+            { nama: "Membantu teman yang terkena musibah", kategori: "sedang", poin: 4 },
+            { nama: "Mengawasi adik kelas saat jam istirahat", kategori: "sedang", poin: 3 },
+            { nama: "Menjadi panitia kegiatan sekolah", kategori: "sedang", poin: 4 },
+            { nama: "Membantu guru dalam mengelola kegiatan sekolah", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi ketua kelompok belajar", kategori: "sedang", poin: 4 },
+            { nama: "Menjadi pembaca doa di acara sekolah", kategori: "sedang", poin: 3 },
+            { nama: "Membantu teman yang tertinggal pelajaran", kategori: "sedang", poin: 3 },
+            { nama: "Mengajak teman untuk menjaga kebersihan", kategori: "sedang", poin: 4 },
+            // Besar
+            { nama: "Memisahkan teman yang bertengkar", kategori: "besar", poin: 5 },
+            { nama: "Menjadi juara lomba tingkat sekolah", kategori: "besar", poin: 5 },
+            { nama: "Menjadi juara lomba tingkat kecamatan/kabupaten", kategori: "besar", poin: 5 },
+            { nama: "Menjadi juara lomba tingkat kota", kategori: "besar", poin: 5 },
+            { nama: "Menjadi juara lomba tingkat provinsi", kategori: "besar", poin: 5 },
+            { nama: "Menjadi juara lomba tingkat nasional", kategori: "besar", poin: 5 },
+            { nama: "Melaporkan tindakan bullying yang terjadi", kategori: "besar", poin: 5 },
+            { nama: "Membela teman yang teraniaya", kategori: "besar", poin: 5 },
+            { nama: "Menyelesaikan masalah teman dengan bijak", kategori: "besar", poin: 5 },
+            { nama: "Menjadi duta sekolah dengan baik", kategori: "besar", poin: 5 },
+            { nama: "Menjadi pembina dalam kegiatan sekolah", kategori: "besar", poin: 5 },
+            { nama: "Menginisiasi kegiatan positif untuk sekolah", kategori: "besar", poin: 5 },
+            { nama: "Menjadi siswa teladan (Student of the Month)", kategori: "besar", poin: 5 },
+            { nama: "Menghafal Al-Qur'an mencapai target di atas rata-rata", kategori: "besar", poin: 5 },
+            { nama: "Menjadi pembawa acara (MC) kegiatan sekolah", kategori: "besar", poin: 5 },
+            { nama: "Menemukan dan mengembalikan barang berharga", kategori: "besar", poin: 5 },
+            { nama: "Mewakili sekolah dalam ajang kompetisi", kategori: "besar", poin: 5 },
+            { nama: "Memberikan ide/inovasi untuk program sekolah", kategori: "besar", poin: 5 },
+            { nama: "Menjadi panitia kegiatan sekolah yang sukses", kategori: "besar", poin: 5 },
+            { nama: "Menjadi ketua OSIS/ketua kelas yang berprestasi", kategori: "besar", poin: 5 },
+            { nama: "Mengikuti lomba dan meraih prestasi", kategori: "besar", poin: 5 },
+            { nama: "Menjadi pemimpin kegiatan keagamaan di sekolah", kategori: "besar", poin: 5 },
+            { nama: "Berhasil mendamaikan dua teman yang bermusuhan", kategori: "besar", poin: 5 },
+            { nama: "Menjadi duta anti-bullying sekolah", kategori: "besar", poin: 5 },
+            { nama: "Berhasil mengajak teman untuk berubah menjadi lebih baik", kategori: "besar", poin: 5 }
         ];
 
         // ============================================================
-        // FUNGSI INISIALISASI FIREBASE (seed data jika kosong)
+        // FUNGSI INISIALISASI FIREBASE
         // ============================================================
         function initFirebaseData() {
             db.ref('users').once('value', (snap) => {
@@ -1102,6 +1687,17 @@
                     db.ref('rewardTypes').set(obj);
                 }
             });
+            // Money reward rules default
+            db.ref('moneyRewardRules').once('value', (snap) => {
+                if (!snap.exists()) {
+                    db.ref('moneyRewardRules').set({
+                        '50': 100000,
+                        '80': 20000,
+                        '90': 30000,
+                        '100': 50000
+                    });
+                }
+            });
             console.log('🔥 Firebase siap!');
         }
         initFirebaseData();
@@ -1110,12 +1706,22 @@
         // FUNGSI BANTUAN
         // ============================================================
         function genId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
+
         function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
         function formatDate(dateStr) { if (!dateStr) return '-'; const p = dateStr.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
+
         function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
         function escapeHtml(str) {
             if (str === undefined || str === null) return '';
-            return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+                "'": '&#39;' }[c]));
+        }
+
+        function formatRupiah(val) {
+            if (!val) return 'Rp0';
+            return 'Rp' + Number(val).toLocaleString('id-ID');
         }
 
         let currentUser = null;
@@ -1127,7 +1733,10 @@
         let usersCache = {};
         let guruCache = {};
         let passwordHistoryCache = {};
+        let notificationsCache = {};
+        let moneyRewardRules = {};
         let listenersAttached = false;
+        let notifCount = 0;
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
 
@@ -1135,6 +1744,7 @@
         // TOAST & MODAL
         // ============================================================
         let toastTimer;
+
         function showToast(msg, type = 'success') {
             const el = document.getElementById('toast');
             if (!el) return;
@@ -1146,7 +1756,7 @@
             clearTimeout(toastTimer);
             void el.offsetWidth;
             el.classList.add('show');
-            toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
         }
 
         const modalOverlay = document.getElementById('modalOverlay');
@@ -1154,10 +1764,61 @@
         const modalBody = document.getElementById('modalBody');
         const modalClose = document.getElementById('modalClose');
 
-        function openModal(title, html) { if (modalTitle) modalTitle.textContent = title; if (modalBody) modalBody.innerHTML = html; if (modalOverlay) modalOverlay.classList.add('show'); }
+        function openModal(title, html) { if (modalTitle) modalTitle.textContent = title; if (modalBody) modalBody.innerHTML =
+            html; if (modalOverlay) modalOverlay.classList.add('show'); }
+
         function closeModal() { if (modalOverlay) modalOverlay.classList.remove('show'); }
         if (modalClose) modalClose.addEventListener('click', closeModal);
         if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
+        function addNotification(type, title, message, data = {}) {
+            const notif = {
+                id: genId(),
+                type: type, // 'violation' or 'reward' or 'money'
+                title: title,
+                message: message,
+                data: data,
+                createdAt: Date.now(),
+                read: false,
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+            db.ref('notifications/' + notif.id).set(notif);
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notifList');
+            if (!list) return;
+            const items = Object.values(notificationsCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) {
+                list.innerHTML = '<div class="notif-empty">Belum ada notifikasi.</div>';
+                return;
+            }
+            list.innerHTML = items.map(n => `
+                <div class="notif-item ${n.type === 'violation' ? 'violation' : n.type === 'reward' ? 'reward' : ''}">
+                    <div><strong>${escapeHtml(n.title)}</strong></div>
+                    <div>${escapeHtml(n.message)}</div>
+                    <div class="notif-time">${escapeHtml(n.timestamp || '-')}</div>
+                </div>
+            `).join('');
+            // Update count
+            const unread = items.filter(n => !n.read).length;
+            notifCount = unread;
+            const countEl = document.getElementById('notifCount');
+            if (countEl) {
+                countEl.textContent = unread;
+                countEl.style.display = unread > 0 ? 'block' : 'none';
+            }
+        }
+
+        function markAllNotificationsRead() {
+            const items = Object.values(notificationsCache || {});
+            items.forEach(n => {
+                if (!n.read) db.ref('notifications/' + n.id).update({ read: true });
+            });
+        }
 
         // ============================================================
         // AUTH LOGIN / LOGOUT
@@ -1200,6 +1861,10 @@
             if (app) app.classList.remove('active');
             const loginPage = document.getElementById('loginPage');
             if (loginPage) loginPage.style.display = 'flex';
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) overlay.classList.remove('show');
         }
 
         // ============================================================
@@ -1229,6 +1894,7 @@
             navigateTo('dashboard');
             loadDashboard();
             loadProfile();
+            loadMoneyRewardRules();
         }
 
         // ============================================================
@@ -1243,6 +1909,7 @@
             if (isPageActive('dashboard')) loadDashboard();
             if (isPageActive('violations')) loadViolations();
             if (isPageActive('leaderboard')) loadLeaderboard();
+            if (isPageActive('reward')) loadRewardsList();
         }
 
         function setupRealtimeListeners() {
@@ -1284,15 +1951,26 @@
                 passwordHistoryCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel();
             });
+            db.ref('notifications').on('value', (snap) => {
+                notificationsCache = snap.val() || {};
+                renderNotifications();
+                if (isPageActive('dashboard')) loadDashboard();
+            });
+            db.ref('moneyRewardRules').on('value', (snap) => {
+                moneyRewardRules = snap.val() || {};
+                loadMoneyRewardRules();
+            });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
-            ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory'].forEach(r => db.ref(r).off());
+            ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
+                'notifications', 'moneyRewardRules'
+            ].forEach(r => db.ref(r).off());
         }
 
         // ============================================================
-        // SISWA SELECTS
+        // SISWA SELECTS + SEARCH
         // ============================================================
         function populateSiswaSelects() {
             db.ref('siswa').once('value', (snap) => {
@@ -1313,6 +1991,7 @@
             siswaCache = data || {};
             const siswaList = Object.values(siswaCache);
             siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+            // Populate hidden selects
             ['recStudent', 'rewardStudent'].forEach(id => {
                 const sel = document.getElementById(id);
                 if (!sel) return;
@@ -1329,7 +2008,68 @@
             updateSelectedStudentClass('recStudent', 'recClass');
             updateSelectedStudentClass('rewardStudent', 'rewardClass');
             setText('statAllStudents', siswaList.length);
+            // Setup search
+            setupStudentSearch('recStudentSearch', 'recStudent', 'recStudentResults', 'recClass');
+            setupStudentSearch('rewardStudentSearch', 'rewardStudent', 'rewardStudentResults', 'rewardClass');
             console.log(`✅ ${siswaList.length} siswa dimuat.`);
+        }
+
+        function setupStudentSearch(searchId, selectId, resultId, classInputId) {
+            const search = document.getElementById(searchId);
+            const select = document.getElementById(selectId);
+            const result = document.getElementById(resultId);
+            const classInput = document.getElementById(classInputId);
+            if (!search || !select || !result) return;
+
+            search.addEventListener('input', function() {
+                const q = this.value.toLowerCase().trim();
+                if (!q) { result.style.display = 'none';
+                    result.innerHTML = ''; return; }
+                const siswaList = Object.values(siswaCache).filter(s =>
+                    s.nama.toLowerCase().includes(q) || s.nis.includes(q)
+                );
+                if (!siswaList.length) {
+                    result.style.display = 'block';
+                    result.innerHTML = '<div class="result-item" style="color:var(--text-light);">Tidak ditemukan</div>';
+                    return;
+                }
+                result.style.display = 'block';
+                result.innerHTML = siswaList.slice(0, 8).map(s => `
+                    <div class="result-item" data-nis="${s.nis}" data-kelas="${s.kelas}">
+                        <div><strong>${escapeHtml(s.nama)}</strong></div>
+                        <div class="sub">${escapeHtml(s.nis)} · ${escapeHtml(s.kelas)}</div>
+                    </div>
+                `).join('');
+                result.querySelectorAll('.result-item').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const nis = this.dataset.nis;
+                        const kelas = this.dataset.kelas;
+                        select.value = nis;
+                        search.value = siswaCache[nis] ? siswaCache[nis].nama : '';
+                        if (classInput) classInput.value = kelas || '';
+                        result.style.display = 'none';
+                        // Trigger change
+                        select.dispatchEvent(new Event('change'));
+                    });
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!result.contains(e.target) && e.target !== search) {
+                    result.style.display = 'none';
+                }
+            });
+
+            // When select changes manually
+            select.addEventListener('change', function() {
+                const s = siswaCache[this.value];
+                if (s) {
+                    search.value = s.nama;
+                    if (classInput) classInput.value = s.kelas;
+                } else {
+                    if (classInput) classInput.value = '';
+                }
+            });
         }
 
         function updateSelectedStudentClass(selectId, classInputId) {
@@ -1396,7 +2136,8 @@
             const names = Array.from(new Set(Object.values(violationTypesCache).map(t => t.nama))).sort();
             names.forEach(n => {
                 const opt = document.createElement('option');
-                opt.value = n; opt.textContent = n;
+                opt.value = n;
+                opt.textContent = n;
                 sel.appendChild(opt);
             });
             if (prevVal) sel.value = prevVal;
@@ -1431,7 +2172,7 @@
         }
 
         // ============================================================
-        // NAVIGASI
+        // NAVIGASI + SIDEBAR TOGGLE
         // ============================================================
         function navigateTo(page) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -1440,9 +2181,18 @@
             document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
             const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
             if (navItem) navItem.classList.add('active');
+            // Close sidebar on mobile
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar && window.innerWidth <= 992) {
+                sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('show');
+            }
         }
+
         document.querySelectorAll('.sidebar .nav-item').forEach(item => {
-            item.addEventListener('click', function() {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
                 const page = this.dataset.page;
                 if (page === 'admin' && !isAdmin()) { showToast('Akses hanya untuk admin!', 'error'); return; }
                 navigateTo(page);
@@ -1451,7 +2201,34 @@
                 if (page === 'leaderboard') loadLeaderboard();
                 if (page === 'admin') loadAdminPanel();
                 if (page === 'profile') loadProfile();
+                if (page === 'reward') loadRewardsList();
             });
+        });
+
+        // Menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('show');
+        });
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
+            this.classList.remove('show');
+        });
+
+        // Notification bell
+        document.getElementById('notifBell').addEventListener('click', function() {
+            const panel = document.getElementById('notifPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                markAllNotificationsRead();
+                renderNotifications();
+            }
+        });
+        document.getElementById('notifClose').addEventListener('click', function() {
+            document.getElementById('notifPanel').classList.remove('open');
         });
 
         // ============================================================
@@ -1468,12 +2245,19 @@
             const totalRewardPoints = rewards.reduce((sum, r) => sum + (r.poin || 0), 0);
             const todayCount = violations.filter(v => v.tanggal === todayStr).length;
 
+            // Money reward total
+            let moneyTotal = 0;
+            rewards.forEach(r => {
+                if (r.moneyAwarded) moneyTotal += r.moneyAwarded;
+            });
+
             setText('statTotal', violations.length);
             setText('statStudents', studentSet.size);
             setText('statAllStudents', Object.keys(siswaCache || {}).length);
             setText('statToday', todayCount);
             setText('statHighest', highest);
             setText('statReward', totalRewardPoints);
+            setText('statMoneyReward', formatRupiah(moneyTotal));
 
             renderRecentList('recentViolations', violations, (v) => `
                 <div class="leaderboard-item">
@@ -1489,9 +2273,9 @@
                 <div class="leaderboard-item">
                     <div class="info">
                         <div class="name">${escapeHtml(r.nama)} <span class="badge">${escapeHtml(r.kelas || '')}</span></div>
-                        <div class="detail">${escapeHtml(r.bentuk)} • dicatat oleh ${escapeHtml(r.guru || '-')} • ${formatDate(r.tanggal)}</div>
+                        <div class="detail">${escapeHtml(r.bentuk)} • dicatat oleh ${escapeHtml(r.guru || '-')} • ${formatDate(r.tanggal)}${r.moneyAwarded ? ' 🎉 ' + formatRupiah(r.moneyAwarded) : ''}</div>
                     </div>
-                    <div class="points" style="color:var(--success);">+${r.poin}</div>
+                    <div class="points reward-points">+${r.poin}</div>
                 </div>
             `, 'Belum ada reward.');
         }
@@ -1508,7 +2292,7 @@
         }
 
         // ============================================================
-        // DATA PELANGGARAN (tabel + filter + ekspor)
+        // DATA PELANGGARAN
         // ============================================================
         function loadViolations() {
             const tbody = document.getElementById('violationsTableBody');
@@ -1573,8 +2357,11 @@
             const data = window.__filteredViolations || [];
             if (!data.length) { showToast('Tidak ada data untuk diekspor.', 'error'); return; }
             const headers = ['No', 'Nama Siswa', 'Kelas', 'Pelanggaran', 'Poin', 'Konsekuensi', 'Guru', 'Tanggal'];
-            const rows = data.map((v, i) => [i + 1, v.nama, v.kelas, v.pelanggaran, v.poin, v.konsekuensi || '-', v.guru || '-', formatDate(v.tanggal)]);
-            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+            const rows = data.map((v, i) => [i + 1, v.nama, v.kelas, v.pelanggaran, v.poin, v.konsekuensi || '-', v.guru ||
+                '-', formatDate(v.tanggal)
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            '\r\n');
             const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1588,7 +2375,64 @@
         });
 
         // ============================================================
-        // PAPAN PERINGKAT
+        // DATA REWARD (dengan hapus)
+        // ============================================================
+        function loadRewardsList() {
+            const tbody = document.getElementById('rewardsTableBody');
+            const emptyEl = document.getElementById('rewardsEmpty');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('rewardFilterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('rewardFilterClass').value;
+
+            let rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
+            rewards = rewards.filter(r =>
+                (!filterStudent || (r.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || r.kelas === filterClass)
+            );
+            rewards.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            if (!rewards.length) {
+                tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                return;
+            }
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            tbody.innerHTML = rewards.map((r, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(r.nama)}</td>
+                    <td>${escapeHtml(r.kelas || '')}</td>
+                    <td>${escapeHtml(r.bentuk)}</td>
+                    <td><span class="badge badge-success">+${r.poin}</span>${r.moneyAwarded ? ' 🎉' + formatRupiah(r.moneyAwarded) : ''}</td>
+                    <td>${escapeHtml(r.guru || '-')}</td>
+                    <td>${formatDate(r.tanggal)}</td>
+                    <td class="actions">
+                        ${(isAdmin() || r.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-reward="${r.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-delete-reward]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-delete-reward');
+                    if (confirm('Hapus catatan reward ini?')) {
+                        db.ref('rewards/' + id).remove().then(() => showToast('Reward dihapus.'));
+                    }
+                });
+            });
+        }
+
+        document.getElementById('rewardFilterStudent').addEventListener('input', loadRewardsList);
+        document.getElementById('rewardFilterClass').addEventListener('change', loadRewardsList);
+        document.getElementById('clearRewardFilters').addEventListener('click', () => {
+            document.getElementById('rewardFilterStudent').value = '';
+            document.getElementById('rewardFilterClass').value = '';
+            loadRewardsList();
+        });
+
+        // ============================================================
+        // PAPAN PERINGKAT + MONEY REWARD
         // ============================================================
         function loadLeaderboard() {
             const el = document.getElementById('leaderboardList');
@@ -1597,12 +2441,15 @@
             const rewards = Object.values(rewardsCache || {});
             const map = {};
             violations.forEach(v => {
-                if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, poinPelanggaran: 0, poinReward: 0 };
+                if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, poinPelanggaran: 0, poinReward: 0,
+                    moneyReward: 0 };
                 map[v.nis].poinPelanggaran += (v.poin || 0);
             });
             rewards.forEach(r => {
-                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, poinPelanggaran: 0, poinReward: 0 };
+                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, poinPelanggaran: 0, poinReward: 0,
+                    moneyReward: 0 };
                 map[r.nis].poinReward += (r.poin || 0);
+                if (r.moneyAwarded) map[r.nis].moneyReward += r.moneyAwarded;
             });
             const list = Object.values(map).sort((a, b) => b.poinPelanggaran - a.poinPelanggaran);
             if (!list.length) {
@@ -1611,12 +2458,13 @@
             }
             el.innerHTML = list.map((s, i) => {
                 const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                const moneyStr = s.moneyReward ? ' 🎉 ' + formatRupiah(s.moneyReward) : '';
                 return `
                 <div class="leaderboard-item">
                     <div class="rank ${rankClass}">#${i + 1}</div>
                     <div class="info">
                         <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
-                        <div class="detail">Reward: <span style="color:var(--success);font-weight:600;">+${s.poinReward}</span></div>
+                        <div class="detail">Reward: <span style="color:var(--success);font-weight:600;">+${s.poinReward}</span>${moneyStr}</div>
                     </div>
                     <div class="points">${s.poinPelanggaran} poin</div>
                 </div>`;
@@ -1624,7 +2472,78 @@
         }
 
         // ============================================================
-        // PANEL ADMIN
+        // MONEY REWARD RULES
+        // ============================================================
+        function loadMoneyRewardRules() {
+            const rules = moneyRewardRules || {};
+            ['50', '80', '90', '100'].forEach(key => {
+                const el = document.getElementById('rewardMoney' + key);
+                if (el && rules[key] !== undefined) el.value = rules[key];
+            });
+        }
+
+        document.getElementById('saveMoneyRewardBtn').addEventListener('click', function() {
+            const rules = {
+                '50': parseInt(document.getElementById('rewardMoney50').value) || 0,
+                '80': parseInt(document.getElementById('rewardMoney80').value) || 0,
+                '90': parseInt(document.getElementById('rewardMoney90').value) || 0,
+                '100': parseInt(document.getElementById('rewardMoney100').value) || 0
+            };
+            db.ref('moneyRewardRules').set(rules).then(() => {
+                showToast('Aturan reward uang disimpan!');
+                loadMoneyRewardRules();
+            });
+        });
+
+        // ============================================================
+        // CEK MONEY REWARD SAAT REWARD DITAMBAHKAN
+        // ============================================================
+        function checkAndAwardMoney(nis, nama, kelas, totalPoin) {
+            const rules = moneyRewardRules || {};
+            // Urutan dari yang tertinggi ke terendah
+            const thresholds = [100, 90, 80, 50];
+            let awarded = 0;
+            let threshold = 0;
+            for (let t of thresholds) {
+                if (totalPoin >= t && rules[t] && rules[t] > 0) {
+                    awarded = rules[t];
+                    threshold = t;
+                    break;
+                }
+            }
+            if (awarded > 0) {
+                // Cek apakah sudah pernah mendapat reward di threshold ini
+                const existingRewards = Object.values(rewardsCache || {}).filter(r =>
+                    r.nis === nis && r.moneyAwarded && r.moneyThreshold === threshold
+                );
+                if (existingRewards.length === 0) {
+                    // Tambahkan reward uang sebagai entri terpisah
+                    const moneyRecord = {
+                        nis: nis,
+                        nama: nama,
+                        kelas: kelas,
+                        bentuk: `🎉 Reward Uang ${threshold} Poin`,
+                        kategori: 'besar',
+                        poin: 0,
+                        moneyAwarded: awarded,
+                        moneyThreshold: threshold,
+                        guru: 'Sistem',
+                        tanggal: today(),
+                        createdAt: Date.now(),
+                        isMoneyReward: true
+                    };
+                    db.ref('rewards/' + genId()).set(moneyRecord).then(() => {
+                        addNotification('money', '💰 Reward Uang!',
+                            `${nama} mendapat ${formatRupiah(awarded)} karena mencapai ${threshold} poin reward!`,
+                            { nis, nama, kelas, amount: awarded, threshold });
+                        showToast(`🎉 ${nama} mendapat ${formatRupiah(awarded)}!`, 'success');
+                    });
+                }
+            }
+        }
+
+        // ============================================================
+        // PANEL ADMIN (ACCORDION)
         // ============================================================
         function loadAdminPanel() {
             renderViolationTypesTable();
@@ -1633,11 +2552,24 @@
             renderGuruTable();
         }
 
+        // Accordion toggle
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const targetId = this.dataset.target;
+                const body = document.getElementById(targetId);
+                if (body) {
+                    body.classList.toggle('open');
+                    this.classList.toggle('open');
+                }
+            });
+        });
+
         function renderViolationTypesTable() {
             const tbody = document.getElementById('violationTypesTable');
             if (!tbody) return;
             const entries = Object.entries(violationTypesCache || {});
-            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            if (!entries.length) { tbody.innerHTML =
+                '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, t]) => `
                 <tr>
                     <td>${escapeHtml(t.nama)}</td>
@@ -1655,7 +2587,8 @@
             }));
             tbody.querySelectorAll('[data-del-vtype]').forEach(btn => btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-del-vtype');
-                if (confirm('Hapus jenis pelanggaran ini?')) db.ref('violationTypes/' + id).remove().then(() => showToast('Dihapus.'));
+                if (confirm('Hapus jenis pelanggaran ini?')) db.ref('violationTypes/' + id).remove().then(() =>
+                    showToast('Dihapus.'));
             }));
         }
 
@@ -1663,7 +2596,8 @@
             const tbody = document.getElementById('rewardTypesTable');
             if (!tbody) return;
             const entries = Object.entries(rewardTypesCache || {});
-            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            if (!entries.length) { tbody.innerHTML =
+                '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, t]) => `
                 <tr>
                     <td>${escapeHtml(t.nama)}</td>
@@ -1681,7 +2615,8 @@
             }));
             tbody.querySelectorAll('[data-del-rtype]').forEach(btn => btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-del-rtype');
-                if (confirm('Hapus jenis reward ini?')) db.ref('rewardTypes/' + id).remove().then(() => showToast('Dihapus.'));
+                if (confirm('Hapus jenis reward ini?')) db.ref('rewardTypes/' + id).remove().then(() =>
+                showToast('Dihapus.'));
             }));
         }
 
@@ -1689,7 +2624,8 @@
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
             const entries = Object.entries(usersCache || {});
-            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
+            if (!entries.length) { tbody.innerHTML =
+                '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, u]) => {
                 const lastChange = (passwordHistoryCache && passwordHistoryCache[id]) || '-';
                 return `
@@ -1710,7 +2646,8 @@
             }));
             tbody.querySelectorAll('[data-del-user]').forEach(btn => btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-del-user');
-                if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast('Pengguna dihapus.'));
+                if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast(
+                    'Pengguna dihapus.'));
             }));
         }
 
@@ -1718,7 +2655,8 @@
             const tbody = document.getElementById('guruTableBody');
             if (!tbody) return;
             const entries = Object.entries(guruCache || {});
-            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            if (!entries.length) { tbody.innerHTML =
+                '<tr><td colspan="3" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, g], i) => `
                 <tr>
                     <td>${i + 1}</td>
@@ -1728,6 +2666,9 @@
             `).join('');
         }
 
+        // ============================================================
+        // MODAL: Violation Type, Reward Type, User, Reset Password
+        // ============================================================
         function openViolationTypeModal(id, existing) {
             const t = existing || { nama: '', kategori: 'ringan', poin: '', konsekuensi: '' };
             openModal(id ? 'Edit Jenis Pelanggaran' : 'Tambah Jenis Pelanggaran', `
@@ -1752,7 +2693,9 @@
                 const konsekuensi = document.getElementById('mVConsequence').value.trim();
                 if (!nama || !poin) { showToast('Lengkapi nama dan poin!', 'error'); return; }
                 const key = id || genId();
-                db.ref('violationTypes/' + key).set({ nama, kategori, poin, konsekuensi }).then(() => { showToast('Jenis pelanggaran disimpan!'); closeModal(); });
+                db.ref('violationTypes/' + key).set({ nama, kategori, poin, konsekuensi }).then(() => { showToast(
+                        'Jenis pelanggaran disimpan!');
+                    closeModal(); });
             });
         }
 
@@ -1778,7 +2721,9 @@
                 const poin = parseInt(document.getElementById('mRPoints').value, 10);
                 if (!nama || !poin) { showToast('Lengkapi nama dan poin!', 'error'); return; }
                 const key = id || genId();
-                db.ref('rewardTypes/' + key).set({ nama, kategori, poin }).then(() => { showToast('Jenis reward disimpan!'); closeModal(); });
+                db.ref('rewardTypes/' + key).set({ nama, kategori, poin }).then(() => { showToast(
+                        'Jenis reward disimpan!');
+                    closeModal(); });
             });
         }
 
@@ -1797,7 +2742,8 @@
                 const name = document.getElementById('mUName').value.trim();
                 const password = document.getElementById('mUPassword').value.trim();
                 const role = document.getElementById('mURole').value;
-                if (!username || !name || password.length < 6) { showToast('Lengkapi data (password min. 6 karakter)!', 'error'); return; }
+                if (!username || !name || password.length < 6) { showToast('Lengkapi data (password min. 6 karakter)!',
+                        'error'); return; }
                 const existingUsername = Object.values(usersCache || {}).some(u => u.username === username);
                 if (existingUsername) { showToast('Username sudah digunakan!', 'error'); return; }
                 const id = genId();
@@ -1859,11 +2805,13 @@
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
-        document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent', 'recClass'));
+        document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent',
+        'recClass'));
 
         document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
         document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
-        document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent', 'rewardClass'));
+        document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent',
+            'rewardClass'));
 
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1875,17 +2823,33 @@
             const t = violationTypesCache[typeId];
             if (!s || !t) { showToast('Data tidak valid, coba muat ulang halaman.', 'error'); return; }
             const record = {
-                nis, nama: s.nama, kelas: s.kelas,
-                typeId, pelanggaran: t.nama, kategori: t.kategori, poin: t.poin,
-                konsekuensi: t.konsekuensi || '-', catatan: note,
-                guru: currentUser.name, tanggal: today(), createdAt: Date.now()
+                nis,
+                nama: s.nama,
+                kelas: s.kelas,
+                typeId,
+                pelanggaran: t.nama,
+                kategori: t.kategori,
+                poin: t.poin,
+                konsekuensi: t.konsekuensi || '-',
+                catatan: note,
+                guru: currentUser.name,
+                tanggal: today(),
+                createdAt: Date.now()
             };
             db.ref('violations/' + genId()).set(record).then(() => {
                 showToast('Pelanggaran berhasil dicatat!');
+                addNotification('violation', '⚠️ Pelanggaran',
+                    `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`, {
+                        nis,
+                        nama: s.nama,
+                        pelanggaran: t.nama,
+                        poin: t.poin
+                    });
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
                 document.getElementById('recClass').value = '';
+                document.getElementById('recStudentSearch').value = '';
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
@@ -1898,21 +2862,43 @@
             const t = rewardTypesCache[typeId];
             if (!s || !t) { showToast('Data tidak valid, coba muat ulang halaman.', 'error'); return; }
             const record = {
-                nis, nama: s.nama, kelas: s.kelas,
-                typeId, bentuk: t.nama, kategori: t.kategori, poin: t.poin,
-                guru: currentUser.name, tanggal: today(), createdAt: Date.now()
+                nis,
+                nama: s.nama,
+                kelas: s.kelas,
+                typeId,
+                bentuk: t.nama,
+                kategori: t.kategori,
+                poin: t.poin,
+                guru: currentUser.name,
+                tanggal: today(),
+                createdAt: Date.now()
             };
             db.ref('rewards/' + genId()).set(record).then(() => {
                 showToast('Reward berhasil diberikan!');
+                addNotification('reward', '⭐ Reward Kebaikan',
+                    `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`, {
+                        nis,
+                        nama: s.nama,
+                        bentuk: t.nama,
+                        poin: t.poin
+                    });
+                // Cek money reward
+                const allRewards = Object.values(rewardsCache || {});
+                const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
+                checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
+
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
                 document.getElementById('rewardClass').value = '';
+                document.getElementById('rewardStudentSearch').value = '';
+                // Refresh reward list
+                setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
         // ============================================================
-        // LOGIN / LOGOUT / TOGGLE PASSWORD
+        // LOGIN / LOGOUT
         // ============================================================
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1924,8 +2910,9 @@
         document.getElementById('togglePasswordBtn').addEventListener('click', function() {
             const input = document.getElementById('loginPassword');
             const icon = this.querySelector('i');
-            if (input.type === 'password') { input.type = 'text'; icon.className = 'fas fa-eye-slash'; }
-            else { input.type = 'password'; icon.className = 'fas fa-eye'; }
+            if (input.type === 'password') { input.type = 'text';
+                icon.className = 'fas fa-eye-slash'; } else { input.type = 'password';
+                icon.className = 'fas fa-eye'; }
         });
 
         // ============================================================
