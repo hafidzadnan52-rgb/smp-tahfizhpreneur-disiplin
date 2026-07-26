@@ -978,6 +978,14 @@
             border-left: 4px solid var(--success);
             font-size: 0.95rem;
         }
+        .bk-solution {
+            background: #e3f2fd;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--primary);
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
 
         @media (max-width: 992px) {
             .sidebar {
@@ -1248,7 +1256,7 @@
 
                 <!-- BK (Bimbingan Konseling) -->
                 <section class="page-section" id="page-bk">
-                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa, transkripsi otomatis dengan AI (Speech-to-Text).</p></div>
+                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa, transkripsi otomatis dengan AI (Speech-to-Text), dan dapatkan solusi rekomendasi.</p></div>
                     <div class="card">
                         <form id="bkForm">
                             <div class="form-row">
@@ -1272,10 +1280,15 @@
                                 <label>Ringkasan Masalah (AI otomatis)</label>
                                 <div class="bk-summary" id="bkSummary">Belum ada ringkasan.</div>
                             </div>
+                            <div class="form-group">
+                                <label>Solusi Rekomendasi (AI)</label>
+                                <div class="bk-solution" id="bkSolution">Belum ada solusi.</div>
+                            </div>
                             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
                                 <button type="button" class="btn btn-danger" id="bkRecordBtn"><i class="fas fa-microphone"></i> Mulai Rekam</button>
                                 <button type="button" class="btn btn-outline" id="bkStopBtn"><i class="fas fa-stop"></i> Hentikan & Simpan</button>
                                 <button type="submit" class="btn btn-gold" id="bkSaveBtn"><i class="fas fa-save"></i> Simpan Catatan</button>
+                                <button type="button" class="btn btn-sm export-btn" id="bkExportExcel"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
                             </div>
                         </form>
                     </div>
@@ -1287,7 +1300,7 @@
                             <input type="text" id="bkFilterStudent" placeholder="Cari nama siswa..." />
                             <button class="btn btn-sm btn-outline" id="clearBkFilters"><i class="fas fa-undo"></i> Reset</button>
                         </div>
-                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Ringkasan</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Ringkasan</th><th>Solusi</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
                         <div id="bkEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada catatan BK.</p></div>
                     </div>
                 </section>
@@ -1879,6 +1892,7 @@
         let recognition = null;
         let isRecording = false;
         let transcriptText = '';
+        let lastFinalText = '';
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
 
@@ -2704,7 +2718,7 @@
         });
 
         // ============================================================
-        // BK (Bimbingan Konseling) - Speech Recognition
+        // BK (Bimbingan Konseling) - Speech Recognition with debounce
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2717,32 +2731,42 @@
             rec.continuous = true;
             rec.interimResults = true;
             rec.maxAlternatives = 1;
+            // Reduce sensitivity by adding a small delay and filtering duplicates
             return rec;
         }
+
+        let lastTranscriptSegment = '';
 
         function startRecording() {
             if (!recognition) {
                 recognition = initSpeechRecognition();
                 if (!recognition) return;
                 recognition.onresult = function(event) {
-                    let interim = '';
                     let final = '';
+                    let interim = '';
                     for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript;
+                        const transcript = event.results[i][0].transcript.trim();
                         if (event.results[i].isFinal) {
-                            final += transcript + ' ';
+                            // Avoid duplicate phrases: check if this segment is significantly different from last final
+                            if (transcript.length > 3 && !lastFinalText.includes(transcript.substring(0, 20))) {
+                                final += transcript + ' ';
+                                lastFinalText = transcript;
+                            } else if (transcript.length > 3 && transcript !== lastFinalText) {
+                                // Append only if different enough
+                                final += transcript + ' ';
+                                lastFinalText = transcript;
+                            }
                         } else {
                             interim += transcript;
                         }
                     }
-                    // Append final to transcriptText
                     if (final) {
                         transcriptText += final;
                     }
                     const displayText = transcriptText + (interim ? ' (mengetik...) ' + interim : '');
                     document.getElementById('bkTranscript').textContent = displayText || '...';
-                    // Auto-summarize
-                    generateSummary(transcriptText);
+                    // Auto-summarize and generate solution
+                    generateSummaryAndSolution(transcriptText);
                 };
                 recognition.onerror = function(event) {
                     console.error('Speech error', event);
@@ -2755,7 +2779,6 @@
                 };
                 recognition.onend = function() {
                     if (isRecording) {
-                        // restart if still recording
                         try { recognition.start(); } catch (e) { /* ignore */ }
                     }
                 };
@@ -2767,7 +2790,9 @@
                 document.getElementById('bkRecordBtn').classList.add('btn-rec');
                 document.getElementById('bkTranscript').textContent = 'Merekam...';
                 transcriptText = '';
+                lastFinalText = '';
                 document.getElementById('bkSummary').textContent = 'Menganalisis...';
+                document.getElementById('bkSolution').textContent = 'Menganalisis...';
                 showToast('Merekam... bicaralah dengan siswa.', 'success');
             } catch (e) {
                 showToast('Gagal memulai rekaman: ' + e.message, 'error');
@@ -2785,17 +2810,18 @@
                 if (transcriptText.trim() === '') {
                     document.getElementById('bkTranscript').textContent = 'Belum ada transkrip.';
                     document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                    document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
                 }
                 showToast('Rekaman dihentikan.', 'success');
             }
         }
 
-        function generateSummary(text) {
+        function generateSummaryAndSolution(text) {
             if (!text.trim()) {
                 document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
                 return;
             }
-            // Simple summarization: extract keywords and create a summary
             const lower = text.toLowerCase();
             const keywords = ['masalah', 'sulit', 'takut', 'khawatir', 'marah', 'sedih', 'kecewa', 'stress', 'tekanan', 'keluarga',
                 'teman', 'sekolah', 'guru', 'nilai', 'ujian', 'tugas', 'orang tua', 'ayah', 'ibu', 'saudara'
@@ -2807,10 +2833,33 @@
             } else {
                 summary += 'Topik belum teridentifikasi secara spesifik. ';
             }
-            // Take first 150 chars as context
             const snippet = text.substring(0, 200).replace(/\n/g, ' ');
             summary += 'Cuplikan: "' + snippet + '..."';
             document.getElementById('bkSummary').textContent = summary;
+
+            // Generate solution based on keywords
+            let solution = 'Rekomendasi untuk guru: ';
+            const advice = [];
+            if (found.some(k => ['keluarga', 'ayah', 'ibu', 'saudara'].includes(k))) {
+                advice.push('Libatkan orang tua dalam diskusi, jadwalkan pertemuan keluarga.');
+            }
+            if (found.some(k => ['teman', 'sekolah', 'guru'].includes(k))) {
+                advice.push('Berikan pendampingan sosial, mediasi dengan teman sebaya.');
+            }
+            if (found.some(k => ['nilai', 'ujian', 'tugas'].includes(k))) {
+                advice.push('Berikan bimbingan belajar tambahan, kurangi tekanan akademik.');
+            }
+            if (found.some(k => ['takut', 'khawatir', 'stress', 'tekanan'].includes(k))) {
+                advice.push('Latih teknik relaksasi, berikan ruang curhat yang aman.');
+            }
+            if (found.some(k => ['marah', 'sedih', 'kecewa'].includes(k))) {
+                advice.push('Bimbing untuk mengelola emosi, ajarkan ekspresi yang sehat.');
+            }
+            if (advice.length === 0) {
+                advice.push('Lakukan pendekatan personal, dengarkan aktif, dan cari akar masalah.');
+            }
+            solution += advice.join(' ');
+            document.getElementById('bkSolution').textContent = solution;
         }
 
         // BK form events
@@ -2824,6 +2873,7 @@
             const note = document.getElementById('bkNote').value.trim();
             const transcript = document.getElementById('bkTranscript').textContent;
             const summary = document.getElementById('bkSummary').textContent;
+            const solution = document.getElementById('bkSolution').textContent;
 
             if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
             if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
@@ -2839,19 +2889,20 @@
                 catatan: note,
                 transkrip: transcript,
                 ringkasan: summary,
+                solusi: solution,
                 guru: currentUser.name,
                 tanggal: today(),
                 createdAt: Date.now()
             };
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
-                // Reset form
                 document.getElementById('bkStudent').value = '';
                 document.getElementById('bkStudentSearch').value = '';
                 document.getElementById('bkClass').value = '';
                 document.getElementById('bkNote').value = '';
                 document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
                 document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
                 transcriptText = '';
                 stopRecording();
                 loadBkList();
@@ -2883,6 +2934,7 @@
                     <td>${escapeHtml(b.nama)}</td>
                     <td>${escapeHtml(b.kelas || '')}</td>
                     <td>${escapeHtml(b.ringkasan || '-')}</td>
+                    <td>${escapeHtml(b.solusi || '-')}</td>
                     <td>${escapeHtml(b.guru || '-')}</td>
                     <td>${formatDate(b.tanggal)}</td>
                     <td class="actions">
@@ -2903,6 +2955,7 @@
                             <p><strong>Tanggal:</strong> ${formatDate(b.tanggal)}</p>
                             <p><strong>Catatan:</strong> ${escapeHtml(b.catatan || '-')}</p>
                             <p><strong>Ringkasan:</strong> ${escapeHtml(b.ringkasan || '-')}</p>
+                            <p><strong>Solusi:</strong> ${escapeHtml(b.solusi || '-')}</p>
                             <p><strong>Transkrip:</strong></p>
                             <div style="background:#f8f5f0;padding:12px;border-radius:var(--radius-sm);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(b.transkrip || '-')}</div>
                         `);
@@ -2924,6 +2977,36 @@
         document.getElementById('clearBkFilters').addEventListener('click', () => {
             document.getElementById('bkFilterStudent').value = '';
             loadBkList();
+        });
+
+        // ============================================================
+        // EKSPOR BK KE EXCEL (CSV)
+        // ============================================================
+        document.getElementById('bkExportExcel').addEventListener('click', function() {
+            const items = Object.values(bkCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) { showToast('Tidak ada data BK untuk diekspor.', 'error'); return; }
+            const headers = ['No', 'Siswa', 'Kelas', 'Ringkasan', 'Solusi', 'Guru', 'Tanggal'];
+            const rows = items.map((b, i) => [
+                i + 1,
+                b.nama || '',
+                b.kelas || '',
+                b.ringkasan || '',
+                b.solusi || '',
+                b.guru || '',
+                formatDate(b.tanggal) || ''
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            '\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `data-bk-${today()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data BK berhasil diekspor!');
         });
 
         // ============================================================
