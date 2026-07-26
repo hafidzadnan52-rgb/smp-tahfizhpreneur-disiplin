@@ -159,6 +159,19 @@
             background: rgba(0, 0, 0, 0.05);
             color: var(--primary);
         }
+        .btn-rec {
+            background: #dc3545;
+            color: #fff;
+            animation: pulse 1.5s infinite;
+        }
+        .btn-rec:hover {
+            background: #c82333;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
 
         /* LOGIN */
         #loginPage {
@@ -229,8 +242,13 @@
             background: #faf8f5;
             font-family: inherit;
         }
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
@@ -410,7 +428,7 @@
             position: relative;
         }
 
-        /* SIDEBAR - slide out */
+        /* SIDEBAR */
         .sidebar {
             width: var(--sidebar-width);
             background: #fff;
@@ -479,7 +497,6 @@
             color: var(--text-light);
         }
 
-        /* overlay for mobile */
         .sidebar-overlay {
             position: fixed;
             inset: 0;
@@ -492,7 +509,6 @@
             display: block;
         }
 
-        /* MAIN CONTENT */
         .main-content {
             flex: 1;
             padding: 28px 32px;
@@ -533,7 +549,6 @@
             margin-top: 4px;
         }
 
-        /* STAT CARDS */
         .stat-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -557,7 +572,6 @@
             color: var(--text-light);
         }
 
-        /* CARDS */
         .card {
             background: #fff;
             border-radius: var(--radius);
@@ -657,7 +671,6 @@
             background: #145a24;
         }
 
-        /* LEADERBOARD */
         .leaderboard-item {
             display: flex;
             align-items: center;
@@ -667,10 +680,13 @@
             background: #faf8f5;
             margin-bottom: 8px;
             border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.3s;
         }
         .leaderboard-item:hover {
             border-color: var(--gold-light);
             background: #fff;
+            transform: scale(1.01);
         }
         .leaderboard-item .rank {
             font-weight: 800;
@@ -692,6 +708,10 @@
         }
         .leaderboard-item .info .name {
             font-weight: 600;
+            color: var(--primary);
+        }
+        .leaderboard-item .info .name:hover {
+            text-decoration: underline;
         }
         .leaderboard-item .info .detail {
             font-size: 0.8rem;
@@ -704,6 +724,24 @@
         }
         .leaderboard-item .points.reward-points {
             color: var(--success);
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .tab-buttons .btn {
+            border-radius: 30px;
+        }
+        .tab-buttons .btn.active {
+            background: var(--gold);
+            color: #fff;
+            border-color: var(--gold);
+        }
+        .tab-buttons .btn:not(.active) {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
         }
 
         /* MODAL */
@@ -724,7 +762,7 @@
         .modal {
             background: #fff;
             border-radius: var(--radius);
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             padding: 32px 36px;
             box-shadow: 0 40px 80px rgba(0, 0, 0, 0.25);
@@ -745,7 +783,6 @@
             color: var(--text-light);
         }
 
-        /* TOAST */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -775,7 +812,6 @@
             background: var(--danger);
         }
 
-        /* NOTIFICATION PANEL */
         .notification-panel {
             position: fixed;
             top: 64px;
@@ -835,7 +871,6 @@
             color: var(--text-light);
         }
 
-        /* ADMIN ACCORDION */
         .accordion-section {
             margin-bottom: 12px;
             border: 1px solid #f0ece4;
@@ -871,22 +906,6 @@
             display: block;
         }
 
-        /* POINT REWARD BADGE */
-        .reward-badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        .reward-badge.gold {
-            background: #fff8e1;
-            color: #f57f17;
-        }
-
-        /* STUDENT AUTOCOMPLETE (simple search) */
         .student-search-wrap {
             position: relative;
         }
@@ -919,7 +938,47 @@
             color: var(--text-light);
         }
 
-        /* RESPONSIVE */
+        .feedback-item {
+            padding: 14px 18px;
+            background: #faf8f5;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border-left: 4px solid var(--gold);
+        }
+        .feedback-item .feedback-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        .feedback-item .feedback-text {
+            font-size: 0.95rem;
+        }
+
+        /* BK specific */
+        .bk-transcript {
+            background: #f8f5f0;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: 0.95rem;
+            border: 2px solid #e8e4dc;
+        }
+        .bk-transcript:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        .bk-summary {
+            background: #e8f5e9;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--success);
+            font-size: 0.95rem;
+        }
+
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -978,8 +1037,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
-        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -1061,10 +1118,7 @@
         </header>
 
         <div class="app-body">
-            <!-- Sidebar Overlay -->
             <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-            <!-- Sidebar -->
             <nav class="sidebar" id="sidebar">
                 <div class="sidebar-brand">
                     <div class="brand-text">Tahfizh <span>Preneur</span></div>
@@ -1075,6 +1129,8 @@
                 <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
                 <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
+                <a class="nav-item" data-page="bk"><i class="fas fa-hand-holding-heart"></i> BK (Konseling)</a>
+                <a class="nav-item" data-page="feedback"><i class="fas fa-comment"></i> Kirim Saran</a>
                 <div class="nav-divider"></div>
                 <a class="nav-item" data-page="admin" id="adminNav"><i class="fas fa-user-gear"></i> Panel Admin</a>
                 <a class="nav-item" data-page="profile"><i class="fas fa-user"></i> Profil & Sandi</a>
@@ -1147,7 +1203,6 @@
                             <button type="submit" class="btn btn-success"><i class="fas fa-star"></i> Berikan Reward</button>
                         </form>
                     </div>
-                    <!-- Daftar Reward yang Diberikan -->
                     <div class="card">
                         <div class="card-header"><h3><i class="fas fa-list"></i> Riwayat Reward</h3></div>
                         <div class="filter-bar">
@@ -1178,27 +1233,117 @@
 
                 <!-- LEADERBOARD -->
                 <section class="page-section" id="page-leaderboard">
-                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Total poin pelanggaran (tertinggi → terendah) & total reward + uang reward.</p></div>
-                    <div class="card"><div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div></div>
+                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Klik nama siswa untuk melihat riwayat pelanggaran / reward.</p></div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-trophy"></i> Peringkat</h3>
+                            <div class="tab-buttons">
+                                <button class="btn btn-sm btn-gold active" data-leaderboard-tab="violation">Pelanggaran</button>
+                                <button class="btn btn-sm btn-outline" data-leaderboard-tab="reward">Kebaikan</button>
+                            </div>
+                        </div>
+                        <div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div>
+                    </div>
+                </section>
+
+                <!-- BK (Bimbingan Konseling) -->
+                <section class="page-section" id="page-bk">
+                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa, transkripsi otomatis dengan AI (Speech-to-Text).</p></div>
+                    <div class="card">
+                        <form id="bkForm">
+                            <div class="form-row">
+                                <div class="form-group student-search-wrap">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <input type="text" id="bkStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <select id="bkStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
+                                    <div class="search-results" id="bkStudentResults"></div>
+                                </div>
+                                <div class="form-group"><label>Kelas</label><input type="text" id="bkClass" readonly style="background:#f4f1ea;" /></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Catatan Guru (opsional)</label>
+                                <input type="text" id="bkNote" placeholder="Catatan sebelum konseling" />
+                            </div>
+                            <div class="form-group">
+                                <label>Transkrip Percakapan (real-time)</label>
+                                <div class="bk-transcript" id="bkTranscript" contenteditable="false">Klik tombol rekam untuk mulai...</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Ringkasan Masalah (AI otomatis)</label>
+                                <div class="bk-summary" id="bkSummary">Belum ada ringkasan.</div>
+                            </div>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+                                <button type="button" class="btn btn-danger" id="bkRecordBtn"><i class="fas fa-microphone"></i> Mulai Rekam</button>
+                                <button type="button" class="btn btn-outline" id="bkStopBtn"><i class="fas fa-stop"></i> Hentikan & Simpan</button>
+                                <button type="submit" class="btn btn-gold" id="bkSaveBtn"><i class="fas fa-save"></i> Simpan Catatan</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Daftar catatan BK -->
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-history"></i> Riwayat Konseling</h3></div>
+                        <div class="filter-bar">
+                            <input type="text" id="bkFilterStudent" placeholder="Cari nama siswa..." />
+                            <button class="btn btn-sm btn-outline" id="clearBkFilters"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Ringkasan</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
+                        <div id="bkEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada catatan BK.</p></div>
+                    </div>
+                </section>
+
+                <!-- FEEDBACK -->
+                <section class="page-section" id="page-feedback">
+                    <div class="page-header"><h2><i class="fas fa-comment"></i> Kirim Saran untuk Aplikasi</h2><p>Bagikan masukan Anda untuk pengembangan aplikasi ini.</p></div>
+                    <div class="card">
+                        <form id="feedbackForm">
+                            <div class="form-group">
+                                <label>Nama Anda <span class="text-muted">(opsional)</span></label>
+                                <input type="text" id="feedbackName" placeholder="Nama atau biarkan kosong" />
+                            </div>
+                            <div class="form-group">
+                                <label>Jenis Saran</label>
+                                <select id="feedbackType">
+                                    <option value="saran">Saran</option>
+                                    <option value="masalah">Laporan Masalah</option>
+                                    <option value="fitur">Usulan Fitur</option>
+                                    <option value="lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Pesan <span class="text-muted">*</span></label>
+                                <textarea id="feedbackMessage" placeholder="Tulis saran atau masukan Anda..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Kirim Saran</button>
+                        </form>
+                    </div>
                 </section>
 
                 <!-- ADMIN -->
                 <section class="page-section" id="page-admin">
-                    <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, dan pengguna. <span class="text-muted">(Data tersimpan di Cloud Firebase)</span></p></div>
+                    <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, pengguna, dan lihat saran dari guru.</p></div>
 
-                    <!-- Accordion: Jenis Pelanggaran -->
                     <div class="accordion-section">
-                        <div class="accordion-header open" data-target="accViolationTypes">
+                        <div class="accordion-header open" data-target="accFeedback">
+                            <span><i class="fas fa-comments" style="color:var(--gold);"></i> Saran & Masukan Guru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body open" id="accFeedback">
+                            <div id="feedbackList"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accViolationTypes">
                             <span><i class="fas fa-list-check" style="color:var(--gold);"></i> Jenis Pelanggaran</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div class="accordion-body open" id="accViolationTypes">
+                        <div class="accordion-body" id="accViolationTypes">
                             <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addViolationTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div>
                             <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="violationTypesTable"></tbody></table></div>
                         </div>
                     </div>
 
-                    <!-- Accordion: Jenis Reward -->
                     <div class="accordion-section">
                         <div class="accordion-header" data-target="accRewardTypes">
                             <span><i class="fas fa-star" style="color:var(--success);"></i> Jenis Reward</span>
@@ -1210,7 +1355,6 @@
                         </div>
                     </div>
 
-                    <!-- Accordion: Manajemen Pengguna -->
                     <div class="accordion-section">
                         <div class="accordion-header" data-target="accUsers">
                             <span><i class="fas fa-users"></i> Manajemen Pengguna & Guru</span>
@@ -1223,7 +1367,6 @@
                         </div>
                     </div>
 
-                    <!-- Accordion: Daftar Guru -->
                     <div class="accordion-section">
                         <div class="accordion-header" data-target="accGuru">
                             <span><i class="fas fa-chalkboard-user"></i> Daftar Guru (Database)</span>
@@ -1234,7 +1377,6 @@
                         </div>
                     </div>
 
-                    <!-- Accordion: Aturan Reward Uang -->
                     <div class="accordion-section">
                         <div class="accordion-header" data-target="accMoneyReward">
                             <span><i class="fas fa-money-bill-wave" style="color:var(--gold);"></i> Aturan Reward Uang</span>
@@ -1306,7 +1448,7 @@
         const db = firebase.database();
 
         // ============================================================
-        // DATA DEFAULT (diisi jika database kosong)
+        // DATA DEFAULT
         // ============================================================
         const GURU_LIST = [
             "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
@@ -1421,9 +1563,7 @@
             { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
         ];
 
-        // Data dari dokumen konsekuensi & reward (digabung)
         const VIOLATION_TYPES_INIT = [
-            // Ringan
             { nama: "Terlambat lebih dari 15 menit", kategori: "ringan", poin: 5,
             konsekuensi: "Memungut sampah 15 menit + istighfar 3x" },
             { nama: "Tidak membawa kartu pelajar", kategori: "ringan", poin: 3,
@@ -1491,7 +1631,6 @@
                 konsekuensi: "Memungut sampah 10 menit" },
             { nama: "Bermain bola/basket setelah jam kepulangan", kategori: "ringan", poin: 3,
                 konsekuensi: "Memungut sampah 10 menit" },
-            // Sedang
             { nama: "Meninggalkan area sekolah tanpa izin saat KBM", kategori: "sedang", poin: 10,
                 konsekuensi: "Membersihkan lingkungan 1 jam + surat pernyataan" },
             { nama: "Melakukan tindakan tidak menyenangkan ke siswa lain", kategori: "sedang", poin: 10,
@@ -1520,7 +1659,6 @@
                 poin: 21, konsekuensi: "Barang disita + membersihkan lingkungan" },
             { nama: "Menggunakan pakaian bebas yang tidak sesuai syariat", kategori: "sedang", poin: 25,
                 konsekuensi: "Mengganti pakaian + membersihkan lingkungan 1 jam" },
-            // Berat
             { nama: "Berkelahi", kategori: "berat", poin: 30, konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
             { nama: "Ketahuan tidak salat wajib (kecuali banat sedang haid)", kategori: "berat", poin: 30,
                 konsekuensi: "Membersihkan lingkungan 1 minggu + menulis makna salat" },
@@ -1558,7 +1696,6 @@
         ];
 
         const REWARD_TYPES_INIT = [
-            // Kecil
             { nama: "Memungut sampah di lingkungan sekolah", kategori: "kecil", poin: 1 },
             { nama: "Membuang sampah pada tempatnya", kategori: "kecil", poin: 1 },
             { nama: "Mengembalikan barang teman yang terjatuh", kategori: "kecil", poin: 1 },
@@ -1589,7 +1726,6 @@
             { nama: "Menjaga adab saat di mushola", kategori: "kecil", poin: 1 },
             { nama: "Memakai peci/ciput dengan benar", kategori: "kecil", poin: 1 },
             { nama: "Menjaga kerapihan rambut", kategori: "kecil", poin: 1 },
-            // Sedang
             { nama: "Membantu guru/ustadz membawa barang berat", kategori: "sedang", poin: 3 },
             { nama: "Menjadi imam shalat berjamaah", kategori: "sedang", poin: 3 },
             { nama: "Memimpin doa di kelas", kategori: "sedang", poin: 3 },
@@ -1615,7 +1751,6 @@
             { nama: "Menjadi pembaca doa di acara sekolah", kategori: "sedang", poin: 3 },
             { nama: "Membantu teman yang tertinggal pelajaran", kategori: "sedang", poin: 3 },
             { nama: "Mengajak teman untuk menjaga kebersihan", kategori: "sedang", poin: 4 },
-            // Besar
             { nama: "Memisahkan teman yang bertengkar", kategori: "besar", poin: 5 },
             { nama: "Menjadi juara lomba tingkat sekolah", kategori: "besar", poin: 5 },
             { nama: "Menjadi juara lomba tingkat kecamatan/kabupaten", kategori: "besar", poin: 5 },
@@ -1644,7 +1779,7 @@
         ];
 
         // ============================================================
-        // FUNGSI INISIALISASI FIREBASE
+        // INISIALISASI FIREBASE
         // ============================================================
         function initFirebaseData() {
             db.ref('users').once('value', (snap) => {
@@ -1687,7 +1822,6 @@
                     db.ref('rewardTypes').set(obj);
                 }
             });
-            // Money reward rules default
             db.ref('moneyRewardRules').once('value', (snap) => {
                 if (!snap.exists()) {
                     db.ref('moneyRewardRules').set({
@@ -1734,9 +1868,17 @@
         let guruCache = {};
         let passwordHistoryCache = {};
         let notificationsCache = {};
+        let feedbackCache = {};
+        let bkCache = {};
         let moneyRewardRules = {};
         let listenersAttached = false;
         let notifCount = 0;
+        let currentLeaderboardTab = 'violation';
+
+        // Speech recognition
+        let recognition = null;
+        let isRecording = false;
+        let transcriptText = '';
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
 
@@ -1777,7 +1919,7 @@
         function addNotification(type, title, message, data = {}) {
             const notif = {
                 id: genId(),
-                type: type, // 'violation' or 'reward' or 'money'
+                type: type,
                 title: title,
                 message: message,
                 data: data,
@@ -1803,7 +1945,6 @@
                     <div class="notif-time">${escapeHtml(n.timestamp || '-')}</div>
                 </div>
             `).join('');
-            // Update count
             const unread = items.filter(n => !n.read).length;
             notifCount = unread;
             const countEl = document.getElementById('notifCount');
@@ -1821,7 +1962,7 @@
         }
 
         // ============================================================
-        // AUTH LOGIN / LOGOUT
+        // AUTH
         // ============================================================
         function login(username, password) {
             db.ref('users').once('value', (snap) => {
@@ -1895,6 +2036,10 @@
             loadDashboard();
             loadProfile();
             loadMoneyRewardRules();
+            loadFeedbackList();
+            loadBkList();
+            currentLeaderboardTab = 'violation';
+            loadLeaderboard(currentLeaderboardTab);
         }
 
         // ============================================================
@@ -1908,8 +2053,10 @@
         function refreshActivePage() {
             if (isPageActive('dashboard')) loadDashboard();
             if (isPageActive('violations')) loadViolations();
-            if (isPageActive('leaderboard')) loadLeaderboard();
+            if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
             if (isPageActive('reward')) loadRewardsList();
+            if (isPageActive('admin')) loadFeedbackList();
+            if (isPageActive('bk')) loadBkList();
         }
 
         function setupRealtimeListeners() {
@@ -1960,17 +2107,26 @@
                 moneyRewardRules = snap.val() || {};
                 loadMoneyRewardRules();
             });
+            db.ref('feedback').on('value', (snap) => {
+                feedbackCache = snap.val() || {};
+                loadFeedbackList();
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+            db.ref('bk').on('value', (snap) => {
+                bkCache = snap.val() || {};
+                loadBkList();
+            });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
-                'notifications', 'moneyRewardRules'
+                'notifications', 'moneyRewardRules', 'feedback', 'bk'
             ].forEach(r => db.ref(r).off());
         }
 
         // ============================================================
-        // SISWA SELECTS + SEARCH
+        // SISWA (also used for BK)
         // ============================================================
         function populateSiswaSelects() {
             db.ref('siswa').once('value', (snap) => {
@@ -1991,8 +2147,7 @@
             siswaCache = data || {};
             const siswaList = Object.values(siswaCache);
             siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
-            // Populate hidden selects
-            ['recStudent', 'rewardStudent'].forEach(id => {
+            ['recStudent', 'rewardStudent', 'bkStudent'].forEach(id => {
                 const sel = document.getElementById(id);
                 if (!sel) return;
                 const val = sel.value;
@@ -2007,10 +2162,11 @@
             });
             updateSelectedStudentClass('recStudent', 'recClass');
             updateSelectedStudentClass('rewardStudent', 'rewardClass');
+            updateSelectedStudentClass('bkStudent', 'bkClass');
             setText('statAllStudents', siswaList.length);
-            // Setup search
             setupStudentSearch('recStudentSearch', 'recStudent', 'recStudentResults', 'recClass');
             setupStudentSearch('rewardStudentSearch', 'rewardStudent', 'rewardStudentResults', 'rewardClass');
+            setupStudentSearch('bkStudentSearch', 'bkStudent', 'bkStudentResults', 'bkClass');
             console.log(`✅ ${siswaList.length} siswa dimuat.`);
         }
 
@@ -2048,7 +2204,6 @@
                         search.value = siswaCache[nis] ? siswaCache[nis].nama : '';
                         if (classInput) classInput.value = kelas || '';
                         result.style.display = 'none';
-                        // Trigger change
                         select.dispatchEvent(new Event('change'));
                     });
                 });
@@ -2060,7 +2215,6 @@
                 }
             });
 
-            // When select changes manually
             select.addEventListener('change', function() {
                 const s = siswaCache[this.value];
                 if (s) {
@@ -2172,7 +2326,7 @@
         }
 
         // ============================================================
-        // NAVIGASI + SIDEBAR TOGGLE
+        // NAVIGASI
         // ============================================================
         function navigateTo(page) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -2181,7 +2335,6 @@
             document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
             const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
             if (navItem) navItem.classList.add('active');
-            // Close sidebar on mobile
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             if (sidebar && window.innerWidth <= 992) {
@@ -2198,14 +2351,16 @@
                 navigateTo(page);
                 if (page === 'dashboard') loadDashboard();
                 if (page === 'violations') loadViolations();
-                if (page === 'leaderboard') loadLeaderboard();
-                if (page === 'admin') loadAdminPanel();
+                if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
+                if (page === 'admin') { loadAdminPanel();
+                    loadFeedbackList(); }
                 if (page === 'profile') loadProfile();
                 if (page === 'reward') loadRewardsList();
+                if (page === 'bk') { loadBkList(); }
+                if (page === 'feedback') { /* just show form */ }
             });
         });
 
-        // Menu toggle
         document.getElementById('menuToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2218,7 +2373,6 @@
             this.classList.remove('show');
         });
 
-        // Notification bell
         document.getElementById('notifBell').addEventListener('click', function() {
             const panel = document.getElementById('notifPanel');
             panel.classList.toggle('open');
@@ -2244,12 +2398,8 @@
             const highest = Object.values(totalPoints).length ? Math.max(...Object.values(totalPoints)) : 0;
             const totalRewardPoints = rewards.reduce((sum, r) => sum + (r.poin || 0), 0);
             const todayCount = violations.filter(v => v.tanggal === todayStr).length;
-
-            // Money reward total
             let moneyTotal = 0;
-            rewards.forEach(r => {
-                if (r.moneyAwarded) moneyTotal += r.moneyAwarded;
-            });
+            rewards.forEach(r => { if (r.moneyAwarded) moneyTotal += r.moneyAwarded; });
 
             setText('statTotal', violations.length);
             setText('statStudents', studentSet.size);
@@ -2292,7 +2442,7 @@
         }
 
         // ============================================================
-        // DATA PELANGGARAN
+        // VIOLATIONS TABLE
         // ============================================================
         function loadViolations() {
             const tbody = document.getElementById('violationsTableBody');
@@ -2375,7 +2525,7 @@
         });
 
         // ============================================================
-        // DATA REWARD (dengan hapus)
+        // REWARDS LIST
         // ============================================================
         function loadRewardsList() {
             const tbody = document.getElementById('rewardsTableBody');
@@ -2432,43 +2582,392 @@
         });
 
         // ============================================================
-        // PAPAN PERINGKAT + MONEY REWARD
+        // LEADERBOARD (dua tab)
         // ============================================================
-        function loadLeaderboard() {
+        function loadLeaderboard(type = 'violation') {
+            currentLeaderboardTab = type;
             const el = document.getElementById('leaderboardList');
             if (!el) return;
-            const violations = Object.values(violationsCache || {});
-            const rewards = Object.values(rewardsCache || {});
+
+            document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
+            });
+
+            let data = type === 'violation' ? violationsCache : rewardsCache;
+            const items = Object.values(data || {});
             const map = {};
-            violations.forEach(v => {
-                if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, poinPelanggaran: 0, poinReward: 0,
-                    moneyReward: 0 };
-                map[v.nis].poinPelanggaran += (v.poin || 0);
-            });
-            rewards.forEach(r => {
-                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, poinPelanggaran: 0, poinReward: 0,
-                    moneyReward: 0 };
-                map[r.nis].poinReward += (r.poin || 0);
-                if (r.moneyAwarded) map[r.nis].moneyReward += r.moneyAwarded;
-            });
-            const list = Object.values(map).sort((a, b) => b.poinPelanggaran - a.poinPelanggaran);
+
+            if (type === 'violation') {
+                items.forEach(v => {
+                    if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, total: 0, count: 0 };
+                    map[v.nis].total += (v.poin || 0);
+                    map[v.nis].count += 1;
+                });
+            } else {
+                items.forEach(r => {
+                    if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
+                    map[r.nis].total += (r.poin || 0);
+                    map[r.nis].count += 1;
+                });
+            }
+
+            const list = Object.values(map).sort((a, b) => b.total - a.total);
             if (!list.length) {
-                el.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div>';
+                el.innerHTML =
+                    `<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data ${type === 'violation' ? 'pelanggaran' : 'kebaikan'}.</p></div>`;
                 return;
             }
+
             el.innerHTML = list.map((s, i) => {
                 const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-                const moneyStr = s.moneyReward ? ' 🎉 ' + formatRupiah(s.moneyReward) : '';
                 return `
-                <div class="leaderboard-item">
+                <div class="leaderboard-item" data-nis="${s.nis}" data-type="${type}">
                     <div class="rank ${rankClass}">#${i + 1}</div>
                     <div class="info">
                         <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
-                        <div class="detail">Reward: <span style="color:var(--success);font-weight:600;">+${s.poinReward}</span>${moneyStr}</div>
+                        <div class="detail">${s.count} catatan</div>
                     </div>
-                    <div class="points">${s.poinPelanggaran} poin</div>
+                    <div class="points ${type === 'reward' ? 'reward-points' : ''}">${s.total} ${type === 'violation' ? 'poin' : '⭐'}</div>
                 </div>`;
             }).join('');
+
+            el.querySelectorAll('.leaderboard-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const nis = this.dataset.nis;
+                    const type = this.dataset.type;
+                    showStudentDetail(nis, type);
+                });
+            });
+        }
+
+        // ============================================================
+        // SHOW STUDENT DETAIL
+        // ============================================================
+        function showStudentDetail(nis, type) {
+            const student = siswaCache[nis];
+            if (!student) { showToast('Data siswa tidak ditemukan.', 'error'); return; }
+
+            let records = [];
+            let title = '';
+            let headers = ['#', 'Tanggal', 'Deskripsi', 'Poin', 'Guru'];
+            let rows = [];
+
+            if (type === 'violation') {
+                records = Object.values(violationsCache || {}).filter(v => v.nis === nis);
+                records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                title = `Riwayat Pelanggaran - ${student.nama}`;
+                rows = records.map((v, i) => [
+                    i + 1,
+                    formatDate(v.tanggal),
+                    v.pelanggaran || '-',
+                    `<span class="badge badge-danger">${v.poin}</span>`,
+                    v.guru || '-'
+                ]);
+            } else {
+                records = Object.values(rewardsCache || {}).filter(r => r.nis === nis);
+                records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                title = `Riwayat Kebaikan - ${student.nama}`;
+                rows = records.map((r, i) => [
+                    i + 1,
+                    formatDate(r.tanggal),
+                    r.bentuk || '-',
+                    `<span class="badge badge-success">+${r.poin}</span>`,
+                    r.guru || '-'
+                ]);
+            }
+
+            if (!records.length) {
+                showToast(`Tidak ada riwayat ${type === 'violation' ? 'pelanggaran' : 'kebaikan'} untuk siswa ini.`, 'error');
+                return;
+            }
+
+            let tableHtml = `
+                <div style="margin-bottom:12px;"><strong>Kelas:</strong> ${student.kelas} | <strong>Total:</strong> ${rows.length} catatan</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            openModal(title, tableHtml);
+        }
+
+        document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.dataset.leaderboardTab;
+                if (type) loadLeaderboard(type);
+            });
+        });
+
+        // ============================================================
+        // BK (Bimbingan Konseling) - Speech Recognition
+        // ============================================================
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast('Browser Anda tidak mendukung Speech Recognition. Gunakan Chrome.', 'error');
+                return null;
+            }
+            const rec = new SpeechRecognition();
+            rec.lang = 'id-ID';
+            rec.continuous = true;
+            rec.interimResults = true;
+            rec.maxAlternatives = 1;
+            return rec;
+        }
+
+        function startRecording() {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) return;
+                recognition.onresult = function(event) {
+                    let interim = '';
+                    let final = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            final += transcript + ' ';
+                        } else {
+                            interim += transcript;
+                        }
+                    }
+                    // Append final to transcriptText
+                    if (final) {
+                        transcriptText += final;
+                    }
+                    const displayText = transcriptText + (interim ? ' (mengetik...) ' + interim : '');
+                    document.getElementById('bkTranscript').textContent = displayText || '...';
+                    // Auto-summarize
+                    generateSummary(transcriptText);
+                };
+                recognition.onerror = function(event) {
+                    console.error('Speech error', event);
+                    if (event.error === 'not-allowed') {
+                        showToast('Izin mikrofon ditolak.', 'error');
+                    } else {
+                        showToast('Error: ' + event.error, 'error');
+                    }
+                    stopRecording();
+                };
+                recognition.onend = function() {
+                    if (isRecording) {
+                        // restart if still recording
+                        try { recognition.start(); } catch (e) { /* ignore */ }
+                    }
+                };
+            }
+            try {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('bkRecordBtn').innerHTML = '<i class="fas fa-microphone"></i> Merekam...';
+                document.getElementById('bkRecordBtn').classList.add('btn-rec');
+                document.getElementById('bkTranscript').textContent = 'Merekam...';
+                transcriptText = '';
+                document.getElementById('bkSummary').textContent = 'Menganalisis...';
+                showToast('Merekam... bicaralah dengan siswa.', 'success');
+            } catch (e) {
+                showToast('Gagal memulai rekaman: ' + e.message, 'error');
+            }
+        }
+
+        function stopRecording() {
+            if (recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) { /* ignore */ }
+                isRecording = false;
+                document.getElementById('bkRecordBtn').innerHTML = '<i class="fas fa-microphone"></i> Mulai Rekam';
+                document.getElementById('bkRecordBtn').classList.remove('btn-rec');
+                if (transcriptText.trim() === '') {
+                    document.getElementById('bkTranscript').textContent = 'Belum ada transkrip.';
+                    document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                }
+                showToast('Rekaman dihentikan.', 'success');
+            }
+        }
+
+        function generateSummary(text) {
+            if (!text.trim()) {
+                document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                return;
+            }
+            // Simple summarization: extract keywords and create a summary
+            const lower = text.toLowerCase();
+            const keywords = ['masalah', 'sulit', 'takut', 'khawatir', 'marah', 'sedih', 'kecewa', 'stress', 'tekanan', 'keluarga',
+                'teman', 'sekolah', 'guru', 'nilai', 'ujian', 'tugas', 'orang tua', 'ayah', 'ibu', 'saudara'
+            ];
+            const found = keywords.filter(k => lower.includes(k));
+            let summary = 'Siswa menyampaikan beberapa topik: ';
+            if (found.length) {
+                summary += found.join(', ') + '. ';
+            } else {
+                summary += 'Topik belum teridentifikasi secara spesifik. ';
+            }
+            // Take first 150 chars as context
+            const snippet = text.substring(0, 200).replace(/\n/g, ' ');
+            summary += 'Cuplikan: "' + snippet + '..."';
+            document.getElementById('bkSummary').textContent = summary;
+        }
+
+        // BK form events
+        document.getElementById('bkRecordBtn').addEventListener('click', startRecording);
+        document.getElementById('bkStopBtn').addEventListener('click', stopRecording);
+
+        document.getElementById('bkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('bkStudent').value;
+            const kelas = document.getElementById('bkClass').value;
+            const note = document.getElementById('bkNote').value.trim();
+            const transcript = document.getElementById('bkTranscript').textContent;
+            const summary = document.getElementById('bkSummary').textContent;
+
+            if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
+            if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
+                'Belum ada transkrip.') {
+                showToast('Belum ada transkrip yang direkam. Rekam percakapan terlebih dahulu.', 'error');
+                return;
+            }
+
+            const record = {
+                nis: nis,
+                nama: siswaCache[nis] ? siswaCache[nis].nama : 'Unknown',
+                kelas: kelas,
+                catatan: note,
+                transkrip: transcript,
+                ringkasan: summary,
+                guru: currentUser.name,
+                tanggal: today(),
+                createdAt: Date.now()
+            };
+            db.ref('bk/' + genId()).set(record).then(() => {
+                showToast('Catatan BK berhasil disimpan!');
+                // Reset form
+                document.getElementById('bkStudent').value = '';
+                document.getElementById('bkStudentSearch').value = '';
+                document.getElementById('bkClass').value = '';
+                document.getElementById('bkNote').value = '';
+                document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
+                document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                transcriptText = '';
+                stopRecording();
+                loadBkList();
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        function loadBkList() {
+            const tbody = document.getElementById('bkTableBody');
+            const emptyEl = document.getElementById('bkEmpty');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('bkFilterStudent').value || '').toLowerCase().trim();
+
+            let items = Object.entries(bkCache || {}).map(([id, b]) => ({ id, ...b }));
+            items = items.filter(b =>
+                (!filterStudent || (b.nama || '').toLowerCase().includes(filterStudent))
+            );
+            items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            if (!items.length) {
+                tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                return;
+            }
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            tbody.innerHTML = items.map((b, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(b.nama)}</td>
+                    <td>${escapeHtml(b.kelas || '')}</td>
+                    <td>${escapeHtml(b.ringkasan || '-')}</td>
+                    <td>${escapeHtml(b.guru || '-')}</td>
+                    <td>${formatDate(b.tanggal)}</td>
+                    <td class="actions">
+                        <button class="btn btn-xs btn-outline" data-view-bk="${b.id}"><i class="fas fa-eye"></i></button>
+                        ${(isAdmin() || b.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-bk="${b.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-view-bk]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-view-bk');
+                    const b = bkCache[id];
+                    if (b) {
+                        openModal('Detail BK', `
+                            <p><strong>Siswa:</strong> ${escapeHtml(b.nama)} (${escapeHtml(b.kelas || '')})</p>
+                            <p><strong>Guru:</strong> ${escapeHtml(b.guru || '-')}</p>
+                            <p><strong>Tanggal:</strong> ${formatDate(b.tanggal)}</p>
+                            <p><strong>Catatan:</strong> ${escapeHtml(b.catatan || '-')}</p>
+                            <p><strong>Ringkasan:</strong> ${escapeHtml(b.ringkasan || '-')}</p>
+                            <p><strong>Transkrip:</strong></p>
+                            <div style="background:#f8f5f0;padding:12px;border-radius:var(--radius-sm);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(b.transkrip || '-')}</div>
+                        `);
+                    }
+                });
+            });
+
+            tbody.querySelectorAll('[data-delete-bk]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-delete-bk');
+                    if (confirm('Hapus catatan BK ini?')) {
+                        db.ref('bk/' + id).remove().then(() => showToast('Catatan BK dihapus.'));
+                    }
+                });
+            });
+        }
+
+        document.getElementById('bkFilterStudent').addEventListener('input', loadBkList);
+        document.getElementById('clearBkFilters').addEventListener('click', () => {
+            document.getElementById('bkFilterStudent').value = '';
+            loadBkList();
+        });
+
+        // ============================================================
+        // FEEDBACK / SARAN
+        // ============================================================
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('feedbackName').value.trim() || 'Anonim';
+            const type = document.getElementById('feedbackType').value;
+            const message = document.getElementById('feedbackMessage').value.trim();
+            if (!message) { showToast('Pesan tidak boleh kosong!', 'error'); return; }
+
+            const feedback = {
+                id: genId(),
+                name: name,
+                type: type,
+                message: message,
+                guru: currentUser ? currentUser.name : 'Unknown',
+                createdAt: Date.now(),
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+            db.ref('feedback/' + feedback.id).set(feedback).then(() => {
+                showToast('Saran berhasil dikirim! Terima kasih atas masukannya.');
+                this.reset();
+                document.getElementById('feedbackName').value = '';
+                document.getElementById('feedbackMessage').value = '';
+            }).catch(err => showToast('Gagal mengirim: ' + err.message, 'error'));
+        });
+
+        function loadFeedbackList() {
+            const container = document.getElementById('feedbackList');
+            if (!container) return;
+            const items = Object.values(feedbackCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div>';
+                return;
+            }
+            container.innerHTML = items.map(f => `
+                <div class="feedback-item">
+                    <div class="feedback-text"><strong>${escapeHtml(f.name)}</strong> <span class="badge">${escapeHtml(f.type)}</span></div>
+                    <div class="feedback-text">${escapeHtml(f.message)}</div>
+                    <div class="feedback-meta">${escapeHtml(f.guru || 'Guru')} • ${escapeHtml(f.timestamp || '-')}</div>
+                </div>
+            `).join('');
         }
 
         // ============================================================
@@ -2496,11 +2995,10 @@
         });
 
         // ============================================================
-        // CEK MONEY REWARD SAAT REWARD DITAMBAHKAN
+        // CHECK MONEY REWARD
         // ============================================================
         function checkAndAwardMoney(nis, nama, kelas, totalPoin) {
             const rules = moneyRewardRules || {};
-            // Urutan dari yang tertinggi ke terendah
             const thresholds = [100, 90, 80, 50];
             let awarded = 0;
             let threshold = 0;
@@ -2512,16 +3010,14 @@
                 }
             }
             if (awarded > 0) {
-                // Cek apakah sudah pernah mendapat reward di threshold ini
                 const existingRewards = Object.values(rewardsCache || {}).filter(r =>
                     r.nis === nis && r.moneyAwarded && r.moneyThreshold === threshold
                 );
                 if (existingRewards.length === 0) {
-                    // Tambahkan reward uang sebagai entri terpisah
                     const moneyRecord = {
-                        nis: nis,
-                        nama: nama,
-                        kelas: kelas,
+                        nis,
+                        nama,
+                        kelas,
                         bentuk: `🎉 Reward Uang ${threshold} Poin`,
                         kategori: 'besar',
                         poin: 0,
@@ -2543,16 +3039,16 @@
         }
 
         // ============================================================
-        // PANEL ADMIN (ACCORDION)
+        // ADMIN PANEL
         // ============================================================
         function loadAdminPanel() {
             renderViolationTypesTable();
             renderRewardTypesTable();
             renderUsersTable();
             renderGuruTable();
+            loadFeedbackList();
         }
 
-        // Accordion toggle
         document.querySelectorAll('.accordion-header').forEach(header => {
             header.addEventListener('click', function() {
                 const targetId = this.dataset.target;
@@ -2776,7 +3272,7 @@
         document.getElementById('addUserBtn').addEventListener('click', () => openAddUserModal());
 
         // ============================================================
-        // PROFIL & GANTI PASSWORD
+        // PROFILE & CHANGE PASSWORD
         // ============================================================
         function loadProfile() {
             const user = currentUser;
@@ -2801,7 +3297,7 @@
         });
 
         // ============================================================
-        // FORM CATAT PELANGGARAN & REWARD
+        // FORM RECORD & REWARD
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
@@ -2882,7 +3378,6 @@
                         bentuk: t.nama,
                         poin: t.poin
                     });
-                // Cek money reward
                 const allRewards = Object.values(rewardsCache || {});
                 const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
                 checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
@@ -2892,7 +3387,6 @@
                 renderRewardTypeOptions();
                 document.getElementById('rewardClass').value = '';
                 document.getElementById('rewardStudentSearch').value = '';
-                // Refresh reward list
                 setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
