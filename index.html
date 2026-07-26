@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        /* ===== RESET & VARIABEL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #1a2a4a;
+            --primary-light: #2c3e6a;
+            --primary-dark: #10192f;
+            --gold: #c9a84c;
+            --gold-light: #e8d48b;
+            --gold-dark: #a8892e;
+            --bg: #f4f1ea;
+            --card: #ffffff;
+            --text: #1e2a3a;
+            --text-light: #5a6a7a;
+            --shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --danger: #d1453b;
+            --success: #2a9d8f;
+            --warning: #e9b741;
+        }
+        body {
+            font-family: "Inter", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .text-gold {
+            color: var(--gold);
+        }
+        .text-muted {
+            color: var(--text-light);
+        }
+        .flex-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .gap-1 {
+            gap: 8px;
+        }
+        .gap-2 {
+            gap: 16px;
+        }
+        .wrap {
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--gold-light);
+            color: var(--primary-dark);
+        }
+        .badge-danger {
+            background: #fde8e5;
+            color: var(--danger);
+        }
+        .badge-success {
+            background: #e0f5f0;
+            color: var(--success);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s ease;
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 42, 74, 0.2);
+        }
+        .btn-gold {
+            background: var(--gold);
+            color: #fff;
+        }
+        .btn-gold:hover {
+            background: var(--gold-dark);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+        }
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 0.7rem;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* LOGIN */
+        #loginPage {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+            padding: 20px;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            padding: 48px 40px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .login-card .logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-card .logo .logo-text {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+        .login-card .logo .logo-text span {
+            color: var(--gold);
+        }
+        .login-card .logo .logo-sub {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            letter-spacing: 4px;
+            font-weight: 500;
+        }
+        .login-card .greeting {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px 16px;
+            background: rgba(201, 168, 76, 0.10);
+            border-radius: var(--radius-sm);
+            border-right: 4px solid var(--gold);
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e4dc;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            transition: 0.3s;
+            background: #faf8f5;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
+        }
+        .form-group .input-wrapper {
+            position: relative;
+        }
+        .form-group .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            opacity: 0.6;
+        }
+        .form-group .input-wrapper input {
+            padding-left: 44px;
+            padding-right: 44px;
+        }
+        .form-group .input-wrapper .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+        .login-error {
+            background: #fde8e5;
+            color: var(--danger);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .login-error.show {
+            display: block;
+        }
+        .login-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .login-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        /* APP */
+        #app {
+            display: none;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        #app.active {
+            display: flex;
+        }
+        .topbar {
+            background: var(--primary);
+            color: #fff;
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .topbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .topbar .brand .logo-icon .main {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+        .topbar .brand .logo-icon .main span {
+            color: var(--gold);
+        }
+        .topbar .brand .logo-icon .sub {
+            font-size: 0.55rem;
+            letter-spacing: 3px;
+            opacity: 0.8;
+        }
+        .topbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.9rem;
+        }
+        .topbar .user-info .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .topbar .logout-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.85rem;
+        }
+        .topbar .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .app-body {
+            display: flex;
+            flex: 1;
+        }
+        .sidebar {
+            width: 240px;
+            background: #fff;
+            border-right: 1px solid #eee8e0;
+            padding: 20px 0;
+            flex-shrink: 0;
+            height: calc(100vh - 68px);
+            position: sticky;
+            top: 68px;
+            overflow-y: auto;
+        }
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 24px;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: 0.3s;
+        }
+        .sidebar .nav-item:hover {
+            background: #f8f5f0;
+        }
+        .sidebar .nav-item.active {
+            background: #f8f5f0;
+            border-left-color: var(--gold);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .sidebar .nav-item i {
+            width: 20px;
+            text-align: center;
+            color: var(--text-light);
+        }
+        .sidebar .nav-item.active i {
+            color: var(--gold);
+        }
+        .sidebar .nav-divider {
+            height: 1px;
+            background: #eee8e0;
+            margin: 12px 24px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 28px 32px;
+            overflow-y: auto;
+            max-height: calc(100vh - 68px);
+        }
+        .page-section {
+            display: none;
+            animation: fadeUp 0.35s ease;
+        }
+        .page-section.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .page-header h2 i {
+            color: var(--gold);
+            margin-right: 10px;
+        }
+        .page-header p {
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: var(--radius-sm);
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+            border: 1px solid #f0ece4;
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid #f0ece4;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .card-header h3 i {
+            color: var(--gold);
+            margin-right: 8px;
+        }
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        table th {
+            text-align: left;
+            padding: 12px 14px;
+            background: #f8f5f0;
+            font-weight: 600;
+            border-bottom: 2px solid #e8e4dc;
+        }
+        table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0ece4;
+            vertical-align: middle;
+        }
+        table .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--gold);
+            opacity: 0.4;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .filter-bar input,
+        .filter-bar select {
+            padding: 8px 14px;
+            border: 2px solid #e8e4dc;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            background: #faf8f5;
+            font-family: inherit;
+            flex: 1;
+            min-width: 130px;
+        }
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        .export-btn {
+            background: #1e7e34;
+            color: #fff;
+        }
+        .export-btn:hover {
+            background: #145a24;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            background: #faf8f5;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
+        }
+        .leaderboard-item:hover {
+            border-color: var(--gold-light);
+            background: #fff;
+        }
+        .leaderboard-item .rank {
+            font-weight: 800;
+            font-size: 1.2rem;
+            min-width: 36px;
+            color: var(--text-light);
+        }
+        .leaderboard-item .rank.gold {
+            color: var(--gold);
+        }
+        .leaderboard-item .rank.silver {
+            color: #b0b0b0;
+        }
+        .leaderboard-item .rank.bronze {
+            color: #cd7f32;
+        }
+        .leaderboard-item .info {
+            flex: 1;
+        }
+        .leaderboard-item .info .name {
+            font-weight: 600;
+        }
+        .leaderboard-item .info .detail {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        .leaderboard-item .points {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--danger);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: #fff;
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 100%;
+            padding: 32px 36px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.25);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal .modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(120px);
+            opacity: 0;
+            transition: 0.4s;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            background: var(--success);
+        }
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .password-history {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 768px) {
+            .app-body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid #eee8e0;
+                padding: 12px 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                justify-content: center;
+            }
+            .sidebar .nav-item {
+                padding: 8px 16px;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                font-size: 0.8rem;
+            }
+            .sidebar .nav-item.active {
+                border-left: none;
+                border-bottom-color: var(--gold);
+            }
+            .main-content {
+                max-height: none;
+                padding: 16px;
+            }
+            .stat-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .login-card {
+                padding: 32px 24px;
+            }
+        }
+        @media (max-width: 480px) {
+            .stat-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage">
+        <div class="login-card">
+            <div class="logo">
+                <div class="logo-text">Tahfizh <span>Preneur</span></div>
+                <div class="logo-sub">✦ SMP CAHAYA QURAN ✦</div>
+            </div>
+            <div class="greeting">
+                <i class="fas fa-hand-peace"></i> Assalaamu'alaykum warahmatullah hiwabarakaatuh<br />
+                <span style="font-weight:700;color:var(--gold-dark);">Guru Hebat!</span>
+            </div>
+            <div id="loginError" class="login-error"><i class="fas fa-exclamation-circle"></i> Username atau password salah!</div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="loginUsername" placeholder="Masukkan username" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="loginPassword" placeholder="Masukkan password" required />
+                        <button type="button" class="toggle-password" id="togglePasswordBtn"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="login-options">
+                    <label><input type="checkbox" id="rememberMe" /> <span>Ingat saya</span></label>
+                </div>
+                <button type="submit" class="btn btn-gold" style="width:100%; justify-content:center; padding:14px;">
+                    <i class="fas fa-arrow-right-to-bracket"></i> Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app">
+        <header class="topbar">
+            <div class="container">
+                <div class="brand">
+                    <div class="logo-icon">
+                        <div class="main">Tahfizh <span>Preneur</span></div>
+                        <div class="sub">✦ SMP CAHAYA QURAN ✦</div>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <span class="avatar" id="userAvatar">A</span>
+                    <span class="name" id="userName">Admin</span>
+                    <!-- PERBAIKAN: tambahkan id="userRole" -->
+                    <span class="role-badge" id="userRole" style="background:rgba(255,255,255,0.15);padding:2px 12px;border-radius:20px;font-size:0.7rem;">ADMIN</span>
+                    <button class="logout-btn" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Keluar</button>
+                </div>
+            </div>
+        </header>
+        <div class="app-body">
+            <nav class="sidebar" id="sidebar">
+                <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a class="nav-item" data-page="record"><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</a>
+                <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
+                <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
+                <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
+                <div class="nav-divider"></div>
+                <a class="nav-item" data-page="admin" id="adminNav"><i class="fas fa-user-gear"></i> Panel Admin</a>
+                <a class="nav-item" data-page="profile"><i class="fas fa-user"></i> Profil & Sandi</a>
+            </nav>
+            <main class="main-content">
+                <!-- DASHBOARD -->
+                <section class="page-section active" id="page-dashboard">
+                    <div class="page-header"><h2><i class="fas fa-chart-pie"></i> Dashboard</h2><p>Ringkasan data pelanggaran dan reward siswa.</p></div>
+                    <div class="stat-cards" id="dashStats">
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Pelanggaran</div></div><i class="fas fa-clipboard-list" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statStudents">0</div><div class="stat-label">Siswa Tercatat</div></div><i class="fas fa-user-graduate" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statAllStudents">0</div><div class="stat-label">Jumlah Seluruh Siswa</div></div><i class="fas fa-users" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statToday">0</div><div class="stat-label">Hari Ini</div></div><i class="fas fa-calendar-day" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statHighest">0</div><div class="stat-label">Poin Tertinggi</div></div><i class="fas fa-arrow-up" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward</div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
+                    </div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
+                </section>
+
+                <!-- RECORD -->
+                <section class="page-section" id="page-record">
+                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Pilih siswa, jenis pelanggaran, dan konsekuensi otomatis.</p></div>
+                    <div class="card">
+                        <form id="recordForm">
+                            <div class="form-row">
+                                <div class="form-group"><label>Siswa <span class="text-muted">*</span></label><select id="recStudent" required><option value="">— Pilih siswa —</option></select></div>
+                                <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Kategori Pelanggaran</label><select id="recCategory"><option value="ringan">Ringan (2-5)</option><option value="sedang">Sedang (10-25)</option><option value="berat">Berat (30-100)</option></select></div>
+                                <div class="form-group"><label>Jenis Pelanggaran <span class="text-muted">*</span></label><select id="recType" required><option value="">— Pilih jenis —</option></select></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Poin <span class="text-muted">(otomatis)</span></label><input type="text" id="recPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
+                                <div class="form-group"><label>Konsekuensi Edukatif <span class="text-muted">(otomatis)</span></label><input type="text" id="recConsequence" readonly style="background:#f4f1ea;" /></div>
+                            </div>
+                            <div class="form-group"><label>Catatan Tambahan</label><input type="text" id="recNote" placeholder="Misal: sudah diperingatkan" /></div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Pelanggaran</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- REWARD -->
+                <section class="page-section" id="page-reward">
+                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Berikan poin reward untuk kebaikan siswa.</p></div>
+                    <div class="card">
+                        <form id="rewardForm">
+                            <div class="form-row">
+                                <div class="form-group"><label>Siswa <span class="text-muted">*</span></label><select id="rewardStudent" required><option value="">— Pilih siswa —</option></select></div>
+                                <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Kategori Reward</label><select id="rewardCategory"><option value="kecil">Kebaikan Kecil (1-2 poin)</option><option value="sedang">Kebaikan Sedang (3-4 poin)</option><option value="besar">Kebaikan Besar (5 poin)</option></select></div>
+                                <div class="form-group"><label>Bentuk Kebaikan <span class="text-muted">*</span></label><select id="rewardType" required><option value="">— Pilih bentuk —</option></select></div>
+                            </div>
+                            <div class="form-group"><label>Poin Reward <span class="text-muted">(otomatis)</span></label><input type="text" id="rewardPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-star"></i> Berikan Reward</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- VIOLATIONS -->
+                <section class="page-section" id="page-violations">
+                    <div class="page-header"><h2><i class="fas fa-list"></i> Data Pelanggaran</h2><p>Semua pelanggaran yang tercatat oleh seluruh guru.</p></div>
+                    <div class="card">
+                        <div class="filter-bar">
+                            <input type="text" id="filterStudent" placeholder="Cari nama siswa..." />
+                            <select id="filterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <select id="filterType"><option value="">Semua Jenis</option></select>
+                            <button class="btn btn-sm btn-outline" id="clearFilters"><i class="fas fa-undo"></i> Reset</button>
+                            <button class="btn btn-sm export-btn" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                        </div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Pelanggaran</th><th>Poin</th><th>Konsekuensi</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="violationsTableBody"></tbody></table></div>
+                        <div id="violationsEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data.</p></div>
+                    </div>
+                </section>
+
+                <!-- LEADERBOARD -->
+                <section class="page-section" id="page-leaderboard">
+                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Total poin pelanggaran (tertinggi → terendah) & total reward.</p></div>
+                    <div class="card"><div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div></div>
+                </section>
+
+                <!-- ADMIN -->
+                <section class="page-section" id="page-admin">
+                    <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, dan pengguna. <span class="text-muted">(Data tersimpan di Cloud Firebase)</span></p></div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-list-check"></i> Jenis Pelanggaran</h3><button class="btn btn-sm btn-gold" id="addViolationTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="violationTypesTable"></tbody></table></div></div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Jenis Reward</h3><button class="btn btn-sm btn-success" id="addRewardTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div><div class="table-wrap"><table><thead><tr><th>Bentuk Kebaikan</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="rewardTypesTable"></tbody></table></div></div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-users"></i> Manajemen Pengguna & Guru</h3><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
+                        <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Terakhir Ubah Sandi</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                        <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-chalkboard-user"></i> Daftar Guru (Database)</h3></div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Nama Guru</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
+                    </div>
+                </section>
+
+                <!-- PROFILE -->
+                <section class="page-section" id="page-profile">
+                    <div class="page-header"><h2><i class="fas fa-user"></i> Profil & Sandi</h2><p>Ubah password akun Anda. Perubahan akan tercatat oleh admin.</p></div>
+                    <div class="card" style="max-width:500px;">
+                        <form id="changePasswordForm">
+                            <div class="form-group"><label>Username</label><input type="text" id="profileUsername" disabled style="background:#f4f1ea;" /></div>
+                            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="profileFullname" disabled style="background:#f4f1ea;" /></div>
+                            <div class="form-group"><label>Sandi Baru <span class="text-muted">*</span></label><input type="password" id="newPassword" placeholder="Minimal 6 karakter" required minlength="6" /></div>
+                            <div class="form-group"><label>Konfirmasi Sandi</label><input type="password" id="confirmPassword" placeholder="Ketik ulang" required minlength="6" /></div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-key"></i> Ubah Sandi</button>
+                        </form>
+                        <div style="margin-top:16px;font-size:0.8rem;color:var(--text-light);border-top:1px solid #eee;padding-top:16px;"><i class="fas fa-history"></i> Riwayat perubahan password tercatat di Firebase.</div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay"><div class="modal"><div class="modal-header"><h3 id="modalTitle">Modal</h3><button class="close-modal" id="modalClose">&times;</button></div><div id="modalBody"></div></div></div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Sukses!</span></div>
+
+    <script>
+        // ============================================================
+        // 🔥 KONFIGURASI FIREBASE
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCV4t1cv8Rfb2lByx0LEeJEvIgzj5mk4Lg",
+            authDomain: "smp-tahfizh-preneur-ec0c8.firebaseapp.com",
+            databaseURL: "https://smp-tahfizh-preneur-ec0c8-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smp-tahfizh-preneur-ec0c8",
+            storageBucket: "smp-tahfizh-preneur-ec0c8.firebasestorage.app",
+            messagingSenderId: "683507138245",
+            appId: "1:683507138245:web:51e61dd35e684586c97aac",
+            measurementId: "G-XRDJPJN7NM"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // DATA DEFAULT (hanya diisi jika database masih kosong)
+        // ============================================================
+        const GURU_LIST = [
+            "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
+            "Nadiatul Fadhilah, S.Ag", "Pretty Cavelia Mandagi, M.Pd",
+            "Abdul Hafiz, S.Pd", "Khairul Fikri, S.Pd", "M. Chaidar Ramadhan",
+            "Muhammad Iqbal, S.Kom", "Asep Zainudin, S.E., M.Pd"
+        ];
+
+        const SISWA_DATA = [
+            { nis: "262707001", nama: "Abdillah Ammar Al Fauzan", kelas: "7A" },
+            { nis: "262707002", nama: "Ahmad Wildan Rasyid", kelas: "7A" },
+            { nis: "262707003", nama: "Aqila Hamdan Al Fathan", kelas: "7A" },
+            { nis: "262707004", nama: "Aqila Hamdan Al Fatih", kelas: "7A" },
+            { nis: "262707005", nama: "Azlan Arkenzie Adiatmaja", kelas: "7A" },
+            { nis: "262707006", nama: "Chairul Azzam Wijaya", kelas: "7A" },
+            { nis: "262707007", nama: "Muhammad Emran Alafasy", kelas: "7A" },
+            { nis: "262707008", nama: "Muhammad Zahwan Jubaidi", kelas: "7A" },
+            { nis: "262707009", nama: "Raffaza Syaqif Pratama", kelas: "7A" },
+            { nis: "262707010", nama: "Rashka Uno Kamil", kelas: "7A" },
+            { nis: "262707011", nama: "Rayyan Iqra Mahmudy", kelas: "7A" },
+            { nis: "262707012", nama: "Tsaqif Alfaruq Solichin", kelas: "7A" },
+            { nis: "262707013", nama: "Abidah Fidziaritza", kelas: "7B" },
+            { nis: "262707014", nama: "Aisyah Rahma Karenina", kelas: "7B" },
+            { nis: "262707015", nama: "Alya Askana Sakhi", kelas: "7B" },
+            { nis: "262707016", nama: "Annisa Gwen Inara", kelas: "7B" },
+            { nis: "262707017", nama: "Arindi Nada Arcobaleno", kelas: "7B" },
+            { nis: "262707018", nama: "Athiya Ufairah", kelas: "7B" },
+            { nis: "262707019", nama: "Filza Noor Hanifa", kelas: "7B" },
+            { nis: "262707020", nama: "Filza Salsabila Fadhilah", kelas: "7B" },
+            { nis: "262707021", nama: "Haura Nafisah", kelas: "7B" },
+            { nis: "262707022", nama: "Jalilla Dhessafa Alfariji", kelas: "7B" },
+            { nis: "262707023", nama: "Maryam Zahida Aristi", kelas: "7B" },
+            { nis: "262707024", nama: "Nasywa Almeera Khanza", kelas: "7B" },
+            { nis: "262707025", nama: "Quisha Zahidah Rafifa", kelas: "7B" },
+            { nis: "262707026", nama: "Raihana Yasmina Rahman", kelas: "7B" },
+            { nis: "262707027", nama: "Raihanah Hanin", kelas: "7B" },
+            { nis: "262707028", nama: "Raihanna Navy Khafiya", kelas: "7B" },
+            { nis: "262707029", nama: "Rayna Shafiqa Almahyra", kelas: "7B" },
+            { nis: "262707030", nama: "Rayya Viro Azzahra", kelas: "7B" },
+            { nis: "262707031", nama: "Shafina Lucky Adeeba", kelas: "7B" },
+            { nis: "262707032", nama: "Shafiyyah", kelas: "7B" },
+            { nis: "262707033", nama: "Shafiyyah Najib", kelas: "7B" },
+            { nis: "262707034", nama: "Shaqeena Taqiyyah Siregar", kelas: "7B" },
+            { nis: "262707035", nama: "Siti Mutiah Ratu Setiawan", kelas: "7B" },
+            { nis: "252607001", nama: "Abdurrohman", kelas: "8A" },
+            { nis: "252607002", nama: "Agha Sebastian Dhuha", kelas: "8A" },
+            { nis: "252607003", nama: "Alandra Raihan Syazani", kelas: "8A" },
+            { nis: "252607004", nama: "Altadira Mohammed El Fatih", kelas: "8A" },
+            { nis: "252607005", nama: "Arkananta Putra Iriawan", kelas: "8A" },
+            { nis: "252607006", nama: "Arrafi Zaidan Qawiyyu", kelas: "8A" },
+            { nis: "252607007", nama: "Arsya Athalah Haki", kelas: "8A" },
+            { nis: "252607008", nama: "Baihaqi Safaraz", kelas: "8A" },
+            { nis: "252607009", nama: "Fahri Afif Ihsanuddin", kelas: "8A" },
+            { nis: "252607010", nama: "Galang Nareswara Putra G", kelas: "8A" },
+            { nis: "252607011", nama: "Gaza Syauqi Firdaus", kelas: "8A" },
+            { nis: "252607012", nama: "Habibie Alfarizqi", kelas: "8A" },
+            { nis: "252607013", nama: "Hasan Faiq M. Hutasoit", kelas: "8A" },
+            { nis: "252607014", nama: "Hasby Arif Al Ghifari", kelas: "8A" },
+            { nis: "252607015", nama: "Kazhafran Al Fatih Milono", kelas: "8A" },
+            { nis: "252607016", nama: "M.Serhan Ar Rasyid", kelas: "8A" },
+            { nis: "252607017", nama: "Rafaza Aydin Nadivky", kelas: "8A" },
+            { nis: "252607018", nama: "M. Alfath Athaya Riyanto", kelas: "8A" },
+            { nis: "252607019", nama: "M. Andra Romansyah", kelas: "8A" },
+            { nis: "252607020", nama: "M. Khalifah Al Farisi", kelas: "8A" },
+            { nis: "252607021", nama: "M. Naufal Al Fakhri", kelas: "8A" },
+            { nis: "252607022", nama: "Mischa Alvaro Nata Kunthar", kelas: "8A" },
+            { nis: "252607023", nama: "Muhammad El Azzam A", kelas: "8A" },
+            { nis: "252607024", nama: "Naufal Mu'min Billah", kelas: "8A" },
+            { nis: "252607025", nama: "Raindra Alkhalifi Pratama", kelas: "8A" },
+            { nis: "252607026", nama: "Rakargalu Damar Panuluh", kelas: "8A" },
+            { nis: "252607027", nama: "Umar Fatih Abdurrahman", kelas: "8A" },
+            { nis: "252607028", nama: "Zen Firdaus", kelas: "8A" },
+            { nis: "252607030", nama: "Adela Zahra Nugroho", kelas: "8B" },
+            { nis: "252607031", nama: "Afifah Haniyah", kelas: "8B" },
+            { nis: "252607032", nama: "Aisyah Azzaira", kelas: "8B" },
+            { nis: "252607034", nama: "Askana Sakhia", kelas: "8B" },
+            { nis: "252607036", nama: "Azalea Rasyidatu Naja", kelas: "8B" },
+            { nis: "252607039", nama: "Fatimah Azzahra", kelas: "8B" },
+            { nis: "252607040", nama: "Fiorenza Aretha Arcobaleno", kelas: "8B" },
+            { nis: "252607043", nama: "Hana Nafisah", kelas: "8B" },
+            { nis: "252607044", nama: "Hanayumi Nafiiza Aldrin", kelas: "8B" },
+            { nis: "252607045", nama: "Jasmina Jinan Izzati Akmal", kelas: "8B" },
+            { nis: "252607047", nama: "Khanza Humaira Ariyadi", kelas: "8B" },
+            { nis: "252607050", nama: "Matahari Parahita Prameswari", kelas: "8B" },
+            { nis: "252607052", nama: "Naema Fikriyyah Humaira", kelas: "8B" },
+            { nis: "252607058", nama: "Taalea Raisa Eiliyah", kelas: "8B" },
+            { nis: "252607033", nama: "Aqeela Maulidya Arlen", kelas: "8C" },
+            { nis: "252607035", nama: "Audrey Zaneta Aini", kelas: "8C" },
+            { nis: "252607037", nama: "Azka Raihanah", kelas: "8C" },
+            { nis: "252607038", nama: "Fakhirah Shakila Dini H", kelas: "8C" },
+            { nis: "252607041", nama: "Ghassani Atqiya Zalfa A", kelas: "8C" },
+            { nis: "252607042", nama: "Hafidzah Qotrunnada D.K", kelas: "8C" },
+            { nis: "252607046", nama: "Khaeria Namia Zahrana", kelas: "8C" },
+            { nis: "252607048", nama: "Khayyira Naila Aisha", kelas: "8C" },
+            { nis: "252607049", nama: "Levinka Ayla Rahmadita", kelas: "8C" },
+            { nis: "252607051", nama: "Naima Ashadya Zaida", kelas: "8C" },
+            { nis: "252607053", nama: "Nabila Az-Zahra", kelas: "8C" },
+            { nis: "252607055", nama: "Natasha Kirei Samita", kelas: "8C" },
+            { nis: "252607056", nama: "Rania Ranaa Kurniawan", kelas: "8C" },
+            { nis: "252607057", nama: "Syakira Rahmadita Sijabat", kelas: "8C" },
+            { nis: "252607059", nama: "Violetha Ozora Himmatana", kelas: "8C" },
+            { nis: "242507001", nama: "Alika Imtinan Diassyafahya", kelas: "9A" },
+            { nis: "242507011", nama: "Athifah Mumtazah", kelas: "9A" },
+            { nis: "242507002", nama: "Athiyyah Shofi Muthmainnah", kelas: "9A" },
+            { nis: "242507003", nama: "Balqis Zahra Hanifah", kelas: "9A" },
+            { nis: "252607060", nama: "Damia Khairina Alesha", kelas: "9A" },
+            { nis: "252607061", nama: "Delisha Halwa Tabina", kelas: "9A" },
+            { nis: "242501010", nama: "Kamilia Jaudah Tsuraya", kelas: "9A" },
+            { nis: "242507005", nama: "Mahira Anezka Mulyawan", kelas: "9A" },
+            { nis: "242507006", nama: "Maiza Rahma", kelas: "9A" },
+            { nis: "242507007", nama: "Naura Izzatunnisa", kelas: "9A" },
+            { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
+        ];
+
+        const VIOLATION_TYPES_INIT = [
+            { nama: "Terlambat masuk kelas", kategori: "ringan", poin: 2, konsekuensi: "Menulis surat permohonan maaf" },
+            { nama: "Tidak mengerjakan PR", kategori: "ringan", poin: 3, konsekuensi: "Mengerjakan tugas tambahan sepulang sekolah" },
+            { nama: "Atribut seragam tidak lengkap", kategori: "ringan", poin: 2, konsekuensi: "Teguran lisan & catatan wali kelas" },
+            { nama: "Makan/minum saat pelajaran", kategori: "ringan", poin: 2, konsekuensi: "Teguran lisan" },
+            { nama: "Membuang sampah sembarangan", kategori: "ringan", poin: 3, konsekuensi: "Membersihkan area sekitar kelas" },
+            { nama: "Ribut/mengganggu KBM", kategori: "ringan", poin: 5, konsekuensi: "Duduk di depan & menulis refleksi diri" },
+            { nama: "Tidak mengikuti sholat berjamaah", kategori: "sedang", poin: 15, konsekuensi: "Sholat munfarid didampingi & hafalan doa" },
+            { nama: "Bolos pelajaran/kegiatan", kategori: "sedang", poin: 20, konsekuensi: "Panggilan orang tua & surat pernyataan" },
+            { nama: "Menyontek saat ujian", kategori: "sedang", poin: 25, konsekuensi: "Ujian ulang & pembinaan akhlak" },
+            { nama: "Berkata kasar/tidak sopan", kategori: "sedang", poin: 15, konsekuensi: "Pembinaan akhlak oleh wali kelas" },
+            { nama: "Membawa HP tanpa izin", kategori: "sedang", poin: 10, konsekuensi: "HP disita sementara & pembinaan" },
+            { nama: "Merusak fasilitas sekolah", kategori: "sedang", poin: 20, konsekuensi: "Mengganti/memperbaiki fasilitas" },
+            { nama: "Berkelahi dengan teman", kategori: "berat", poin: 50, konsekuensi: "Panggilan orang tua & bimbingan konseling" },
+            { nama: "Merokok di lingkungan sekolah", kategori: "berat", poin: 75, konsekuensi: "Panggilan orang tua & surat perjanjian" },
+            { nama: "Perundungan (bullying)", kategori: "berat", poin: 100, konsekuensi: "Konseling intensif & panggilan orang tua" },
+            { nama: "Mengambil barang bukan miliknya", kategori: "berat", poin: 100, konsekuensi: "Panggilan orang tua & pembinaan khusus" },
+            { nama: "Membawa barang terlarang", kategori: "berat", poin: 100, konsekuensi: "Panggilan orang tua & tindak lanjut pihak sekolah" }
+        ];
+
+        const REWARD_TYPES_INIT = [
+            { nama: "Membantu teman kesulitan", kategori: "kecil", poin: 1 },
+            { nama: "Menjaga kebersihan kelas", kategori: "kecil", poin: 1 },
+            { nama: "Disiplin & tepat waktu", kategori: "kecil", poin: 2 },
+            { nama: "Aktif bertanya/menjawab di kelas", kategori: "kecil", poin: 1 },
+            { nama: "Menghafal juz baru tepat waktu", kategori: "sedang", poin: 4 },
+            { nama: "Memimpin doa/menjadi imam", kategori: "sedang", poin: 3 },
+            { nama: "Membantu guru mengajar teman", kategori: "sedang", poin: 3 },
+            { nama: "Menolong teman yang kesulitan/sakit", kategori: "sedang", poin: 4 },
+            { nama: "Juara lomba akademik/non-akademik", kategori: "besar", poin: 5 },
+            { nama: "Menunjukkan akhlak teladan", kategori: "besar", poin: 5 }
+        ];
+
+        // ============================================================
+        // FUNGSI INISIALISASI FIREBASE (seed data jika kosong)
+        // ============================================================
+        function initFirebaseData() {
+            db.ref('users').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const defaultUsers = {
+                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
+                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher' },
+                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher' }
+                    };
+                    db.ref('users').set(defaultUsers);
+                    const now = new Date().toLocaleString('id-ID');
+                    db.ref('passwordHistory').set({ u1: now, u2: now, u3: now });
+                }
+            });
+            db.ref('siswa').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    SISWA_DATA.forEach(s => { obj[s.nis] = s; });
+                    db.ref('siswa').set(obj);
+                }
+            });
+            db.ref('guru').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    GURU_LIST.forEach((nama, i) => { obj['g' + i] = { nama }; });
+                    db.ref('guru').set(obj);
+                }
+            });
+            db.ref('violationTypes').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    VIOLATION_TYPES_INIT.forEach((t) => { obj[genId()] = t; });
+                    db.ref('violationTypes').set(obj);
+                }
+            });
+            db.ref('rewardTypes').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    REWARD_TYPES_INIT.forEach((t) => { obj[genId()] = t; });
+                    db.ref('rewardTypes').set(obj);
+                }
+            });
+            console.log('🔥 Firebase siap!');
+        }
+        initFirebaseData();
+
+        // ============================================================
+        // FUNGSI BANTUAN
+        // ============================================================
+        function genId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
+        function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        function formatDate(dateStr) { if (!dateStr) return '-'; const p = dateStr.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
+        function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+        function escapeHtml(str) {
+            if (str === undefined || str === null) return '';
+            return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        let currentUser = null;
+        let siswaCache = {};
+        let violationTypesCache = {};
+        let rewardTypesCache = {};
+        let violationsCache = {};
+        let rewardsCache = {};
+        let usersCache = {};
+        let guruCache = {};
+        let passwordHistoryCache = {};
+        let listenersAttached = false;
+
+        function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+
+        // ============================================================
+        // TOAST & MODAL
+        // ============================================================
+        let toastTimer;
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            if (!el) return;
+            const icon = el.querySelector('i');
+            const text = document.getElementById('toastMessage');
+            el.className = 'toast ' + type;
+            if (icon) icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            if (text) text.textContent = msg;
+            clearTimeout(toastTimer);
+            void el.offsetWidth;
+            el.classList.add('show');
+            toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalClose = document.getElementById('modalClose');
+
+        function openModal(title, html) { if (modalTitle) modalTitle.textContent = title; if (modalBody) modalBody.innerHTML = html; if (modalOverlay) modalOverlay.classList.add('show'); }
+        function closeModal() { if (modalOverlay) modalOverlay.classList.remove('show'); }
+        if (modalClose) modalClose.addEventListener('click', closeModal);
+        if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+        // ============================================================
+        // AUTH LOGIN / LOGOUT
+        // ============================================================
+        function login(username, password) {
+            db.ref('users').once('value', (snap) => {
+                const users = snap.val() || {};
+                let found = null;
+                for (let key in users) {
+                    if (users[key].username === username && users[key].password === password) {
+                        found = { id: key, ...users[key] };
+                        break;
+                    }
+                }
+                const errEl = document.getElementById('loginError');
+                if (!found) {
+                    if (errEl) errEl.classList.add('show');
+                    return;
+                }
+                if (errEl) errEl.classList.remove('show');
+                currentUser = found;
+                sessionStorage.setItem('cq_currentUser', JSON.stringify(found));
+                const rememberEl = document.getElementById('rememberMe');
+                if (rememberEl && rememberEl.checked) {
+                    localStorage.setItem('cq_remembered_user', username);
+                    localStorage.setItem('cq_remember_me', 'true');
+                } else {
+                    localStorage.removeItem('cq_remembered_user');
+                    localStorage.setItem('cq_remember_me', 'false');
+                }
+                renderApp();
+            });
+        }
+
+        function logout() {
+            currentUser = null;
+            sessionStorage.removeItem('cq_currentUser');
+            detachRealtimeListeners();
+            const app = document.getElementById('app');
+            if (app) app.classList.remove('active');
+            const loginPage = document.getElementById('loginPage');
+            if (loginPage) loginPage.style.display = 'flex';
+        }
+
+        // ============================================================
+        // RENDER APP
+        // ============================================================
+        function renderApp() {
+            if (!currentUser) return;
+            const loginPage = document.getElementById('loginPage');
+            if (loginPage) loginPage.style.display = 'none';
+            const app = document.getElementById('app');
+            if (app) app.classList.add('active');
+
+            const avatar = document.getElementById('userAvatar');
+            if (avatar) avatar.textContent = currentUser.name.charAt(0).toUpperCase();
+            const nameEl = document.getElementById('userName');
+            if (nameEl) nameEl.textContent = currentUser.name;
+            const roleEl = document.getElementById('userRole');
+            if (roleEl) roleEl.textContent = currentUser.role.toUpperCase();
+
+            const adminNav = document.getElementById('adminNav');
+            if (adminNav) adminNav.style.display = isAdmin() ? 'flex' : 'none';
+
+            setupRealtimeListeners();
+            populateSiswaSelects();
+            populateViolationSelects();
+            populateRewardSelects();
+            navigateTo('dashboard');
+            loadDashboard();
+            loadProfile();
+        }
+
+        // ============================================================
+        // REALTIME LISTENERS
+        // ============================================================
+        function isPageActive(page) {
+            const el = document.getElementById('page-' + page);
+            return !!(el && el.classList.contains('active'));
+        }
+
+        function refreshActivePage() {
+            if (isPageActive('dashboard')) loadDashboard();
+            if (isPageActive('violations')) loadViolations();
+            if (isPageActive('leaderboard')) loadLeaderboard();
+        }
+
+        function setupRealtimeListeners() {
+            if (listenersAttached) return;
+            listenersAttached = true;
+            db.ref('violations').on('value', (snap) => { violationsCache = snap.val() || {}; refreshActivePage(); });
+            db.ref('rewards').on('value', (snap) => { rewardsCache = snap.val() || {}; refreshActivePage(); });
+            db.ref('siswa').on('value', (snap) => {
+                let data = snap.val();
+                if (!data) {
+                    const obj = {};
+                    SISWA_DATA.forEach(s => { obj[s.nis] = s; });
+                    db.ref('siswa').set(obj);
+                    return;
+                }
+                renderSiswaOptions(data);
+                refreshActivePage();
+            });
+            db.ref('violationTypes').on('value', (snap) => {
+                violationTypesCache = snap.val() || {};
+                renderRecTypeOptions();
+                renderFilterTypeOptions();
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+            db.ref('rewardTypes').on('value', (snap) => {
+                rewardTypesCache = snap.val() || {};
+                renderRewardTypeOptions();
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+            db.ref('users').on('value', (snap) => {
+                usersCache = snap.val() || {};
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+            db.ref('guru').on('value', (snap) => {
+                guruCache = snap.val() || {};
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+            db.ref('passwordHistory').on('value', (snap) => {
+                passwordHistoryCache = snap.val() || {};
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+        }
+
+        function detachRealtimeListeners() {
+            listenersAttached = false;
+            ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory'].forEach(r => db.ref(r).off());
+        }
+
+        // ============================================================
+        // SISWA SELECTS
+        // ============================================================
+        function populateSiswaSelects() {
+            db.ref('siswa').once('value', (snap) => {
+                let data = snap.val();
+                if (!data) {
+                    const obj = {};
+                    SISWA_DATA.forEach(s => { obj[s.nis] = s; });
+                    db.ref('siswa').set(obj, () => {
+                        db.ref('siswa').once('value', (snap2) => renderSiswaOptions(snap2.val()));
+                    });
+                } else {
+                    renderSiswaOptions(data);
+                }
+            });
+        }
+
+        function renderSiswaOptions(data) {
+            siswaCache = data || {};
+            const siswaList = Object.values(siswaCache);
+            siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+            ['recStudent', 'rewardStudent'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                const val = sel.value;
+                sel.innerHTML = '<option value="">— Pilih siswa —</option>';
+                siswaList.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.nis;
+                    opt.textContent = `${s.nama} (${s.kelas})`;
+                    sel.appendChild(opt);
+                });
+                if (val) sel.value = val;
+            });
+            updateSelectedStudentClass('recStudent', 'recClass');
+            updateSelectedStudentClass('rewardStudent', 'rewardClass');
+            setText('statAllStudents', siswaList.length);
+            console.log(`✅ ${siswaList.length} siswa dimuat.`);
+        }
+
+        function updateSelectedStudentClass(selectId, classInputId) {
+            const sel = document.getElementById(selectId);
+            const classInput = document.getElementById(classInputId);
+            if (!sel || !classInput) return;
+            const s = siswaCache[sel.value];
+            classInput.value = s ? s.kelas : '';
+        }
+
+        // ============================================================
+        // VIOLATION / REWARD TYPE SELECTS
+        // ============================================================
+        function populateViolationSelects() {
+            db.ref('violationTypes').once('value', (snap) => {
+                violationTypesCache = snap.val() || {};
+                renderRecTypeOptions();
+                renderFilterTypeOptions();
+            });
+        }
+
+        function populateRewardSelects() {
+            db.ref('rewardTypes').once('value', (snap) => {
+                rewardTypesCache = snap.val() || {};
+                renderRewardTypeOptions();
+            });
+        }
+
+        function renderRecTypeOptions() {
+            const catSel = document.getElementById('recCategory');
+            const typeSel = document.getElementById('recType');
+            if (!catSel || !typeSel) return;
+            const cat = catSel.value || 'ringan';
+            const prevVal = typeSel.value;
+            typeSel.innerHTML = '<option value="">— Pilih jenis —</option>';
+            Object.keys(violationTypesCache).forEach(id => {
+                const t = violationTypesCache[id];
+                if (t.kategori === cat) {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = `${t.nama} (${t.poin} poin)`;
+                    typeSel.appendChild(opt);
+                }
+            });
+            if (prevVal && violationTypesCache[prevVal]) typeSel.value = prevVal;
+            updateRecAutoFields();
+        }
+
+        function updateRecAutoFields() {
+            const typeSel = document.getElementById('recType');
+            const pointsEl = document.getElementById('recPoints');
+            const consEl = document.getElementById('recConsequence');
+            if (!typeSel || !pointsEl || !consEl) return;
+            const t = violationTypesCache[typeSel.value];
+            pointsEl.value = t ? t.poin : '';
+            consEl.value = t ? (t.konsekuensi || '-') : '';
+        }
+
+        function renderFilterTypeOptions() {
+            const sel = document.getElementById('filterType');
+            if (!sel) return;
+            const prevVal = sel.value;
+            sel.innerHTML = '<option value="">Semua Jenis</option>';
+            const names = Array.from(new Set(Object.values(violationTypesCache).map(t => t.nama))).sort();
+            names.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n; opt.textContent = n;
+                sel.appendChild(opt);
+            });
+            if (prevVal) sel.value = prevVal;
+        }
+
+        function renderRewardTypeOptions() {
+            const catSel = document.getElementById('rewardCategory');
+            const typeSel = document.getElementById('rewardType');
+            if (!catSel || !typeSel) return;
+            const cat = catSel.value || 'kecil';
+            const prevVal = typeSel.value;
+            typeSel.innerHTML = '<option value="">— Pilih bentuk —</option>';
+            Object.keys(rewardTypesCache).forEach(id => {
+                const t = rewardTypesCache[id];
+                if (t.kategori === cat) {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = `${t.nama} (${t.poin} poin)`;
+                    typeSel.appendChild(opt);
+                }
+            });
+            if (prevVal && rewardTypesCache[prevVal]) typeSel.value = prevVal;
+            updateRewardAutoFields();
+        }
+
+        function updateRewardAutoFields() {
+            const typeSel = document.getElementById('rewardType');
+            const pointsEl = document.getElementById('rewardPoints');
+            if (!typeSel || !pointsEl) return;
+            const t = rewardTypesCache[typeSel.value];
+            pointsEl.value = t ? t.poin : '';
+        }
+
+        // ============================================================
+        // NAVIGASI
+        // ============================================================
+        function navigateTo(page) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('page-' + page);
+            if (target) target.classList.add('active');
+            document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+            const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
+            if (navItem) navItem.classList.add('active');
+        }
+        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const page = this.dataset.page;
+                if (page === 'admin' && !isAdmin()) { showToast('Akses hanya untuk admin!', 'error'); return; }
+                navigateTo(page);
+                if (page === 'dashboard') loadDashboard();
+                if (page === 'violations') loadViolations();
+                if (page === 'leaderboard') loadLeaderboard();
+                if (page === 'admin') loadAdminPanel();
+                if (page === 'profile') loadProfile();
+            });
+        });
+
+        // ============================================================
+        // DASHBOARD
+        // ============================================================
+        function loadDashboard() {
+            const violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v }));
+            const rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
+            const studentSet = new Set(violations.map(v => v.nis));
+            const todayStr = today();
+            const totalPoints = {};
+            violations.forEach(v => { totalPoints[v.nis] = (totalPoints[v.nis] || 0) + (v.poin || 0); });
+            const highest = Object.values(totalPoints).length ? Math.max(...Object.values(totalPoints)) : 0;
+            const totalRewardPoints = rewards.reduce((sum, r) => sum + (r.poin || 0), 0);
+            const todayCount = violations.filter(v => v.tanggal === todayStr).length;
+
+            setText('statTotal', violations.length);
+            setText('statStudents', studentSet.size);
+            setText('statAllStudents', Object.keys(siswaCache || {}).length);
+            setText('statToday', todayCount);
+            setText('statHighest', highest);
+            setText('statReward', totalRewardPoints);
+
+            renderRecentList('recentViolations', violations, (v) => `
+                <div class="leaderboard-item">
+                    <div class="info">
+                        <div class="name">${escapeHtml(v.nama)} <span class="badge">${escapeHtml(v.kelas || '')}</span></div>
+                        <div class="detail">${escapeHtml(v.pelanggaran)} • dicatat oleh ${escapeHtml(v.guru || '-')} • ${formatDate(v.tanggal)}</div>
+                    </div>
+                    <div class="points">-${v.poin}</div>
+                </div>
+            `, 'Belum ada pelanggaran.');
+
+            renderRecentList('recentRewards', rewards, (r) => `
+                <div class="leaderboard-item">
+                    <div class="info">
+                        <div class="name">${escapeHtml(r.nama)} <span class="badge">${escapeHtml(r.kelas || '')}</span></div>
+                        <div class="detail">${escapeHtml(r.bentuk)} • dicatat oleh ${escapeHtml(r.guru || '-')} • ${formatDate(r.tanggal)}</div>
+                    </div>
+                    <div class="points" style="color:var(--success);">+${r.poin}</div>
+                </div>
+            `, 'Belum ada reward.');
+        }
+
+        function renderRecentList(containerId, items, templateFn, emptyMsg) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            if (!items.length) {
+                el.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>${emptyMsg}</p></div>`;
+                return;
+            }
+            const sorted = items.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 5);
+            el.innerHTML = sorted.map(templateFn).join('');
+        }
+
+        // ============================================================
+        // DATA PELANGGARAN (tabel + filter + ekspor)
+        // ============================================================
+        function loadViolations() {
+            const tbody = document.getElementById('violationsTableBody');
+            const emptyEl = document.getElementById('violationsEmpty');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('filterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('filterClass').value;
+            const filterType = document.getElementById('filterType').value;
+
+            let violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v }));
+            violations = violations.filter(v =>
+                (!filterStudent || (v.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || v.kelas === filterClass) &&
+                (!filterType || v.pelanggaran === filterType)
+            );
+            violations.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            window.__filteredViolations = violations;
+
+            if (!violations.length) {
+                tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                return;
+            }
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            tbody.innerHTML = violations.map((v, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(v.nama)}</td>
+                    <td>${escapeHtml(v.kelas || '')}</td>
+                    <td>${escapeHtml(v.pelanggaran)}</td>
+                    <td><span class="badge badge-danger">${v.poin}</span></td>
+                    <td>${escapeHtml(v.konsekuensi || '-')}</td>
+                    <td>${escapeHtml(v.guru || '-')}</td>
+                    <td>${formatDate(v.tanggal)}</td>
+                    <td class="actions">
+                        ${(isAdmin() || v.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-violation="${v.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-delete-violation]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-delete-violation');
+                    if (confirm('Hapus catatan pelanggaran ini?')) {
+                        db.ref('violations/' + id).remove().then(() => showToast('Data dihapus.'));
+                    }
+                });
+            });
+        }
+
+        document.getElementById('filterStudent').addEventListener('input', loadViolations);
+        document.getElementById('filterClass').addEventListener('change', loadViolations);
+        document.getElementById('filterType').addEventListener('change', loadViolations);
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            document.getElementById('filterStudent').value = '';
+            document.getElementById('filterClass').value = '';
+            document.getElementById('filterType').value = '';
+            loadViolations();
+        });
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const data = window.__filteredViolations || [];
+            if (!data.length) { showToast('Tidak ada data untuk diekspor.', 'error'); return; }
+            const headers = ['No', 'Nama Siswa', 'Kelas', 'Pelanggaran', 'Poin', 'Konsekuensi', 'Guru', 'Tanggal'];
+            const rows = data.map((v, i) => [i + 1, v.nama, v.kelas, v.pelanggaran, v.poin, v.konsekuensi || '-', v.guru || '-', formatDate(v.tanggal)]);
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `data-pelanggaran-${today()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data berhasil diekspor!');
+        });
+
+        // ============================================================
+        // PAPAN PERINGKAT
+        // ============================================================
+        function loadLeaderboard() {
+            const el = document.getElementById('leaderboardList');
+            if (!el) return;
+            const violations = Object.values(violationsCache || {});
+            const rewards = Object.values(rewardsCache || {});
+            const map = {};
+            violations.forEach(v => {
+                if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, poinPelanggaran: 0, poinReward: 0 };
+                map[v.nis].poinPelanggaran += (v.poin || 0);
+            });
+            rewards.forEach(r => {
+                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, poinPelanggaran: 0, poinReward: 0 };
+                map[r.nis].poinReward += (r.poin || 0);
+            });
+            const list = Object.values(map).sort((a, b) => b.poinPelanggaran - a.poinPelanggaran);
+            if (!list.length) {
+                el.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div>';
+                return;
+            }
+            el.innerHTML = list.map((s, i) => {
+                const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                return `
+                <div class="leaderboard-item">
+                    <div class="rank ${rankClass}">#${i + 1}</div>
+                    <div class="info">
+                        <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
+                        <div class="detail">Reward: <span style="color:var(--success);font-weight:600;">+${s.poinReward}</span></div>
+                    </div>
+                    <div class="points">${s.poinPelanggaran} poin</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ============================================================
+        // PANEL ADMIN
+        // ============================================================
+        function loadAdminPanel() {
+            renderViolationTypesTable();
+            renderRewardTypesTable();
+            renderUsersTable();
+            renderGuruTable();
+        }
+
+        function renderViolationTypesTable() {
+            const tbody = document.getElementById('violationTypesTable');
+            if (!tbody) return;
+            const entries = Object.entries(violationTypesCache || {});
+            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            tbody.innerHTML = entries.map(([id, t]) => `
+                <tr>
+                    <td>${escapeHtml(t.nama)}</td>
+                    <td><span class="badge">${escapeHtml(t.kategori)}</span></td>
+                    <td>${t.poin}</td>
+                    <td class="actions">
+                        <button class="btn btn-xs btn-outline" data-edit-vtype="${id}"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-xs btn-danger" data-del-vtype="${id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            tbody.querySelectorAll('[data-edit-vtype]').forEach(btn => btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-edit-vtype');
+                openViolationTypeModal(id, violationTypesCache[id]);
+            }));
+            tbody.querySelectorAll('[data-del-vtype]').forEach(btn => btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-del-vtype');
+                if (confirm('Hapus jenis pelanggaran ini?')) db.ref('violationTypes/' + id).remove().then(() => showToast('Dihapus.'));
+            }));
+        }
+
+        function renderRewardTypesTable() {
+            const tbody = document.getElementById('rewardTypesTable');
+            if (!tbody) return;
+            const entries = Object.entries(rewardTypesCache || {});
+            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            tbody.innerHTML = entries.map(([id, t]) => `
+                <tr>
+                    <td>${escapeHtml(t.nama)}</td>
+                    <td><span class="badge badge-success">${escapeHtml(t.kategori)}</span></td>
+                    <td>${t.poin}</td>
+                    <td class="actions">
+                        <button class="btn btn-xs btn-outline" data-edit-rtype="${id}"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-xs btn-danger" data-del-rtype="${id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            tbody.querySelectorAll('[data-edit-rtype]').forEach(btn => btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-edit-rtype');
+                openRewardTypeModal(id, rewardTypesCache[id]);
+            }));
+            tbody.querySelectorAll('[data-del-rtype]').forEach(btn => btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-del-rtype');
+                if (confirm('Hapus jenis reward ini?')) db.ref('rewardTypes/' + id).remove().then(() => showToast('Dihapus.'));
+            }));
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            if (!tbody) return;
+            const entries = Object.entries(usersCache || {});
+            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
+            tbody.innerHTML = entries.map(([id, u]) => {
+                const lastChange = (passwordHistoryCache && passwordHistoryCache[id]) || '-';
+                return `
+                <tr>
+                    <td>${escapeHtml(u.username)}</td>
+                    <td>${escapeHtml(u.name)}</td>
+                    <td><span class="badge ${u.role === 'admin' ? '' : 'badge-success'}">${escapeHtml(u.role)}</span></td>
+                    <td class="password-history">${escapeHtml(lastChange)}</td>
+                    <td class="actions">
+                        <button class="btn btn-xs btn-outline" data-reset-pass="${id}"><i class="fas fa-key"></i></button>
+                        ${(currentUser && id !== currentUser.id) ? `<button class="btn btn-xs btn-danger" data-del-user="${id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+            tbody.querySelectorAll('[data-reset-pass]').forEach(btn => btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-reset-pass');
+                openResetPasswordModal(id, usersCache[id]);
+            }));
+            tbody.querySelectorAll('[data-del-user]').forEach(btn => btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-del-user');
+                if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast('Pengguna dihapus.'));
+            }));
+        }
+
+        function renderGuruTable() {
+            const tbody = document.getElementById('guruTableBody');
+            if (!tbody) return;
+            const entries = Object.entries(guruCache || {});
+            if (!entries.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            tbody.innerHTML = entries.map(([id, g], i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(g.nama)}</td>
+                    <td><span class="badge badge-success">Aktif</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function openViolationTypeModal(id, existing) {
+            const t = existing || { nama: '', kategori: 'ringan', poin: '', konsekuensi: '' };
+            openModal(id ? 'Edit Jenis Pelanggaran' : 'Tambah Jenis Pelanggaran', `
+                <div class="form-group"><label>Nama Pelanggaran</label><input type="text" id="mVName" value="${escapeHtml(t.nama)}" /></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Kategori</label>
+                        <select id="mVCategory">
+                            <option value="ringan" ${t.kategori === 'ringan' ? 'selected' : ''}>Ringan</option>
+                            <option value="sedang" ${t.kategori === 'sedang' ? 'selected' : ''}>Sedang</option>
+                            <option value="berat" ${t.kategori === 'berat' ? 'selected' : ''}>Berat</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Poin</label><input type="number" id="mVPoints" value="${t.poin}" /></div>
+                </div>
+                <div class="form-group"><label>Konsekuensi Edukatif</label><input type="text" id="mVConsequence" value="${escapeHtml(t.konsekuensi || '')}" /></div>
+                <button type="button" class="btn btn-gold" id="mVSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Simpan</button>
+            `);
+            document.getElementById('mVSaveBtn').addEventListener('click', () => {
+                const nama = document.getElementById('mVName').value.trim();
+                const kategori = document.getElementById('mVCategory').value;
+                const poin = parseInt(document.getElementById('mVPoints').value, 10);
+                const konsekuensi = document.getElementById('mVConsequence').value.trim();
+                if (!nama || !poin) { showToast('Lengkapi nama dan poin!', 'error'); return; }
+                const key = id || genId();
+                db.ref('violationTypes/' + key).set({ nama, kategori, poin, konsekuensi }).then(() => { showToast('Jenis pelanggaran disimpan!'); closeModal(); });
+            });
+        }
+
+        function openRewardTypeModal(id, existing) {
+            const t = existing || { nama: '', kategori: 'kecil', poin: '' };
+            openModal(id ? 'Edit Jenis Reward' : 'Tambah Jenis Reward', `
+                <div class="form-group"><label>Bentuk Kebaikan</label><input type="text" id="mRName" value="${escapeHtml(t.nama)}" /></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Kategori</label>
+                        <select id="mRCategory">
+                            <option value="kecil" ${t.kategori === 'kecil' ? 'selected' : ''}>Kecil</option>
+                            <option value="sedang" ${t.kategori === 'sedang' ? 'selected' : ''}>Sedang</option>
+                            <option value="besar" ${t.kategori === 'besar' ? 'selected' : ''}>Besar</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Poin</label><input type="number" id="mRPoints" value="${t.poin}" /></div>
+                </div>
+                <button type="button" class="btn btn-success" id="mRSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Simpan</button>
+            `);
+            document.getElementById('mRSaveBtn').addEventListener('click', () => {
+                const nama = document.getElementById('mRName').value.trim();
+                const kategori = document.getElementById('mRCategory').value;
+                const poin = parseInt(document.getElementById('mRPoints').value, 10);
+                if (!nama || !poin) { showToast('Lengkapi nama dan poin!', 'error'); return; }
+                const key = id || genId();
+                db.ref('rewardTypes/' + key).set({ nama, kategori, poin }).then(() => { showToast('Jenis reward disimpan!'); closeModal(); });
+            });
+        }
+
+        function openAddUserModal() {
+            openModal('Tambah Pengguna', `
+                <div class="form-group"><label>Username</label><input type="text" id="mUUsername" /></div>
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="mUName" /></div>
+                <div class="form-group"><label>Password Awal</label><input type="text" id="mUPassword" placeholder="Minimal 6 karakter" /></div>
+                <div class="form-group"><label>Role</label>
+                    <select id="mURole"><option value="teacher">Guru</option><option value="admin">Admin</option></select>
+                </div>
+                <button type="button" class="btn btn-gold" id="mUSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Simpan</button>
+            `);
+            document.getElementById('mUSaveBtn').addEventListener('click', () => {
+                const username = document.getElementById('mUUsername').value.trim();
+                const name = document.getElementById('mUName').value.trim();
+                const password = document.getElementById('mUPassword').value.trim();
+                const role = document.getElementById('mURole').value;
+                if (!username || !name || password.length < 6) { showToast('Lengkapi data (password min. 6 karakter)!', 'error'); return; }
+                const existingUsername = Object.values(usersCache || {}).some(u => u.username === username);
+                if (existingUsername) { showToast('Username sudah digunakan!', 'error'); return; }
+                const id = genId();
+                db.ref('users/' + id).set({ username, name, password, role }).then(() => {
+                    db.ref('passwordHistory/' + id).set(new Date().toLocaleString('id-ID'));
+                    showToast('Pengguna baru ditambahkan!');
+                    closeModal();
+                });
+            });
+        }
+
+        function openResetPasswordModal(id, user) {
+            openModal('Reset Password: ' + (user ? user.name : ''), `
+                <div class="form-group"><label>Password Baru</label><input type="text" id="mResetPass" placeholder="Minimal 6 karakter" /></div>
+                <button type="button" class="btn btn-gold" id="mResetSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Reset Password</button>
+            `);
+            document.getElementById('mResetSaveBtn').addEventListener('click', () => {
+                const pass = document.getElementById('mResetPass').value.trim();
+                if (pass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
+                db.ref('users/' + id).update({ password: pass }).then(() => {
+                    db.ref('passwordHistory/' + id).set(new Date().toLocaleString('id-ID') + ' (direset admin)');
+                    showToast('Password berhasil direset!');
+                    closeModal();
+                });
+            });
+        }
+
+        document.getElementById('addViolationTypeBtn').addEventListener('click', () => openViolationTypeModal(null, null));
+        document.getElementById('addRewardTypeBtn').addEventListener('click', () => openRewardTypeModal(null, null));
+        document.getElementById('addUserBtn').addEventListener('click', () => openAddUserModal());
+
+        // ============================================================
+        // PROFIL & GANTI PASSWORD
+        // ============================================================
+        function loadProfile() {
+            const user = currentUser;
+            if (!user) return;
+            const usernameEl = document.getElementById('profileUsername');
+            if (usernameEl) usernameEl.value = user.username;
+            const nameEl = document.getElementById('profileFullname');
+            if (nameEl) nameEl.value = user.name;
+        }
+
+        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            if (newPass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
+            if (newPass !== confirmPass) { showToast('Konfirmasi password tidak cocok!', 'error'); return; }
+            db.ref('users/' + currentUser.id).update({ password: newPass }).then(() => {
+                db.ref('passwordHistory/' + currentUser.id).set(new Date().toLocaleString('id-ID'));
+                showToast('Password berhasil diubah!');
+                this.reset();
+            }).catch(err => showToast('Gagal: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // FORM CATAT PELANGGARAN & REWARD
+        // ============================================================
+        document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
+        document.getElementById('recType').addEventListener('change', updateRecAutoFields);
+        document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent', 'recClass'));
+
+        document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
+        document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
+        document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent', 'rewardClass'));
+
+        document.getElementById('recordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('recStudent').value;
+            const typeId = document.getElementById('recType').value;
+            const note = document.getElementById('recNote').value.trim();
+            if (!nis || !typeId) { showToast('Pilih siswa dan jenis pelanggaran!', 'error'); return; }
+            const s = siswaCache[nis];
+            const t = violationTypesCache[typeId];
+            if (!s || !t) { showToast('Data tidak valid, coba muat ulang halaman.', 'error'); return; }
+            const record = {
+                nis, nama: s.nama, kelas: s.kelas,
+                typeId, pelanggaran: t.nama, kategori: t.kategori, poin: t.poin,
+                konsekuensi: t.konsekuensi || '-', catatan: note,
+                guru: currentUser.name, tanggal: today(), createdAt: Date.now()
+            };
+            db.ref('violations/' + genId()).set(record).then(() => {
+                showToast('Pelanggaran berhasil dicatat!');
+                this.reset();
+                document.getElementById('recCategory').value = 'ringan';
+                renderRecTypeOptions();
+                document.getElementById('recClass').value = '';
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        document.getElementById('rewardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('rewardStudent').value;
+            const typeId = document.getElementById('rewardType').value;
+            if (!nis || !typeId) { showToast('Pilih siswa dan bentuk kebaikan!', 'error'); return; }
+            const s = siswaCache[nis];
+            const t = rewardTypesCache[typeId];
+            if (!s || !t) { showToast('Data tidak valid, coba muat ulang halaman.', 'error'); return; }
+            const record = {
+                nis, nama: s.nama, kelas: s.kelas,
+                typeId, bentuk: t.nama, kategori: t.kategori, poin: t.poin,
+                guru: currentUser.name, tanggal: today(), createdAt: Date.now()
+            };
+            db.ref('rewards/' + genId()).set(record).then(() => {
+                showToast('Reward berhasil diberikan!');
+                this.reset();
+                document.getElementById('rewardCategory').value = 'kecil';
+                renderRewardTypeOptions();
+                document.getElementById('rewardClass').value = '';
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // LOGIN / LOGOUT / TOGGLE PASSWORD
+        // ============================================================
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            login(username, password);
+        });
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('togglePasswordBtn').addEventListener('click', function() {
+            const input = document.getElementById('loginPassword');
+            const icon = this.querySelector('i');
+            if (input.type === 'password') { input.type = 'text'; icon.className = 'fas fa-eye-slash'; }
+            else { input.type = 'password'; icon.className = 'fas fa-eye'; }
+        });
+
+        // ============================================================
+        // AUTO-LOGIN
+        // ============================================================
+        (function init() {
+            const remembered = localStorage.getItem('cq_remembered_user');
+            const rememberMe = localStorage.getItem('cq_remember_me') === 'true';
+            if (remembered && rememberMe) {
+                const usernameInput = document.getElementById('loginUsername');
+                if (usernameInput) usernameInput.value = remembered;
+                const rememberCheck = document.getElementById('rememberMe');
+                if (rememberCheck) rememberCheck.checked = true;
+                const passInput = document.getElementById('loginPassword');
+                if (passInput) passInput.focus();
+            }
+
+            const userData = sessionStorage.getItem('cq_currentUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                db.ref('users/' + user.id).once('value', (snap) => {
+                    if (snap.exists()) {
+                        currentUser = { id: user.id, ...snap.val() };
+                        sessionStorage.setItem('cq_currentUser', JSON.stringify(currentUser));
+                        renderApp();
+                    } else {
+                        sessionStorage.removeItem('cq_currentUser');
+                        document.getElementById('loginPage').style.display = 'flex';
+                        document.getElementById('app').classList.remove('active');
+                    }
+                });
+            } else {
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('app').classList.remove('active');
+            }
+        })();
+
+        console.log('🔥 Aplikasi siap! Login dengan admin/admin123');
+    </script>
+</body>
+</html>
