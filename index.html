@@ -94,6 +94,10 @@
             background: var(--gold);
             color: #fff;
         }
+        .badge-online {
+            background: #4caf50;
+            color: #fff;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -379,6 +383,15 @@
             justify-content: center;
             font-weight: 700;
             color: var(--primary);
+            background-size: cover;
+            background-position: center;
+            background-color: var(--gold);
+        }
+        .topbar .user-info .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
         .topbar .logout-btn {
             background: rgba(255, 255, 255, 0.12);
@@ -954,7 +967,7 @@
             font-size: 0.95rem;
         }
 
-        /* BK specific */
+        /* BK */
         .bk-transcript {
             background: #f8f5f0;
             padding: 16px;
@@ -979,12 +992,86 @@
             font-size: 0.95rem;
         }
         .bk-solution {
-            background: #e3f2fd;
+            background: #fff3e0;
             padding: 12px 16px;
             border-radius: var(--radius-sm);
-            border-left: 4px solid var(--primary);
+            border-left: 4px solid var(--warning);
             font-size: 0.95rem;
             margin-top: 8px;
+        }
+        .audio-upload-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .audio-upload-wrap audio {
+            max-width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Chat */
+        .chat-container {
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: #faf8f5;
+            border-radius: var(--radius-sm);
+            border: 1px solid #e8e4dc;
+        }
+        .chat-msg {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            background: #fff;
+            max-width: 80%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--gold);
+        }
+        .chat-msg .sender {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--primary);
+        }
+        .chat-msg .time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-left: 8px;
+        }
+        .chat-msg .text {
+            margin-top: 4px;
+            font-size: 0.95rem;
+        }
+        .chat-msg.own {
+            align-self: flex-end;
+            border-left-color: var(--success);
+            background: #e8f5e9;
+        }
+
+        /* Profile photo */
+        .profile-photo-upload {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .profile-photo-upload .preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f0ece4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid var(--gold);
+        }
+        .profile-photo-upload .preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         @media (max-width: 992px) {
@@ -1038,6 +1125,9 @@
                 max-width: 100%;
                 right: 0;
                 width: 100%;
+            }
+            .chat-msg {
+                max-width: 95%;
             }
         }
         @media (max-width: 480px) {
@@ -1138,6 +1228,7 @@
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
                 <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
                 <a class="nav-item" data-page="bk"><i class="fas fa-hand-holding-heart"></i> BK (Konseling)</a>
+                <a class="nav-item" data-page="chat"><i class="fas fa-comment-dots"></i> Chat Guru</a>
                 <a class="nav-item" data-page="feedback"><i class="fas fa-comment"></i> Kirim Saran</a>
                 <div class="nav-divider"></div>
                 <a class="nav-item" data-page="admin" id="adminNav"><i class="fas fa-user-gear"></i> Panel Admin</a>
@@ -1256,7 +1347,7 @@
 
                 <!-- BK (Bimbingan Konseling) -->
                 <section class="page-section" id="page-bk">
-                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa, transkripsi otomatis dengan AI (Speech-to-Text), dan dapatkan solusi rekomendasi.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa, transkripsi otomatis dengan AI (Speech-to-Text) atau upload file audio.</p></div>
                     <div class="card">
                         <form id="bkForm">
                             <div class="form-row">
@@ -1272,36 +1363,73 @@
                                 <label>Catatan Guru (opsional)</label>
                                 <input type="text" id="bkNote" placeholder="Catatan sebelum konseling" />
                             </div>
+
+                            <!-- Upload Audio -->
                             <div class="form-group">
-                                <label>Transkrip Percakapan (real-time)</label>
-                                <div class="bk-transcript" id="bkTranscript" contenteditable="false">Klik tombol rekam untuk mulai...</div>
+                                <label>Upload Audio Rekaman (dari HP)</label>
+                                <div class="audio-upload-wrap">
+                                    <input type="file" id="bkAudioFile" accept="audio/*" />
+                                    <span class="text-muted" style="font-size:0.8rem;">Maks 2MB (MP3, WAV, M4A)</span>
+                                </div>
+                                <div id="bkAudioPlayer" style="margin-top:8px;display:none;">
+                                    <audio controls style="max-width:100%;"></audio>
+                                    <button type="button" class="btn btn-sm btn-outline" id="bkRemoveAudio"><i class="fas fa-times"></i> Hapus</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Transkrip Percakapan</label>
+                                <div class="bk-transcript" id="bkTranscript" contenteditable="true">Klik tombol rekam untuk mulai, atau upload file audio lalu transkrip manual.</div>
                             </div>
                             <div class="form-group">
-                                <label>Ringkasan Masalah (AI otomatis)</label>
+                                <label>Ringkasan Masalah (AI otomatis dari transkrip)</label>
                                 <div class="bk-summary" id="bkSummary">Belum ada ringkasan.</div>
                             </div>
                             <div class="form-group">
-                                <label>Solusi Rekomendasi (AI)</label>
+                                <label>Solusi Saran (AI dari ringkasan)</label>
                                 <div class="bk-solution" id="bkSolution">Belum ada solusi.</div>
                             </div>
                             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
-                                <button type="button" class="btn btn-danger" id="bkRecordBtn"><i class="fas fa-microphone"></i> Mulai Rekam</button>
-                                <button type="button" class="btn btn-outline" id="bkStopBtn"><i class="fas fa-stop"></i> Hentikan & Simpan</button>
-                                <button type="submit" class="btn btn-gold" id="bkSaveBtn"><i class="fas fa-save"></i> Simpan Catatan</button>
-                                <button type="button" class="btn btn-sm export-btn" id="bkExportExcel"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                                <button type="button" class="btn btn-danger" id="bkRecordBtn"><i class="fas fa-microphone"></i> Rekam Langsung</button>
+                                <button type="button" class="btn btn-outline" id="bkStopBtn"><i class="fas fa-stop"></i> Hentikan</button>
+                                <button type="button" class="btn btn-gold" id="bkTranscribeBtn"><i class="fas fa-magic"></i> Proses AI (Ringkasan & Solusi)</button>
+                                <button type="submit" class="btn btn-success" id="bkSaveBtn"><i class="fas fa-save"></i> Simpan Catatan</button>
                             </div>
                         </form>
                     </div>
 
                     <!-- Daftar catatan BK -->
                     <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-history"></i> Riwayat Konseling</h3></div>
+                        <div class="card-header"><h3><i class="fas fa-history"></i> Riwayat Konseling</h3>
+                            <button class="btn btn-sm export-btn" id="exportBkExcelBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                        </div>
                         <div class="filter-bar">
                             <input type="text" id="bkFilterStudent" placeholder="Cari nama siswa..." />
                             <button class="btn btn-sm btn-outline" id="clearBkFilters"><i class="fas fa-undo"></i> Reset</button>
                         </div>
                         <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Ringkasan</th><th>Solusi</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
                         <div id="bkEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada catatan BK.</p></div>
+                    </div>
+                </section>
+
+                <!-- CHAT -->
+                <section class="page-section" id="page-chat">
+                    <div class="page-header"><h2><i class="fas fa-comment-dots"></i> Chat Guru</h2><p>Komunikasikan dengan guru lain secara real-time.</p></div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-users"></i> Guru Online</h3></div>
+                        <div id="onlineTeachers" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+                            <span class="badge badge-online">Memuat...</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-comments"></i> Ruang Chat</h3></div>
+                        <div class="chat-container" id="chatMessages">
+                            <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesan. Mulai chat!</p></div>
+                        </div>
+                        <form id="chatForm" style="display:flex; gap:12px; margin-top:12px;">
+                            <input type="text" id="chatInput" placeholder="Tulis pesan..." style="flex:1; padding:10px 16px; border:2px solid #e8e4dc; border-radius:var(--radius-sm); font-family:inherit;" required />
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Kirim</button>
+                        </form>
                     </div>
                 </section>
 
@@ -1375,7 +1503,7 @@
                         </div>
                         <div class="accordion-body" id="accUsers">
                             <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
-                            <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Terakhir Ubah Sandi</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                            <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Jabatan</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
                             <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
                         </div>
                     </div>
@@ -1386,7 +1514,7 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="accordion-body" id="accGuru">
-                            <div class="table-wrap"><table><thead><tr><th>#</th><th>Nama Guru</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
+                            <div class="table-wrap"><table><thead><tr><th>#</th><th>Foto</th><th>Nama Guru</th><th>Jabatan</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
                         </div>
                     </div>
 
@@ -1410,16 +1538,48 @@
 
                 <!-- PROFILE -->
                 <section class="page-section" id="page-profile">
-                    <div class="page-header"><h2><i class="fas fa-user"></i> Profil & Sandi</h2><p>Ubah password akun Anda. Perubahan akan tercatat oleh admin.</p></div>
-                    <div class="card" style="max-width:500px;">
-                        <form id="changePasswordForm">
-                            <div class="form-group"><label>Username</label><input type="text" id="profileUsername" disabled style="background:#f4f1ea;" /></div>
-                            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="profileFullname" disabled style="background:#f4f1ea;" /></div>
-                            <div class="form-group"><label>Sandi Baru <span class="text-muted">*</span></label><input type="password" id="newPassword" placeholder="Minimal 6 karakter" required minlength="6" /></div>
-                            <div class="form-group"><label>Konfirmasi Sandi</label><input type="password" id="confirmPassword" placeholder="Ketik ulang" required minlength="6" /></div>
-                            <button type="submit" class="btn btn-gold"><i class="fas fa-key"></i> Ubah Sandi</button>
+                    <div class="page-header"><h2><i class="fas fa-user"></i> Profil & Sandi</h2><p>Perbarui foto profil, jabatan, dan password.</p></div>
+                    <div class="card" style="max-width:600px;">
+                        <form id="profileForm">
+                            <div class="form-group profile-photo-upload">
+                                <div class="preview" id="profilePhotoPreview">
+                                    <i class="fas fa-user" style="font-size:2rem;color:var(--text-light);"></i>
+                                </div>
+                                <div>
+                                    <label>Foto Profil</label>
+                                    <input type="file" id="profilePhotoInput" accept="image/*" />
+                                    <span class="text-muted" style="font-size:0.8rem;display:block;">Maks 200KB (JPG, PNG)</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="profileUsername" disabled style="background:#f4f1ea;" />
+                            </div>
+                            <div class="form-group">
+                                <label>Nama Lengkap</label>
+                                <input type="text" id="profileFullname" disabled style="background:#f4f1ea;" />
+                            </div>
+                            <div class="form-group">
+                                <label>Jabatan</label>
+                                <select id="profileJabatan">
+                                    <option value="Guru Mapel Umum">Guru Mapel Umum</option>
+                                    <option value="Wali Kelas">Wali Kelas</option>
+                                    <option value="Guru Diniyah">Guru Diniyah</option>
+                                    <option value="Guru Tahfizh">Guru Tahfizh</option>
+                                    <option value="Kabid">Kabid</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sandi Baru <span class="text-muted">(kosongkan jika tidak diubah)</span></label>
+                                <input type="password" id="newPassword" placeholder="Minimal 6 karakter" minlength="6" />
+                            </div>
+                            <div class="form-group">
+                                <label>Konfirmasi Sandi</label>
+                                <input type="password" id="confirmPassword" placeholder="Ketik ulang" minlength="6" />
+                            </div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Profil</button>
                         </form>
-                        <div style="margin-top:16px;font-size:0.8rem;color:var(--text-light);border-top:1px solid #eee;padding-top:16px;"><i class="fas fa-history"></i> Riwayat perubahan password tercatat di Firebase.</div>
                     </div>
                 </section>
             </main>
@@ -1798,13 +1958,17 @@
             db.ref('users').once('value', (snap) => {
                 if (!snap.exists()) {
                     const defaultUsers = {
-                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
-                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher' },
-                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher' }
+                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin',
+                            jabatan: 'Kabid' },
+                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher',
+                            jabatan: 'Wali Kelas' },
+                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher',
+                            jabatan: 'Guru Mapel Umum' }
                     };
                     db.ref('users').set(defaultUsers);
                     const now = new Date().toLocaleString('id-ID');
                     db.ref('passwordHistory').set({ u1: now, u2: now, u3: now });
+                    db.ref('userProfiles').set({ u1: { foto: '' }, u2: { foto: '' }, u3: { foto: '' } });
                 }
             });
             db.ref('siswa').once('value', (snap) => {
@@ -1842,6 +2006,19 @@
                         '80': 20000,
                         '90': 30000,
                         '100': 50000
+                    });
+                }
+            });
+            // Chat default
+            db.ref('chat').once('value', (snap) => {
+                if (!snap.exists()) {
+                    db.ref('chat').set({
+                        'init': {
+                            sender: 'Sistem',
+                            message: 'Selamat datang di Chat Guru!',
+                            timestamp: Date.now(),
+                            time: new Date().toLocaleString('id-ID')
+                        }
                     });
                 }
             });
@@ -1883,7 +2060,9 @@
         let notificationsCache = {};
         let feedbackCache = {};
         let bkCache = {};
+        let chatCache = {};
         let moneyRewardRules = {};
+        let userProfilesCache = {};
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
@@ -1892,7 +2071,6 @@
         let recognition = null;
         let isRecording = false;
         let transcriptText = '';
-        let lastFinalText = '';
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
 
@@ -1996,6 +2174,13 @@
                 if (errEl) errEl.classList.remove('show');
                 currentUser = found;
                 sessionStorage.setItem('cq_currentUser', JSON.stringify(found));
+                // Set online status
+                db.ref('onlineStatus/' + found.id).set({
+                    online: true,
+                    lastSeen: Date.now(),
+                    name: found.name,
+                    jabatan: found.jabatan || 'Guru'
+                });
                 const rememberEl = document.getElementById('rememberMe');
                 if (rememberEl && rememberEl.checked) {
                     localStorage.setItem('cq_remembered_user', username);
@@ -2009,6 +2194,14 @@
         }
 
         function logout() {
+            if (currentUser) {
+                db.ref('onlineStatus/' + currentUser.id).set({
+                    online: false,
+                    lastSeen: Date.now(),
+                    name: currentUser.name,
+                    jabatan: currentUser.jabatan || 'Guru'
+                });
+            }
             currentUser = null;
             sessionStorage.removeItem('cq_currentUser');
             detachRealtimeListeners();
@@ -2033,7 +2226,11 @@
             if (app) app.classList.add('active');
 
             const avatar = document.getElementById('userAvatar');
-            if (avatar) avatar.textContent = currentUser.name.charAt(0).toUpperCase();
+            if (avatar) {
+                avatar.innerHTML = currentUser.name.charAt(0).toUpperCase();
+                // Load photo
+                loadUserPhoto(currentUser.id, avatar);
+            }
             const nameEl = document.getElementById('userName');
             if (nameEl) nameEl.textContent = currentUser.name;
             const roleEl = document.getElementById('userRole');
@@ -2052,8 +2249,21 @@
             loadMoneyRewardRules();
             loadFeedbackList();
             loadBkList();
+            loadChat();
+            loadOnlineTeachers();
             currentLeaderboardTab = 'violation';
             loadLeaderboard(currentLeaderboardTab);
+        }
+
+        function loadUserPhoto(userId, element) {
+            db.ref('userProfiles/' + userId + '/foto').once('value', (snap) => {
+                const foto = snap.val();
+                if (foto) {
+                    element.innerHTML = `<img src="${foto}" alt="Foto" />`;
+                } else {
+                    element.innerHTML = currentUser.name.charAt(0).toUpperCase();
+                }
+            });
         }
 
         // ============================================================
@@ -2071,6 +2281,8 @@
             if (isPageActive('reward')) loadRewardsList();
             if (isPageActive('admin')) loadFeedbackList();
             if (isPageActive('bk')) loadBkList();
+            if (isPageActive('chat')) { loadChat();
+                loadOnlineTeachers(); }
         }
 
         function setupRealtimeListeners() {
@@ -2103,6 +2315,7 @@
             db.ref('users').on('value', (snap) => {
                 usersCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel();
+                if (isPageActive('chat')) loadOnlineTeachers();
             });
             db.ref('guru').on('value', (snap) => {
                 guruCache = snap.val() || {};
@@ -2130,17 +2343,30 @@
                 bkCache = snap.val() || {};
                 loadBkList();
             });
+            db.ref('chat').on('value', (snap) => {
+                chatCache = snap.val() || {};
+                if (isPageActive('chat')) loadChat();
+            });
+            db.ref('onlineStatus').on('value', (snap) => {
+                if (isPageActive('chat')) loadOnlineTeachers();
+            });
+            db.ref('userProfiles').on('value', (snap) => {
+                userProfilesCache = snap.val() || {};
+                if (isPageActive('admin')) loadAdminPanel();
+                // Update avatar
+                if (currentUser) loadUserPhoto(currentUser.id, document.getElementById('userAvatar'));
+            });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
-                'notifications', 'moneyRewardRules', 'feedback', 'bk'
+                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'chat', 'onlineStatus', 'userProfiles'
             ].forEach(r => db.ref(r).off());
         }
 
         // ============================================================
-        // SISWA (also used for BK)
+        // SISWA
         // ============================================================
         function populateSiswaSelects() {
             db.ref('siswa').once('value', (snap) => {
@@ -2371,6 +2597,8 @@
                 if (page === 'profile') loadProfile();
                 if (page === 'reward') loadRewardsList();
                 if (page === 'bk') { loadBkList(); }
+                if (page === 'chat') { loadChat();
+                    loadOnlineTeachers(); }
                 if (page === 'feedback') { /* just show form */ }
             });
         });
@@ -2718,7 +2946,7 @@
         });
 
         // ============================================================
-        // BK (Bimbingan Konseling) - Speech Recognition with debounce
+        // BK (Bimbingan Konseling) - Speech Recognition + Upload
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2731,31 +2959,20 @@
             rec.continuous = true;
             rec.interimResults = true;
             rec.maxAlternatives = 1;
-            // Reduce sensitivity by adding a small delay and filtering duplicates
             return rec;
         }
-
-        let lastTranscriptSegment = '';
 
         function startRecording() {
             if (!recognition) {
                 recognition = initSpeechRecognition();
                 if (!recognition) return;
                 recognition.onresult = function(event) {
-                    let final = '';
                     let interim = '';
+                    let final = '';
                     for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript.trim();
+                        const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
-                            // Avoid duplicate phrases: check if this segment is significantly different from last final
-                            if (transcript.length > 3 && !lastFinalText.includes(transcript.substring(0, 20))) {
-                                final += transcript + ' ';
-                                lastFinalText = transcript;
-                            } else if (transcript.length > 3 && transcript !== lastFinalText) {
-                                // Append only if different enough
-                                final += transcript + ' ';
-                                lastFinalText = transcript;
-                            }
+                            final += transcript + ' ';
                         } else {
                             interim += transcript;
                         }
@@ -2765,8 +2982,7 @@
                     }
                     const displayText = transcriptText + (interim ? ' (mengetik...) ' + interim : '');
                     document.getElementById('bkTranscript').textContent = displayText || '...';
-                    // Auto-summarize and generate solution
-                    generateSummaryAndSolution(transcriptText);
+                    generateBkSummary(transcriptText);
                 };
                 recognition.onerror = function(event) {
                     console.error('Speech error', event);
@@ -2790,7 +3006,6 @@
                 document.getElementById('bkRecordBtn').classList.add('btn-rec');
                 document.getElementById('bkTranscript').textContent = 'Merekam...';
                 transcriptText = '';
-                lastFinalText = '';
                 document.getElementById('bkSummary').textContent = 'Menganalisis...';
                 document.getElementById('bkSolution').textContent = 'Menganalisis...';
                 showToast('Merekam... bicaralah dengan siswa.', 'success');
@@ -2805,7 +3020,7 @@
                     recognition.stop();
                 } catch (e) { /* ignore */ }
                 isRecording = false;
-                document.getElementById('bkRecordBtn').innerHTML = '<i class="fas fa-microphone"></i> Mulai Rekam';
+                document.getElementById('bkRecordBtn').innerHTML = '<i class="fas fa-microphone"></i> Rekam Langsung';
                 document.getElementById('bkRecordBtn').classList.remove('btn-rec');
                 if (transcriptText.trim() === '') {
                     document.getElementById('bkTranscript').textContent = 'Belum ada transkrip.';
@@ -2816,7 +3031,7 @@
             }
         }
 
-        function generateSummaryAndSolution(text) {
+        function generateBkSummary(text) {
             if (!text.trim()) {
                 document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
                 document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
@@ -2824,10 +3039,11 @@
             }
             const lower = text.toLowerCase();
             const keywords = ['masalah', 'sulit', 'takut', 'khawatir', 'marah', 'sedih', 'kecewa', 'stress', 'tekanan', 'keluarga',
-                'teman', 'sekolah', 'guru', 'nilai', 'ujian', 'tugas', 'orang tua', 'ayah', 'ibu', 'saudara'
+                'teman', 'sekolah', 'guru', 'nilai', 'ujian', 'tugas', 'orang tua', 'ayah', 'ibu', 'saudara', 'bully',
+                'diam', 'menangis', 'kesal'
             ];
             const found = keywords.filter(k => lower.includes(k));
-            let summary = 'Siswa menyampaikan beberapa topik: ';
+            let summary = 'Siswa menyampaikan topik: ';
             if (found.length) {
                 summary += found.join(', ') + '. ';
             } else {
@@ -2838,34 +3054,71 @@
             document.getElementById('bkSummary').textContent = summary;
 
             // Generate solution based on keywords
-            let solution = 'Rekomendasi untuk guru: ';
-            const advice = [];
-            if (found.some(k => ['keluarga', 'ayah', 'ibu', 'saudara'].includes(k))) {
-                advice.push('Libatkan orang tua dalam diskusi, jadwalkan pertemuan keluarga.');
+            let solution = 'Saran untuk guru: ';
+            if (found.includes('keluarga') || found.includes('ayah') || found.includes('ibu')) {
+                solution += 'Libatkan orang tua dengan pendekatan komunikasi yang baik. ';
             }
-            if (found.some(k => ['teman', 'sekolah', 'guru'].includes(k))) {
-                advice.push('Berikan pendampingan sosial, mediasi dengan teman sebaya.');
+            if (found.includes('bully') || found.includes('teman') || found.includes('diam')) {
+                solution += 'Lakukan mediasi dengan teman-teman, ciptakan lingkungan yang aman. ';
             }
-            if (found.some(k => ['nilai', 'ujian', 'tugas'].includes(k))) {
-                advice.push('Berikan bimbingan belajar tambahan, kurangi tekanan akademik.');
+            if (found.includes('nilai') || found.includes('ujian') || found.includes('tugas')) {
+                solution += 'Berikan pendampingan belajar tambahan dan motivasi. ';
             }
-            if (found.some(k => ['takut', 'khawatir', 'stress', 'tekanan'].includes(k))) {
-                advice.push('Latih teknik relaksasi, berikan ruang curhat yang aman.');
+            if (found.includes('marah') || found.includes('sedih') || found.includes('kecewa')) {
+                solution += 'Berikan ruang untuk mengekspresikan perasaan, latih relaksasi. ';
             }
-            if (found.some(k => ['marah', 'sedih', 'kecewa'].includes(k))) {
-                advice.push('Bimbing untuk mengelola emosi, ajarkan ekspresi yang sehat.');
+            if (found.length === 0) {
+                solution += 'Dengarkan lebih dalam, identifikasi akar masalah dengan pertanyaan terbuka. ';
             }
-            if (advice.length === 0) {
-                advice.push('Lakukan pendekatan personal, dengarkan aktif, dan cari akar masalah.');
-            }
-            solution += advice.join(' ');
+            solution += 'Lakukan pendekatan personal dan konseling lanjutan jika diperlukan.';
             document.getElementById('bkSolution').textContent = solution;
         }
 
-        // BK form events
-        document.getElementById('bkRecordBtn').addEventListener('click', startRecording);
-        document.getElementById('bkStopBtn').addEventListener('click', stopRecording);
+        // Upload audio
+        document.getElementById('bkAudioFile').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('File terlalu besar! Maks 2MB.', 'error');
+                this.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const audioData = ev.target.result;
+                const playerDiv = document.getElementById('bkAudioPlayer');
+                playerDiv.style.display = 'block';
+                const audio = playerDiv.querySelector('audio');
+                audio.src = audioData;
+                audio.controls = true;
+                // Show filename
+                document.querySelector('.audio-upload-wrap span').textContent = file.name + ' (' + (file.size / 1024).toFixed(
+                    1) + ' KB)';
+                // Try to transcribe? We'll let user do manual or use record.
+                showToast('File audio siap diputar. Gunakan "Proses AI" untuk menganalisis transkrip manual.', 'success');
+            };
+            reader.readAsDataURL(file);
+        });
 
+        document.getElementById('bkRemoveAudio').addEventListener('click', function() {
+            document.getElementById('bkAudioFile').value = '';
+            document.getElementById('bkAudioPlayer').style.display = 'none';
+            document.querySelector('.audio-upload-wrap span').textContent = 'Maks 2MB (MP3, WAV, M4A)';
+        });
+
+        // Proses AI (ringkasan & solusi dari transkrip manual)
+        document.getElementById('bkTranscribeBtn').addEventListener('click', function() {
+            const transcript = document.getElementById('bkTranscript').textContent;
+            if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
+                'Belum ada transkrip.') {
+                showToast('Tulis atau rekam transkrip terlebih dahulu.', 'error');
+                return;
+            }
+            generateBkSummary(transcript);
+            showToast('Ringkasan dan solusi telah dibuat!', 'success');
+        });
+
+        // BK form submit
         document.getElementById('bkForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('bkStudent').value;
@@ -2878,8 +3131,18 @@
             if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
             if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
                 'Belum ada transkrip.') {
-                showToast('Belum ada transkrip yang direkam. Rekam percakapan terlebih dahulu.', 'error');
+                showToast('Belum ada transkrip. Rekam atau tulis transkrip terlebih dahulu.', 'error');
                 return;
+            }
+
+            // Get audio data if any
+            const audioPlayer = document.getElementById('bkAudioPlayer');
+            let audioData = '';
+            if (audioPlayer.style.display !== 'none') {
+                const audio = audioPlayer.querySelector('audio');
+                if (audio && audio.src) {
+                    audioData = audio.src; // base64 data
+                }
             }
 
             const record = {
@@ -2890,12 +3153,14 @@
                 transkrip: transcript,
                 ringkasan: summary,
                 solusi: solution,
+                audio: audioData,
                 guru: currentUser.name,
                 tanggal: today(),
                 createdAt: Date.now()
             };
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
+                // Reset form
                 document.getElementById('bkStudent').value = '';
                 document.getElementById('bkStudentSearch').value = '';
                 document.getElementById('bkClass').value = '';
@@ -2903,6 +3168,9 @@
                 document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
                 document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
                 document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
+                document.getElementById('bkAudioFile').value = '';
+                document.getElementById('bkAudioPlayer').style.display = 'none';
+                document.querySelector('.audio-upload-wrap span').textContent = 'Maks 2MB (MP3, WAV, M4A)';
                 transcriptText = '';
                 stopRecording();
                 loadBkList();
@@ -2949,6 +3217,11 @@
                     const id = this.getAttribute('data-view-bk');
                     const b = bkCache[id];
                     if (b) {
+                        let audioHtml = '';
+                        if (b.audio) {
+                            audioHtml =
+                                `<p><strong>Audio:</strong></p><audio controls src="${b.audio}" style="max-width:100%;"></audio>`;
+                        }
                         openModal('Detail BK', `
                             <p><strong>Siswa:</strong> ${escapeHtml(b.nama)} (${escapeHtml(b.kelas || '')})</p>
                             <p><strong>Guru:</strong> ${escapeHtml(b.guru || '-')}</p>
@@ -2956,6 +3229,7 @@
                             <p><strong>Catatan:</strong> ${escapeHtml(b.catatan || '-')}</p>
                             <p><strong>Ringkasan:</strong> ${escapeHtml(b.ringkasan || '-')}</p>
                             <p><strong>Solusi:</strong> ${escapeHtml(b.solusi || '-')}</p>
+                            ${audioHtml}
                             <p><strong>Transkrip:</strong></p>
                             <div style="background:#f8f5f0;padding:12px;border-radius:var(--radius-sm);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(b.transkrip || '-')}</div>
                         `);
@@ -2979,22 +3253,13 @@
             loadBkList();
         });
 
-        // ============================================================
-        // EKSPOR BK KE EXCEL (CSV)
-        // ============================================================
-        document.getElementById('bkExportExcel').addEventListener('click', function() {
-            const items = Object.values(bkCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-            if (!items.length) { showToast('Tidak ada data BK untuk diekspor.', 'error'); return; }
+        // Export BK to Excel (CSV)
+        document.getElementById('exportBkExcelBtn').addEventListener('click', function() {
+            const items = Object.values(bkCache || {});
+            if (!items.length) { showToast('Tidak ada data BK.', 'error'); return; }
             const headers = ['No', 'Siswa', 'Kelas', 'Ringkasan', 'Solusi', 'Guru', 'Tanggal'];
-            const rows = items.map((b, i) => [
-                i + 1,
-                b.nama || '',
-                b.kelas || '',
-                b.ringkasan || '',
-                b.solusi || '',
-                b.guru || '',
-                formatDate(b.tanggal) || ''
-            ]);
+            const rows = items.map((b, i) => [i + 1, b.nama, b.kelas, b.ringkasan, b.solusi, b.guru, formatDate(b
+            .tanggal)]);
             const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
             '\r\n');
             const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -3010,7 +3275,73 @@
         });
 
         // ============================================================
-        // FEEDBACK / SARAN
+        // CHAT
+        // ============================================================
+        function loadChat() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            const items = Object.values(chatCache || {}).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            if (!items.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesan. Mulai chat!</p></div>';
+                return;
+            }
+            container.innerHTML = items.map(msg => {
+                const isOwn = msg.senderId === currentUser.id;
+                return `
+                    <div class="chat-msg ${isOwn ? 'own' : ''}">
+                        <div class="sender">${escapeHtml(msg.sender)} <span class="badge">${escapeHtml(msg.jabatan || 'Guru')}</span> <span class="time">${escapeHtml(msg.time || '-')}</span></div>
+                        <div class="text">${escapeHtml(msg.message)}</div>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            if (!currentUser) { showToast('Anda belum login.', 'error'); return; }
+
+            const chatMsg = {
+                sender: currentUser.name,
+                senderId: currentUser.id,
+                jabatan: currentUser.jabatan || 'Guru',
+                message: message,
+                timestamp: Date.now(),
+                time: new Date().toLocaleString('id-ID')
+            };
+            db.ref('chat/' + genId()).set(chatMsg).then(() => {
+                input.value = '';
+                loadChat();
+            }).catch(err => showToast('Gagal kirim: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // ONLINE TEACHERS
+        // ============================================================
+        function loadOnlineTeachers() {
+            const container = document.getElementById('onlineTeachers');
+            if (!container) return;
+            db.ref('onlineStatus').once('value', (snap) => {
+                const data = snap.val() || {};
+                const online = Object.values(data).filter(s => s.online === true);
+                if (online.length === 0) {
+                    container.innerHTML = '<span class="text-muted">Tidak ada guru online.</span>';
+                    return;
+                }
+                container.innerHTML = online.map(g => `
+                    <span class="badge badge-online" style="font-size:0.8rem;padding:4px 12px;">
+                        <i class="fas fa-circle" style="font-size:0.5rem;color:#4caf50;margin-right:4px;"></i>
+                        ${escapeHtml(g.name)} (${escapeHtml(g.jabatan || 'Guru')})
+                    </span>
+                `).join('');
+            });
+        }
+
+        // ============================================================
+        // FEEDBACK
         // ============================================================
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3204,15 +3535,18 @@
             if (!tbody) return;
             const entries = Object.entries(usersCache || {});
             if (!entries.length) { tbody.innerHTML =
-                '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
+                '<tr><td colspan="6" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, u]) => {
                 const lastChange = (passwordHistoryCache && passwordHistoryCache[id]) || '-';
+                const status = (currentUser && currentUser.id === id) ? 'Online' : 'Offline';
+                const jabatan = u.jabatan || 'Guru';
                 return `
                 <tr>
                     <td>${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(u.name)}</td>
+                    <td><span class="badge">${escapeHtml(jabatan)}</span></td>
                     <td><span class="badge ${u.role === 'admin' ? '' : 'badge-success'}">${escapeHtml(u.role)}</span></td>
-                    <td class="password-history">${escapeHtml(lastChange)}</td>
+                    <td><span class="badge ${status === 'Online' ? 'badge-online' : 'badge'}">${status}</span></td>
                     <td class="actions">
                         <button class="btn btn-xs btn-outline" data-reset-pass="${id}"><i class="fas fa-key"></i></button>
                         ${(currentUser && id !== currentUser.id) ? `<button class="btn btn-xs btn-danger" data-del-user="${id}"><i class="fas fa-trash"></i></button>` : ''}
@@ -3235,14 +3569,31 @@
             if (!tbody) return;
             const entries = Object.entries(guruCache || {});
             if (!entries.length) { tbody.innerHTML =
-                '<tr><td colspan="3" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
-            tbody.innerHTML = entries.map(([id, g], i) => `
+                '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            // Also get users for jabatan and foto
+            const users = usersCache || {};
+            const profiles = userProfilesCache || {};
+            tbody.innerHTML = entries.map(([id, g], i) => {
+                // Find user with same name? We'll just show default
+                let jabatan = 'Guru';
+                let foto = '';
+                for (let uid in users) {
+                    if (users[uid].name === g.nama) {
+                        jabatan = users[uid].jabatan || 'Guru';
+                        if (profiles[uid] && profiles[uid].foto) foto = profiles[uid].foto;
+                        break;
+                    }
+                }
+                const status = 'Aktif'; // We don't have status for guru list
+                return `
                 <tr>
                     <td>${i + 1}</td>
+                    <td>${foto ? `<img src="${foto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />` : '<i class="fas fa-user" style="font-size:1.5rem;color:var(--text-light);"></i>'}</td>
                     <td>${escapeHtml(g.nama)}</td>
+                    <td><span class="badge">${escapeHtml(jabatan)}</span></td>
                     <td><span class="badge badge-success">Aktif</span></td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
         // ============================================================
@@ -3310,6 +3661,16 @@
             openModal('Tambah Pengguna', `
                 <div class="form-group"><label>Username</label><input type="text" id="mUUsername" /></div>
                 <div class="form-group"><label>Nama Lengkap</label><input type="text" id="mUName" /></div>
+                <div class="form-group"><label>Jabatan</label>
+                    <select id="mUJabatan">
+                        <option value="Guru Mapel Umum">Guru Mapel Umum</option>
+                        <option value="Wali Kelas">Wali Kelas</option>
+                        <option value="Guru Diniyah">Guru Diniyah</option>
+                        <option value="Guru Tahfizh">Guru Tahfizh</option>
+                        <option value="Kabid">Kabid</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
                 <div class="form-group"><label>Password Awal</label><input type="text" id="mUPassword" placeholder="Minimal 6 karakter" /></div>
                 <div class="form-group"><label>Role</label>
                     <select id="mURole"><option value="teacher">Guru</option><option value="admin">Admin</option></select>
@@ -3321,13 +3682,15 @@
                 const name = document.getElementById('mUName').value.trim();
                 const password = document.getElementById('mUPassword').value.trim();
                 const role = document.getElementById('mURole').value;
+                const jabatan = document.getElementById('mUJabatan').value;
                 if (!username || !name || password.length < 6) { showToast('Lengkapi data (password min. 6 karakter)!',
                         'error'); return; }
                 const existingUsername = Object.values(usersCache || {}).some(u => u.username === username);
                 if (existingUsername) { showToast('Username sudah digunakan!', 'error'); return; }
                 const id = genId();
-                db.ref('users/' + id).set({ username, name, password, role }).then(() => {
+                db.ref('users/' + id).set({ username, name, password, role, jabatan }).then(() => {
                     db.ref('passwordHistory/' + id).set(new Date().toLocaleString('id-ID'));
+                    db.ref('userProfiles/' + id).set({ foto: '' });
                     showToast('Pengguna baru ditambahkan!');
                     closeModal();
                 });
@@ -3364,19 +3727,67 @@
             if (usernameEl) usernameEl.value = user.username;
             const nameEl = document.getElementById('profileFullname');
             if (nameEl) nameEl.value = user.name;
+            const jabatanEl = document.getElementById('profileJabatan');
+            if (jabatanEl) jabatanEl.value = user.jabatan || 'Guru Mapel Umum';
+            // Load photo preview
+            db.ref('userProfiles/' + user.id + '/foto').once('value', (snap) => {
+                const foto = snap.val();
+                const preview = document.getElementById('profilePhotoPreview');
+                if (foto) {
+                    preview.innerHTML = `<img src="${foto}" alt="Foto" />`;
+                } else {
+                    preview.innerHTML = `<i class="fas fa-user" style="font-size:2rem;color:var(--text-light);"></i>`;
+                }
+            });
         }
 
-        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        document.getElementById('profilePhotoInput').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            if (file.size > 200 * 1024) {
+                showToast('File terlalu besar! Maks 200KB.', 'error');
+                this.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const dataUrl = ev.target.result;
+                const preview = document.getElementById('profilePhotoPreview');
+                preview.innerHTML = `<img src="${dataUrl}" alt="Foto" />`;
+                // Save to Firebase
+                db.ref('userProfiles/' + currentUser.id + '/foto').set(dataUrl).then(() => {
+                    showToast('Foto profil berhasil diupdate!');
+                    // Update avatar
+                    const avatar = document.getElementById('userAvatar');
+                    avatar.innerHTML = `<img src="${dataUrl}" alt="Foto" />`;
+                }).catch(err => showToast('Gagal simpan foto: ' + err.message, 'error'));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const newPass = document.getElementById('newPassword').value;
             const confirmPass = document.getElementById('confirmPassword').value;
-            if (newPass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
-            if (newPass !== confirmPass) { showToast('Konfirmasi password tidak cocok!', 'error'); return; }
-            db.ref('users/' + currentUser.id).update({ password: newPass }).then(() => {
-                db.ref('passwordHistory/' + currentUser.id).set(new Date().toLocaleString('id-ID'));
-                showToast('Password berhasil diubah!');
-                this.reset();
-            }).catch(err => showToast('Gagal: ' + err.message, 'error'));
+            const jabatan = document.getElementById('profileJabatan').value;
+
+            // Update jabatan
+            db.ref('users/' + currentUser.id + '/jabatan').set(jabatan).then(() => {
+                currentUser.jabatan = jabatan;
+                sessionStorage.setItem('cq_currentUser', JSON.stringify(currentUser));
+                showToast('Jabatan diperbarui!');
+            }).catch(err => showToast('Gagal update jabatan: ' + err.message, 'error'));
+
+            if (newPass) {
+                if (newPass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
+                if (newPass !== confirmPass) { showToast('Konfirmasi password tidak cocok!', 'error'); return; }
+                db.ref('users/' + currentUser.id).update({ password: newPass }).then(() => {
+                    db.ref('passwordHistory/' + currentUser.id).set(new Date().toLocaleString('id-ID'));
+                    showToast('Password berhasil diubah!');
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                }).catch(err => showToast('Gagal: ' + err.message, 'error'));
+            }
         });
 
         // ============================================================
