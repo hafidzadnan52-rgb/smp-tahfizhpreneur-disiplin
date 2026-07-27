@@ -6,12 +6,13 @@
     <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
     </script>
     <style>
-        /* ===== RESET & VARIABEL (sama seperti sebelumnya, tidak diubah) ===== */
+        /* ===== RESET & VARIABEL ===== */
         * {
             margin: 0;
             padding: 0;
@@ -335,6 +336,16 @@
             flex-wrap: wrap;
             gap: 12px;
         }
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar .brand .logo-img {
+            height: 40px;
+            width: auto;
+            border-radius: 8px;
+        }
         .topbar .brand .logo-icon .main {
             font-size: 1.1rem;
             font-weight: 800;
@@ -560,7 +571,6 @@
             color: var(--text-light);
             margin-top: 4px;
         }
-
         .stat-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -577,8 +587,8 @@
             transition: 0.3s;
         }
         .stat-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
         }
         .stat-card .stat-number {
             font-size: 1.8rem;
@@ -588,6 +598,12 @@
         .stat-card .stat-label {
             font-size: 0.8rem;
             color: var(--text-light);
+        }
+        .stat-card.clickable {
+            cursor: pointer;
+        }
+        .stat-card.clickable:hover .stat-number {
+            color: var(--gold);
         }
 
         .card {
@@ -742,6 +758,26 @@
         }
         .leaderboard-item .points.reward-points {
             color: var(--success);
+        }
+        .point-breakdown {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .point-breakdown span {
+            background: #f0ece4;
+            padding: 1px 8px;
+            border-radius: 10px;
+        }
+        .point-breakdown .severe {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        .point-breakdown .reduced {
+            color: var(--success);
+            font-weight: 600;
         }
 
         .tab-buttons {
@@ -924,38 +960,6 @@
             display: block;
         }
 
-        .student-search-wrap {
-            position: relative;
-        }
-        .student-search-wrap .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 2px solid #e8e4dc;
-            border-top: none;
-            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 50;
-            display: none;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-        .student-search-wrap .search-results .result-item {
-            padding: 10px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0ece4;
-            transition: 0.2s;
-        }
-        .student-search-wrap .search-results .result-item:hover {
-            background: #f8f5f0;
-        }
-        .student-search-wrap .search-results .result-item .sub {
-            font-size: 0.75rem;
-            color: var(--text-light);
-        }
-
         .feedback-item {
             padding: 14px 18px;
             background: #faf8f5;
@@ -972,6 +976,7 @@
             font-size: 0.95rem;
         }
 
+        /* BK */
         .bk-transcript {
             background: #f8f5f0;
             padding: 16px;
@@ -1066,58 +1071,37 @@
             object-fit: cover;
         }
 
-        .point-breakdown {
-            font-size: 0.8rem;
-            color: var(--text-light);
+        /* Password reveal */
+        .password-reveal {
             display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
         }
-        .point-breakdown span {
-            background: #f0ece4;
-            padding: 2px 10px;
-            border-radius: 12px;
-        }
-        .point-breakdown .severe {
-            color: var(--danger);
-            font-weight: 600;
-        }
-        .point-breakdown .reduced {
-            color: var(--success);
-            font-weight: 600;
+        .password-reveal .toggle-pass {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 1rem;
+            padding: 4px 8px;
         }
 
-        /* Autocomplete untuk pelanggaran */
-        .autocomplete-wrap {
-            position: relative;
-        }
-        .autocomplete-wrap .autocomplete-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 2px solid #e8e4dc;
-            border-top: none;
-            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-            max-height: 180px;
-            overflow-y: auto;
-            z-index: 60;
-            display: none;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-        .autocomplete-wrap .autocomplete-list .ac-item {
-            padding: 10px 16px;
-            cursor: pointer;
+        /* Reward recipients modal */
+        .reward-recipient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
             border-bottom: 1px solid #f0ece4;
-            transition: 0.2s;
         }
-        .autocomplete-wrap .autocomplete-list .ac-item:hover {
-            background: #f8f5f0;
+        .reward-recipient-item:last-child {
+            border-bottom: none;
         }
-        .autocomplete-wrap .autocomplete-list .ac-item .sub {
-            font-size: 0.75rem;
-            color: var(--text-light);
+        .reward-recipient-item .name {
+            font-weight: 600;
+        }
+        .reward-recipient-item .points {
+            color: var(--success);
+            font-weight: 700;
         }
 
         @media (max-width: 992px) {
@@ -1146,6 +1130,9 @@
             .notification-panel {
                 width: 100%;
                 max-width: 380px;
+            }
+            .topbar .brand .logo-img {
+                height: 32px;
             }
         }
         @media (max-width: 768px) {
@@ -1242,7 +1229,10 @@
                 <div class="left-group">
                     <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
                     <div class="brand">
-                        <div class="logo-icon">
+                        <!-- ========== LOGO SEKOLAH ========== -->
+                        <!-- Ganti src dengan URL logo Anda di GitHub -->
+                        <img class="logo-img" id="schoolLogo" src="logo smp" alt="Logo Sekolah" style="display:none;" />
+                        <div class="logo-icon" id="logoText">
                             <div class="main">Tahfizh <span>Preneur</span></div>
                             <div class="sub">✦ SMP CAHAYA QURAN ✦</div>
                         </div>
@@ -1292,7 +1282,7 @@
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statAllStudents">0</div><div class="stat-label">Jumlah Seluruh Siswa</div></div><i class="fas fa-users" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statToday">0</div><div class="stat-label">Hari Ini</div></div><i class="fas fa-calendar-day" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statHighest">0</div><div class="stat-label">Poin Tertinggi</div></div><i class="fas fa-arrow-up" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
-                        <div class="stat-card" id="statRewardCard"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward</div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
+                        <div class="stat-card clickable" id="statRewardCard" title="Klik untuk lihat penerima reward"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward <i class="fas fa-chevron-right" style="font-size:0.6rem;"></i></div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statMoneyReward">Rp0</div><div class="stat-label">Total Uang Reward</div></div><i class="fas fa-money-bill-wave" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
@@ -1301,26 +1291,19 @@
 
                 <!-- RECORD -->
                 <section class="page-section" id="page-record">
-                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik jenis pelanggaran, lalu pilih dari daftar.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Pilih siswa, jenis pelanggaran, dan konsekuensi otomatis.</p></div>
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
-                                <div class="form-group student-search-wrap">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="recStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <select id="recStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
-                                    <div class="search-results" id="recStudentResults"></div>
+                                    <select id="recStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
-                                <div class="form-group autocomplete-wrap">
-                                    <label>Jenis Pelanggaran <span class="text-muted">*</span></label>
-                                    <input type="text" id="recTypeSearch" placeholder="Ketik nama pelanggaran..." autocomplete="off" />
-                                    <div class="autocomplete-list" id="recTypeResults"></div>
-                                    <select id="recType" style="display:none;"><option value="">— Pilih jenis —</option></select>
-                                </div>
-                                <div class="form-group"><label>Kategori</label><input type="text" id="recCategoryDisplay" readonly style="background:#f4f1ea;" /></div>
+                                <div class="form-group"><label>Kategori Pelanggaran</label><select id="recCategory"><option value="ringan">Ringan (2-5)</option><option value="sedang">Sedang (10-25)</option><option value="berat">Berat (30-100)</option></select></div>
+                                <div class="form-group"><label>Jenis Pelanggaran <span class="text-muted">*</span></label><select id="recType" required><option value="">— Pilih jenis —</option></select></div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group"><label>Poin <span class="text-muted">(otomatis)</span></label><input type="text" id="recPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
@@ -1338,11 +1321,9 @@
                     <div class="card">
                         <form id="rewardForm">
                             <div class="form-row">
-                                <div class="form-group student-search-wrap">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="rewardStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <select id="rewardStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
-                                    <div class="search-results" id="rewardStudentResults"></div>
+                                    <select id="rewardStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1403,11 +1384,9 @@
                     <div class="card">
                         <form id="lateForm">
                             <div class="form-row">
-                                <div class="form-group student-search-wrap">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="lateStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <select id="lateStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
-                                    <div class="search-results" id="lateStudentResults"></div>
+                                    <select id="lateStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="lateClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1435,15 +1414,13 @@
 
                 <!-- BK -->
                 <section class="page-section" id="page-bk">
-                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa (Speech-to-Text) atau tulis transkrip manual, lalu AI buat ringkasan & solusi.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa (Speech-to-Text) atau tulis transkrip manual.</p></div>
                     <div class="card">
                         <form id="bkForm">
                             <div class="form-row">
-                                <div class="form-group student-search-wrap">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="bkStudentSearch" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <select id="bkStudent" style="display:none;"><option value="">— Pilih siswa —</option></select>
-                                    <div class="search-results" id="bkStudentResults"></div>
+                                    <select id="bkStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="bkClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1542,42 +1519,12 @@
                 <section class="page-section" id="page-admin">
                     <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, pengguna, dan lihat saran dari guru.</p></div>
 
-                    <!-- Tambah Siswa Manual -->
                     <div class="accordion-section">
-                        <div class="accordion-header open" data-target="accAddStudent">
-                            <span><i class="fas fa-user-plus" style="color:var(--success);"></i> Tambah Siswa Manual</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="accordion-body open" id="accAddStudent">
-                            <form id="addStudentForm" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
-                                <div class="form-group" style="flex:1; min-width:150px; margin-bottom:0;">
-                                    <label>NIS</label>
-                                    <input type="text" id="addStudentNis" placeholder="Contoh: 262707036" required />
-                                </div>
-                                <div class="form-group" style="flex:2; min-width:180px; margin-bottom:0;">
-                                    <label>Nama Lengkap</label>
-                                    <input type="text" id="addStudentName" placeholder="Nama siswa" required />
-                                </div>
-                                <div class="form-group" style="flex:1; min-width:100px; margin-bottom:0;">
-                                    <label>Kelas</label>
-                                    <select id="addStudentClass">
-                                        <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
-                                        <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
-                                        <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
-                            </form>
-                            <div style="margin-top:8px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Siswa baru akan langsung tersimpan di database.</div>
-                        </div>
-                    </div>
-
-                    <div class="accordion-section">
-                        <div class="accordion-header" data-target="accFeedback">
+                        <div class="accordion-header open" data-target="accFeedback">
                             <span><i class="fas fa-comments" style="color:var(--gold);"></i> Saran & Masukan Guru</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div class="accordion-body" id="accFeedback">
+                        <div class="accordion-body open" id="accFeedback">
                             <div id="feedbackList"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div></div>
                         </div>
                     </div>
@@ -1612,7 +1559,7 @@
                         <div class="accordion-body" id="accUsers">
                             <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
                             <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Jabatan</th><th>Role</th><th>Password</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
-                            <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
+                            <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Klik mata 👁️ untuk melihat password.</div>
                         </div>
                     </div>
 
@@ -1639,6 +1586,31 @@
                                 <div class="form-group"><label>Poin 100 → Rp</label><input type="number" id="rewardMoney100" value="50000" /></div>
                             </div>
                             <button class="btn btn-sm btn-gold" id="saveMoneyRewardBtn"><i class="fas fa-save"></i> Simpan</button>
+                        </div>
+                    </div>
+
+                    <!-- Tambah Siswa Baru -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accAddStudent">
+                            <span><i class="fas fa-user-plus" style="color:var(--success);"></i> Tambah Siswa Baru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accAddStudent">
+                            <form id="addStudentForm">
+                                <div class="form-row">
+                                    <div class="form-group"><label>NIS <span class="text-muted">*</span></label><input type="text" id="newNis" placeholder="Contoh: 262707036" required /></div>
+                                    <div class="form-group"><label>Nama Lengkap <span class="text-muted">*</span></label><input type="text" id="newNama" placeholder="Nama siswa" required /></div>
+                                    <div class="form-group"><label>Kelas <span class="text-muted">*</span></label>
+                                        <select id="newKelas" required>
+                                            <option value="">— Pilih Kelas —</option>
+                                            <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
+                                            <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
+                                            <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
+                            </form>
                         </div>
                     </div>
                 </section>
@@ -1878,7 +1850,7 @@
         ];
 
         // ============================================================
-        // INISIALISASI
+        // FUNGSI INISIALISASI & BANTUAN
         // ============================================================
         function initFirebaseData() {
             db.ref('users').once('value', (snap) => {
@@ -1953,9 +1925,6 @@
         }
         initFirebaseData();
 
-        // ============================================================
-        // FUNGSI BANTUAN
-        // ============================================================
         function genId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
 
         function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -1995,6 +1964,7 @@
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
 
+        // Speech recognition
         let recognition = null;
         let isRecording = false;
         let transcriptText = '';
@@ -2043,16 +2013,18 @@
 
         function sendBrowserNotification(title, body) {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            try { new Notification(title, { body }); } catch (e) { /* ignore */ }
+            try {
+                new Notification(title, { body });
+            } catch (e) { /* ignore */ }
         }
 
         function saveNotif(type, title, message) {
             const id = genId();
             db.ref('notifications/' + id).set({
-                id,
-                type,
-                title,
-                message,
+                id: id,
+                type: type,
+                title: title,
+                message: message,
                 createdAt: Date.now(),
                 read: false,
                 timestamp: new Date().toLocaleString('id-ID')
@@ -2237,6 +2209,11 @@
             populateSiswaSelects();
             populateViolationSelects();
             populateRewardSelects();
+
+            // Set default date for late form
+            const lateDate = document.getElementById('lateDate');
+            if (lateDate) lateDate.value = today();
+
             navigateTo('dashboard');
             loadDashboard();
             loadProfile();
@@ -2249,6 +2226,9 @@
             currentLeaderboardTab = 'violation';
             loadLeaderboard(currentLeaderboardTab);
             loadLateList();
+
+            // Show logo if exists in localStorage
+            loadSchoolLogo();
 
             requestNotificationPermission();
         }
@@ -2274,8 +2254,7 @@
             if (isPageActive('violations')) loadViolations();
             if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
             if (isPageActive('reward')) loadRewardsList();
-            if (isPageActive('admin')) { loadFeedbackList();
-                loadAdminPanel(); }
+            if (isPageActive('admin')) loadFeedbackList();
             if (isPageActive('bk')) loadBkList();
             if (isPageActive('chat')) { loadChat();
                 loadOnlineTeachers(); }
@@ -2303,7 +2282,6 @@
                 violationTypesCache = snap.val() || {};
                 renderRecTypeOptions();
                 renderFilterTypeOptions();
-                renderViolationAutocomplete();
                 if (isPageActive('admin')) loadAdminPanel();
             });
             db.ref('rewardTypes').on('value', (snap) => {
@@ -2350,7 +2328,7 @@
         }
 
         // ============================================================
-        // SISWA (termasuk Late dan Add Student)
+        // SISWA
         // ============================================================
         function populateSiswaSelects() {
             db.ref('siswa').once('value', (snap) => {
@@ -2366,6 +2344,7 @@
             siswaCache = data || {};
             const siswaList = Object.values(siswaCache);
             siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
+
             ['recStudent', 'rewardStudent', 'bkStudent', 'lateStudent'].forEach(id => {
                 const sel = document.getElementById(id);
                 if (!sel) return;
@@ -2377,63 +2356,14 @@
                     opt.textContent = `${s.nama} (${s.kelas})`;
                     sel.appendChild(opt);
                 });
-                if (val) sel.value = val;
+                if (val && siswaCache[val]) sel.value = val;
             });
+
             updateSelectedStudentClass('recStudent', 'recClass');
             updateSelectedStudentClass('rewardStudent', 'rewardClass');
             updateSelectedStudentClass('bkStudent', 'bkClass');
             updateSelectedStudentClass('lateStudent', 'lateClass');
             setText('statAllStudents', siswaList.length);
-            setupStudentSearch('recStudentSearch', 'recStudent', 'recStudentResults', 'recClass');
-            setupStudentSearch('rewardStudentSearch', 'rewardStudent', 'rewardStudentResults', 'rewardClass');
-            setupStudentSearch('bkStudentSearch', 'bkStudent', 'bkStudentResults', 'bkClass');
-            setupStudentSearch('lateStudentSearch', 'lateStudent', 'lateStudentResults', 'lateClass');
-        }
-
-        function setupStudentSearch(searchId, selectId, resultId, classInputId) {
-            const search = document.getElementById(searchId);
-            const select = document.getElementById(selectId);
-            const result = document.getElementById(resultId);
-            const classInput = document.getElementById(classInputId);
-            if (!search || !select || !result) return;
-            search.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
-                if (!q) { result.style.display = 'none';
-                    result.innerHTML = ''; return; }
-                const siswaList = Object.values(siswaCache).filter(s => s.nama.toLowerCase().includes(q) || s.nis
-                    .includes(q));
-                if (!siswaList.length) {
-                    result.style.display = 'block';
-                    result.innerHTML = '<div class="result-item" style="color:var(--text-light);">Tidak ditemukan</div>';
-                    return;
-                }
-                result.style.display = 'block';
-                result.innerHTML = siswaList.slice(0, 8).map(s => `
-                    <div class="result-item" data-nis="${s.nis}" data-kelas="${s.kelas}">
-                        <div><strong>${escapeHtml(s.nama)}</strong></div>
-                        <div class="sub">${escapeHtml(s.nis)} · ${escapeHtml(s.kelas)}</div>
-                    </div>
-                `).join('');
-                result.querySelectorAll('.result-item').forEach(el => {
-                    el.addEventListener('click', function() {
-                        const nis = this.dataset.nis;
-                        const kelas = this.dataset.kelas;
-                        select.value = nis;
-                        search.value = siswaCache[nis] ? siswaCache[nis].nama : '';
-                        if (classInput) classInput.value = kelas || '';
-                        result.style.display = 'none';
-                        select.dispatchEvent(new Event('change'));
-                    });
-                });
-            });
-            document.addEventListener('click', function(e) {
-                if (!result.contains(e.target) && e.target !== search) { result.style.display = 'none'; }
-            });
-            select.addEventListener('change', function() {
-                const s = siswaCache[this.value];
-                if (s) { search.value = s.nama; if (classInput) classInput.value = s.kelas; } else { if (classInput)
-                        classInput.value = ''; }
-            });
         }
 
         function updateSelectedStudentClass(selectId, classInputId) {
@@ -2445,78 +2375,6 @@
         }
 
         // ============================================================
-        // TAMBAH SISWA MANUAL
-        // ============================================================
-        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nis = document.getElementById('addStudentNis').value.trim();
-            const nama = document.getElementById('addStudentName').value.trim();
-            const kelas = document.getElementById('addStudentClass').value;
-            if (!nis || !nama) { showToast('Lengkapi NIS dan Nama!', 'error'); return; }
-            // Cek duplikat
-            if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
-            const newStudent = { nis, nama, kelas };
-            db.ref('siswa/' + nis).set(newStudent).then(() => {
-                showToast(`Siswa ${nama} berhasil ditambahkan!`);
-                document.getElementById('addStudentNis').value = '';
-                document.getElementById('addStudentName').value = '';
-            }).catch(err => showToast('Gagal: ' + err.message, 'error'));
-        });
-
-        // ============================================================
-        // VIOLATION AUTOCOMPLETE
-        // ============================================================
-        function renderViolationAutocomplete() {
-            const input = document.getElementById('recTypeSearch');
-            const result = document.getElementById('recTypeResults');
-            if (!input || !result) return;
-            input.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
-                if (!q) { result.style.display = 'none';
-                    result.innerHTML = ''; return; }
-                const items = Object.values(violationTypesCache || {}).filter(t =>
-                    t.nama.toLowerCase().includes(q)
-                );
-                if (!items.length) {
-                    result.style.display = 'block';
-                    result.innerHTML = '<div class="ac-item" style="color:var(--text-light);">Tidak ditemukan</div>';
-                    return;
-                }
-                result.style.display = 'block';
-                result.innerHTML = items.slice(0, 10).map(t => `
-                    <div class="ac-item" data-id="${t.id || ''}" data-nama="${escapeHtml(t.nama)}" data-kategori="${t.kategori}" data-poin="${t.poin}" data-konsekuensi="${escapeHtml(t.konsekuensi || '')}">
-                        <div><strong>${escapeHtml(t.nama)}</strong> <span class="badge">${t.kategori} (${t.poin} poin)</span></div>
-                        <div class="sub">${escapeHtml(t.konsekuensi || '-')}</div>
-                    </div>
-                `).join('');
-                result.querySelectorAll('.ac-item').forEach(el => {
-                    el.addEventListener('click', function() {
-                        const nama = this.dataset.nama;
-                        const kategori = this.dataset.kategori;
-                        const poin = this.dataset.poin;
-                        const konsekuensi = this.dataset.konsekuensi;
-                        input.value = nama;
-                        document.getElementById('recCategoryDisplay').value = kategori;
-                        document.getElementById('recPoints').value = poin;
-                        document.getElementById('recConsequence').value = konsekuensi;
-                        // Cari id yang sesuai
-                        const id = this.dataset.id;
-                        const sel = document.getElementById('recType');
-                        if (sel) {
-                            for (let opt of sel.options) {
-                                if (opt.textContent.includes(nama)) { sel.value = opt.value; break; }
-                            }
-                        }
-                        result.style.display = 'none';
-                    });
-                });
-            });
-            document.addEventListener('click', function(e) {
-                if (!result.contains(e.target) && e.target !== input) { result.style.display = 'none'; }
-            });
-        }
-
-        // ============================================================
         // VIOLATION / REWARD TYPE SELECTS
         // ============================================================
         function populateViolationSelects() {
@@ -2524,7 +2382,6 @@
                 violationTypesCache = snap.val() || {};
                 renderRecTypeOptions();
                 renderFilterTypeOptions();
-                renderViolationAutocomplete();
             });
         }
 
@@ -2536,18 +2393,33 @@
         }
 
         function renderRecTypeOptions() {
+            const catSel = document.getElementById('recCategory');
             const typeSel = document.getElementById('recType');
-            if (!typeSel) return;
+            if (!catSel || !typeSel) return;
+            const cat = catSel.value || 'ringan';
             const prevVal = typeSel.value;
             typeSel.innerHTML = '<option value="">— Pilih jenis —</option>';
             Object.keys(violationTypesCache).forEach(id => {
                 const t = violationTypesCache[id];
-                const opt = document.createElement('option');
-                opt.value = id;
-                opt.textContent = `${t.nama} (${t.kategori}, ${t.poin} poin)`;
-                typeSel.appendChild(opt);
+                if (t.kategori === cat) {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = `${t.nama} (${t.poin} poin)`;
+                    typeSel.appendChild(opt);
+                }
             });
             if (prevVal && violationTypesCache[prevVal]) typeSel.value = prevVal;
+            updateRecAutoFields();
+        }
+
+        function updateRecAutoFields() {
+            const typeSel = document.getElementById('recType');
+            const pointsEl = document.getElementById('recPoints');
+            const consEl = document.getElementById('recConsequence');
+            if (!typeSel || !pointsEl || !consEl) return;
+            const t = violationTypesCache[typeSel.value];
+            pointsEl.value = t ? t.poin : '';
+            consEl.value = t ? (t.konsekuensi || '-') : '';
         }
 
         function renderFilterTypeOptions() {
@@ -2592,46 +2464,56 @@
         }
 
         // ============================================================
-        // NAVIGASI
+        // NAVIGASI (DIPERBAIKI)
         // ============================================================
         function navigateTo(page) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             const target = document.getElementById('page-' + page);
             if (target) target.classList.add('active');
+
             document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
             const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
             if (navItem) navItem.classList.add('active');
+
+            // Tutup sidebar di mobile
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             if (sidebar && window.innerWidth <= 992) {
                 sidebar.classList.remove('open');
                 if (overlay) overlay.classList.remove('show');
             }
+
+            // Load konten sesuai halaman
+            if (page === 'dashboard') loadDashboard();
+            if (page === 'violations') loadViolations();
+            if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
+            if (page === 'admin') { loadAdminPanel();
+                loadFeedbackList(); }
+            if (page === 'profile') loadProfile();
+            if (page === 'reward') loadRewardsList();
+            if (page === 'bk') loadBkList();
+            if (page === 'late') loadLateList();
+            if (page === 'chat') { loadChat();
+                loadOnlineTeachers();
+                populateChatRecipients(); }
         }
 
-        // PASTIKAN EVENT LISTENER MENGGUNAKAN DELEGASI ATAU LANGSUNG
-        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const page = this.dataset.page;
-                if (page === 'admin' && !isAdmin()) { showToast('Akses hanya untuk admin!', 'error'); return; }
-                navigateTo(page);
-                if (page === 'dashboard') loadDashboard();
-                if (page === 'violations') loadViolations();
-                if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
-                if (page === 'admin') { loadAdminPanel();
-                    loadFeedbackList(); }
-                if (page === 'profile') loadProfile();
-                if (page === 'reward') loadRewardsList();
-                if (page === 'bk') { loadBkList(); }
-                if (page === 'late') { loadLateList(); }
-                if (page === 'chat') { loadChat();
-                    loadOnlineTeachers();
-                    populateChatRecipients(); }
-                if (page === 'feedback') { /* just show form */ }
-            });
+        // Event listener untuk sidebar dengan event delegation
+        document.querySelector('.sidebar').addEventListener('click', function(e) {
+            const item = e.target.closest('.nav-item');
+            if (!item) return;
+            e.preventDefault();
+
+            const page = item.dataset.page;
+            if (!page) return;
+            if (page === 'admin' && !isAdmin()) {
+                showToast('Akses hanya untuk admin!', 'error');
+                return;
+            }
+            navigateTo(page);
         });
 
+        // Menu toggle
         document.getElementById('menuToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2644,6 +2526,7 @@
             this.classList.remove('show');
         });
 
+        // Notification bell
         document.getElementById('notifBell').addEventListener('click', function() {
             const panel = document.getElementById('notifPanel');
             panel.classList.toggle('open');
@@ -2657,7 +2540,7 @@
         });
 
         // ============================================================
-        // DASHBOARD (dengan klik total reward)
+        // CORE FUNCTIONS
         // ============================================================
         function getStudentStats(nis) {
             let lightMed = 0,
@@ -2677,6 +2560,7 @@
             return { lightMed, severe, rewardPts, effectiveLightMed, totalEffective };
         }
 
+        // DASHBOARD
         function loadDashboard() {
             const violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v }));
             const rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
@@ -2701,26 +2585,11 @@
             setText('statReward', totalRewardPoints);
             setText('statMoneyReward', formatRupiah(moneyTotal));
 
-            // Klik total reward -> tampilkan daftar penerima
+            // Stat Reward card clickable
             const rewardCard = document.getElementById('statRewardCard');
-            if (rewardCard) {
-                rewardCard.onclick = function() {
-                    if (rewards.length === 0) { showToast('Belum ada data reward.', 'error'); return; }
-                    const map = {};
-                    rewards.forEach(r => {
-                        if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0 };
-                        map[r.nis].total += (r.poin || 0);
-                    });
-                    const list = Object.values(map).sort((a, b) => b.total - a.total);
-                    let html = `<div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Total Poin Reward</th></tr></thead><tbody>`;
-                    list.forEach((s, i) => {
-                        html +=
-                            `<tr><td>${i+1}</td><td>${escapeHtml(s.nama)}</td><td>${escapeHtml(s.kelas)}</td><td><span class="badge badge-success">${s.total}</span></td></tr>`;
-                    });
-                    html += `</tbody></table></div>`;
-                    openModal('🎉 Daftar Penerima Reward', html);
-                };
-            }
+            rewardCard.onclick = function() {
+                showRewardRecipients();
+            };
 
             renderRecentList('recentViolations', violations, (v) => `
                 <div class="leaderboard-item">
@@ -2754,9 +2623,44 @@
             el.innerHTML = sorted.map(templateFn).join('');
         }
 
-        // ============================================================
+        // SHOW REWARD RECIPIENTS (klik Total Reward)
+        function showRewardRecipients() {
+            const rewards = Object.values(rewardsCache || {});
+            if (!rewards.length) {
+                showToast('Belum ada data reward.', 'error');
+                return;
+            }
+            const map = {};
+            rewards.forEach(r => {
+                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
+                map[r.nis].total += (r.poin || 0);
+                map[r.nis].count += 1;
+            });
+            const list = Object.values(map).sort((a, b) => b.total - a.total);
+
+            let html = `
+                <div style="margin-bottom:12px;"><strong>Total ${list.length} siswa menerima reward</strong></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>Total Poin</th><th>Jumlah Reward</th></tr></thead>
+                        <tbody>
+                            ${list.map((s, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td><strong>${escapeHtml(s.nama)}</strong></td>
+                                    <td>${escapeHtml(s.kelas || '')}</td>
+                                    <td><span class="badge badge-success">${s.total} ⭐</span></td>
+                                    <td>${s.count} kali</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            openModal('📊 Daftar Penerima Reward', html);
+        }
+
         // VIOLATIONS TABLE
-        // ============================================================
         function loadViolations() {
             const tbody = document.getElementById('violationsTableBody');
             const emptyEl = document.getElementById('violationsEmpty');
@@ -2834,9 +2738,7 @@
             showToast('Data berhasil diekspor!');
         });
 
-        // ============================================================
         // REWARDS LIST
-        // ============================================================
         function loadRewardsList() {
             const tbody = document.getElementById('rewardsTableBody');
             const emptyEl = document.getElementById('rewardsEmpty');
@@ -2888,9 +2790,7 @@
             loadRewardsList();
         });
 
-        // ============================================================
         // LEADERBOARD
-        // ============================================================
         function loadLeaderboard(type = 'violation') {
             currentLeaderboardTab = type;
             const el = document.getElementById('leaderboardList');
@@ -2999,7 +2899,9 @@
                     `<span class="badge badge-danger">${v.poin}</span>`,
                     v.guru || '-'
                 ]);
-                rows.unshift(['', 'INFO EFEKTIF', `Ringan/Sedang: ${stats.lightMed} | Reward: ${stats.rewardPts} | Efektif: ${stats.effectiveLightMed} | Berat: ${stats.severe} | Total: ${stats.totalEffective}`, '', '']);
+                rows.unshift(['', 'INFO EFEKTIF', `Ringan/Sedang: ${stats.lightMed} | Reward: ${stats.rewardPts} | Efektif: ${stats.effectiveLightMed} | Berat: ${stats.severe} | Total: ${stats.totalEffective}`, '',
+                    ''
+                ]);
             } else {
                 records = Object.values(rewardsCache || {}).filter(r => r.nis === nis);
                 records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -3038,7 +2940,7 @@
         });
 
         // ============================================================
-        // LATE
+        // LATE (Keterlambatan)
         // ============================================================
         document.getElementById('lateForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3050,11 +2952,11 @@
             if (!nis || !tanggal || !waktu) { showToast('Lengkapi data siswa, tanggal, dan jam!', 'error'); return; }
             const s = siswaCache[nis];
             const record = {
-                nis,
+                nis: nis,
                 nama: s ? s.nama : 'Unknown',
-                kelas,
-                tanggal,
-                waktu,
+                kelas: kelas,
+                tanggal: tanggal,
+                waktu: waktu,
                 catatan: note,
                 guru: currentUser.name,
                 createdAt: Date.now()
@@ -3062,8 +2964,6 @@
             db.ref('lates/' + genId()).set(record).then(() => {
                 showToast('Data keterlambatan berhasil dicatat!');
                 this.reset();
-                document.getElementById('lateStudentSearch').value = '';
-                document.getElementById('lateClass').value = '';
                 document.getElementById('lateDate').value = today();
                 document.getElementById('lateNote').value = '';
                 loadLateList();
@@ -3122,7 +3022,6 @@
             document.getElementById('lateFilterDate').value = '';
             loadLateList();
         });
-
         document.getElementById('exportLateBtn').addEventListener('click', function() {
             const data = window.__filteredLates || [];
             if (!data.length) { showToast('Tidak ada data keterlambatan.', 'error'); return; }
@@ -3142,13 +3041,8 @@
             showToast('Data keterlambatan berhasil diekspor!');
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const lateDate = document.getElementById('lateDate');
-            if (lateDate) lateDate.value = today();
-        });
-
         // ============================================================
-        // BK (disingkat, tetap fungsional)
+        // BK (Bimbingan Konseling) - disederhanakan
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3578,7 +3472,7 @@
         }
 
         // ============================================================
-        // ADMIN PANEL (dengan lihat password)
+        // ADMIN PANEL
         // ============================================================
         function loadAdminPanel() {
             renderViolationTypesTable();
@@ -3655,6 +3549,7 @@
             }));
         }
 
+        // USERS TABLE with password visibility
         function renderUsersTable() {
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
@@ -3665,15 +3560,19 @@
                 const lastChange = (passwordHistoryCache && passwordHistoryCache[id]) || '-';
                 const status = (currentUser && currentUser.id === id) ? 'Online' : 'Offline';
                 const jabatan = u.jabatan || 'Guru';
-                // Tampilkan password dengan ikon mata
-                const showPass = `<span class="password-display" data-pass="${escapeHtml(u.password || '')}" style="cursor:pointer;" onclick="this.textContent=this.dataset.pass;setTimeout(()=>{this.textContent='••••••'},5000);">••••••</span>`;
+                const passId = 'pass_' + id;
                 return `
                 <tr>
                     <td>${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(u.name)}</td>
                     <td><span class="badge">${escapeHtml(jabatan)}</span></td>
                     <td><span class="badge ${u.role === 'admin' ? '' : 'badge-success'}">${escapeHtml(u.role)}</span></td>
-                    <td>${showPass}</td>
+                    <td>
+                        <div class="password-reveal">
+                            <span id="${passId}">••••••</span>
+                            <button class="toggle-pass" data-pass="${u.password}" data-target="${passId}" title="Lihat password"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </td>
                     <td><span class="badge ${status === 'Online' ? 'badge-online' : 'badge'}">${status}</span></td>
                     <td class="actions">
                         <button class="btn btn-xs btn-outline" data-reset-pass="${id}"><i class="fas fa-key"></i></button>
@@ -3681,15 +3580,37 @@
                     </td>
                 </tr>`;
             }).join('');
-            tbody.querySelectorAll('[data-reset-pass]').forEach(btn => btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-reset-pass');
-                openResetPasswordModal(id, usersCache[id]);
-            }));
-            tbody.querySelectorAll('[data-del-user]').forEach(btn => btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-del-user');
-                if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast(
-                    'Pengguna dihapus.'));
-            }));
+
+            // Password toggle
+            tbody.querySelectorAll('.toggle-pass').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const pass = this.dataset.pass;
+                    const targetId = this.dataset.target;
+                    const target = document.getElementById(targetId);
+                    if (!target) return;
+                    if (target.textContent === '••••••') {
+                        target.textContent = pass;
+                        this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                    } else {
+                        target.textContent = '••••••';
+                        this.innerHTML = '<i class="fas fa-eye"></i>';
+                    }
+                });
+            });
+
+            tbody.querySelectorAll('[data-reset-pass]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-reset-pass');
+                    openResetPasswordModal(id, usersCache[id]);
+                });
+            });
+            tbody.querySelectorAll('[data-del-user]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-del-user');
+                    if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast(
+                        'Pengguna dihapus.'));
+                });
+            });
         }
 
         function renderGuruTable() {
@@ -3722,7 +3643,7 @@
         }
 
         // ============================================================
-        // MODALS (Violation, Reward, User)
+        // MODALS
         // ============================================================
         function openViolationTypeModal(id, existing) {
             const t = existing || { nama: '', kategori: 'ringan', poin: '', konsekuensi: '' };
@@ -3843,6 +3764,45 @@
         document.getElementById('addUserBtn').addEventListener('click', () => openAddUserModal());
 
         // ============================================================
+        // TAMBAH SISWA BARU (MANUAL)
+        // ============================================================
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('newNis').value.trim();
+            const nama = document.getElementById('newNama').value.trim();
+            const kelas = document.getElementById('newKelas').value;
+
+            if (!nis || !nama || !kelas) { showToast('Lengkapi semua data siswa!', 'error'); return; }
+            if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
+
+            const newStudent = { nis, nama, kelas };
+            db.ref('siswa/' + nis).set(newStudent).then(() => {
+                showToast(`Siswa ${nama} berhasil ditambahkan!`);
+                this.reset();
+                populateSiswaSelects();
+            }).catch(err => showToast('Gagal menambah: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // LOGO SEKOLAH
+        // ============================================================
+        function loadSchoolLogo() {
+            // Cek di localStorage apakah ada logo yang disimpan
+            const savedLogo = localStorage.getItem('schoolLogo');
+            if (savedLogo) {
+                const img = document.getElementById('schoolLogo');
+                img.src = savedLogo;
+                img.style.display = 'block';
+                document.getElementById('logoText').style.display = 'none';
+            }
+        }
+
+        // Pengguna bisa mengupload logo di sini (opsional) - kita tambahkan di profil atau admin
+        // Untuk sementara, kita beri cara manual via console:
+        // localStorage.setItem('schoolLogo', 'URL_LOGO_ANDA');
+        // Atau bisa ditambahkan form upload nanti
+
+        // ============================================================
         // PROFILE
         // ============================================================
         function loadProfile() {
@@ -3908,8 +3868,13 @@
         // ============================================================
         // RECORD & REWARD FORMS
         // ============================================================
+        document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
+        document.getElementById('recType').addEventListener('change', updateRecAutoFields);
         document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent',
         'recClass'));
+
+        document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
+        document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
         document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent',
             'rewardClass'));
 
@@ -3942,13 +3907,10 @@
                     `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
                 this.reset();
-                document.getElementById('recCategoryDisplay').value = '';
-                document.getElementById('recPoints').value = '';
-                document.getElementById('recConsequence').value = '';
-                document.getElementById('recStudentSearch').value = '';
-                document.getElementById('recTypeSearch').value = '';
+                document.getElementById('recCategory').value = 'ringan';
+                renderRecTypeOptions();
                 document.getElementById('recClass').value = '';
-                document.getElementById('recNote').value = '';
+                loadViolations();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
@@ -3977,14 +3939,15 @@
                 saveNotif('reward', '⭐ Reward Kebaikan',
                     `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama} (+${t.poin} poin)`);
+
                 const allRewards = Object.values(rewardsCache || {});
                 const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
                 checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
+
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
                 document.getElementById('rewardClass').value = '';
-                document.getElementById('rewardStudentSearch').value = '';
                 setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
