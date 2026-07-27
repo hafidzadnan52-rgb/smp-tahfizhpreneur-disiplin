@@ -6,13 +6,12 @@
     <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
     </script>
     <style>
-        /* ===== RESET & VARIABEL ===== */
+        /* ===== RESET & VARIABEL (sama seperti sebelumnya, tidak diubah) ===== */
         * {
             margin: 0;
             padding: 0;
@@ -219,7 +218,7 @@
             font-style: italic;
             color: var(--gold-dark);
             padding: 8px 12px;
-            background: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: var(--radius-sm);
             margin-bottom: 20px;
             font-size: 0.9rem;
@@ -574,6 +573,12 @@
             padding: 18px 22px;
             box-shadow: var(--shadow);
             border: 1px solid #f0ece4;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--gold);
         }
         .stat-card .stat-number {
             font-size: 1.8rem;
@@ -967,7 +972,6 @@
             font-size: 0.95rem;
         }
 
-        /* BK */
         .bk-transcript {
             background: #f8f5f0;
             padding: 16px;
@@ -1000,7 +1004,6 @@
             margin-top: 8px;
         }
 
-        /* Chat */
         .chat-container {
             max-height: 500px;
             overflow-y: auto;
@@ -1063,7 +1066,6 @@
             object-fit: cover;
         }
 
-        /* Point info badge */
         .point-breakdown {
             font-size: 0.8rem;
             color: var(--text-light);
@@ -1083,6 +1085,39 @@
         .point-breakdown .reduced {
             color: var(--success);
             font-weight: 600;
+        }
+
+        /* Autocomplete untuk pelanggaran */
+        .autocomplete-wrap {
+            position: relative;
+        }
+        .autocomplete-wrap .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 2px solid #e8e4dc;
+            border-top: none;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 60;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .autocomplete-wrap .autocomplete-list .ac-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0ece4;
+            transition: 0.2s;
+        }
+        .autocomplete-wrap .autocomplete-list .ac-item:hover {
+            background: #f8f5f0;
+        }
+        .autocomplete-wrap .autocomplete-list .ac-item .sub {
+            font-size: 0.75rem;
+            color: var(--text-light);
         }
 
         @media (max-width: 992px) {
@@ -1257,7 +1292,7 @@
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statAllStudents">0</div><div class="stat-label">Jumlah Seluruh Siswa</div></div><i class="fas fa-users" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statToday">0</div><div class="stat-label">Hari Ini</div></div><i class="fas fa-calendar-day" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statHighest">0</div><div class="stat-label">Poin Tertinggi</div></div><i class="fas fa-arrow-up" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
-                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward</div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
+                        <div class="stat-card" id="statRewardCard"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward</div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statMoneyReward">Rp0</div><div class="stat-label">Total Uang Reward</div></div><i class="fas fa-money-bill-wave" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
@@ -1266,7 +1301,7 @@
 
                 <!-- RECORD -->
                 <section class="page-section" id="page-record">
-                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Pilih siswa, jenis pelanggaran, dan konsekuensi otomatis.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik jenis pelanggaran, lalu pilih dari daftar.</p></div>
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
@@ -1279,8 +1314,13 @@
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
-                                <div class="form-group"><label>Kategori Pelanggaran</label><select id="recCategory"><option value="ringan">Ringan (2-5)</option><option value="sedang">Sedang (10-25)</option><option value="berat">Berat (30-100)</option></select></div>
-                                <div class="form-group"><label>Jenis Pelanggaran <span class="text-muted">*</span></label><select id="recType" required><option value="">— Pilih jenis —</option></select></div>
+                                <div class="form-group autocomplete-wrap">
+                                    <label>Jenis Pelanggaran <span class="text-muted">*</span></label>
+                                    <input type="text" id="recTypeSearch" placeholder="Ketik nama pelanggaran..." autocomplete="off" />
+                                    <div class="autocomplete-list" id="recTypeResults"></div>
+                                    <select id="recType" style="display:none;"><option value="">— Pilih jenis —</option></select>
+                                </div>
+                                <div class="form-group"><label>Kategori</label><input type="text" id="recCategoryDisplay" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group"><label>Poin <span class="text-muted">(otomatis)</span></label><input type="text" id="recPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
@@ -1357,7 +1397,7 @@
                     </div>
                 </section>
 
-                <!-- LATE (Keterlambatan) -->
+                <!-- LATE -->
                 <section class="page-section" id="page-late">
                     <div class="page-header"><h2><i class="fas fa-clock"></i> Keterlambatan Siswa</h2><p>Catat siswa yang datang terlambat.</p></div>
                     <div class="card">
@@ -1379,7 +1419,6 @@
                             <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Keterlambatan</button>
                         </form>
                     </div>
-
                     <div class="card">
                         <div class="card-header"><h3><i class="fas fa-list"></i> Rekap Keterlambatan</h3>
                             <button class="btn btn-sm export-btn" id="exportLateBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
@@ -1394,7 +1433,7 @@
                     </div>
                 </section>
 
-                <!-- BK (Bimbingan Konseling) -->
+                <!-- BK -->
                 <section class="page-section" id="page-bk">
                     <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa (Speech-to-Text) atau tulis transkrip manual, lalu AI buat ringkasan & solusi.</p></div>
                     <div class="card">
@@ -1503,12 +1542,42 @@
                 <section class="page-section" id="page-admin">
                     <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, pengguna, dan lihat saran dari guru.</p></div>
 
+                    <!-- Tambah Siswa Manual -->
                     <div class="accordion-section">
-                        <div class="accordion-header open" data-target="accFeedback">
+                        <div class="accordion-header open" data-target="accAddStudent">
+                            <span><i class="fas fa-user-plus" style="color:var(--success);"></i> Tambah Siswa Manual</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body open" id="accAddStudent">
+                            <form id="addStudentForm" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+                                <div class="form-group" style="flex:1; min-width:150px; margin-bottom:0;">
+                                    <label>NIS</label>
+                                    <input type="text" id="addStudentNis" placeholder="Contoh: 262707036" required />
+                                </div>
+                                <div class="form-group" style="flex:2; min-width:180px; margin-bottom:0;">
+                                    <label>Nama Lengkap</label>
+                                    <input type="text" id="addStudentName" placeholder="Nama siswa" required />
+                                </div>
+                                <div class="form-group" style="flex:1; min-width:100px; margin-bottom:0;">
+                                    <label>Kelas</label>
+                                    <select id="addStudentClass">
+                                        <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
+                                        <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
+                                        <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
+                            </form>
+                            <div style="margin-top:8px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Siswa baru akan langsung tersimpan di database.</div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accFeedback">
                             <span><i class="fas fa-comments" style="color:var(--gold);"></i> Saran & Masukan Guru</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div class="accordion-body open" id="accFeedback">
+                        <div class="accordion-body" id="accFeedback">
                             <div id="feedbackList"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div></div>
                         </div>
                     </div>
@@ -1542,7 +1611,7 @@
                         </div>
                         <div class="accordion-body" id="accUsers">
                             <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
-                            <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Jabatan</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                            <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Jabatan</th><th>Role</th><th>Password</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
                             <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
                         </div>
                     </div>
@@ -1659,7 +1728,7 @@
         const db = firebase.database();
 
         // ============================================================
-        // DATA DEFAULT (disingkat agar tidak terlalu panjang, tapi lengkap)
+        // DATA DEFAULT
         // ============================================================
         const GURU_LIST = [
             "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
@@ -1774,7 +1843,6 @@
             { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
         ];
 
-        // Violation & Reward types (disingkat untuk code size, tapi tetap ada)
         const VIOLATION_TYPES_INIT = [
             { nama: "Terlambat lebih dari 15 menit", kategori: "ringan", poin: 5,
             konsekuensi: "Memungut sampah 15 menit + istighfar 3x" },
@@ -1810,7 +1878,7 @@
         ];
 
         // ============================================================
-        // FUNGSI INISIALISASI & BANTUAN
+        // INISIALISASI
         // ============================================================
         function initFirebaseData() {
             db.ref('users').once('value', (snap) => {
@@ -1885,6 +1953,9 @@
         }
         initFirebaseData();
 
+        // ============================================================
+        // FUNGSI BANTUAN
+        // ============================================================
         function genId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
 
         function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -1924,7 +1995,6 @@
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
 
-        // Speech recognition
         let recognition = null;
         let isRecording = false;
         let transcriptText = '';
@@ -1973,18 +2043,16 @@
 
         function sendBrowserNotification(title, body) {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            try {
-                new Notification(title, { body });
-            } catch (e) { /* ignore */ }
+            try { new Notification(title, { body }); } catch (e) { /* ignore */ }
         }
 
         function saveNotif(type, title, message) {
             const id = genId();
             db.ref('notifications/' + id).set({
-                id: id,
-                type: type,
-                title: title,
-                message: message,
+                id,
+                type,
+                title,
+                message,
                 createdAt: Date.now(),
                 read: false,
                 timestamp: new Date().toLocaleString('id-ID')
@@ -2206,7 +2274,8 @@
             if (isPageActive('violations')) loadViolations();
             if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
             if (isPageActive('reward')) loadRewardsList();
-            if (isPageActive('admin')) loadFeedbackList();
+            if (isPageActive('admin')) { loadFeedbackList();
+                loadAdminPanel(); }
             if (isPageActive('bk')) loadBkList();
             if (isPageActive('chat')) { loadChat();
                 loadOnlineTeachers(); }
@@ -2234,6 +2303,7 @@
                 violationTypesCache = snap.val() || {};
                 renderRecTypeOptions();
                 renderFilterTypeOptions();
+                renderViolationAutocomplete();
                 if (isPageActive('admin')) loadAdminPanel();
             });
             db.ref('rewardTypes').on('value', (snap) => {
@@ -2280,7 +2350,7 @@
         }
 
         // ============================================================
-        // SISWA (dengan Late juga)
+        // SISWA (termasuk Late dan Add Student)
         // ============================================================
         function populateSiswaSelects() {
             db.ref('siswa').once('value', (snap) => {
@@ -2375,6 +2445,78 @@
         }
 
         // ============================================================
+        // TAMBAH SISWA MANUAL
+        // ============================================================
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('addStudentNis').value.trim();
+            const nama = document.getElementById('addStudentName').value.trim();
+            const kelas = document.getElementById('addStudentClass').value;
+            if (!nis || !nama) { showToast('Lengkapi NIS dan Nama!', 'error'); return; }
+            // Cek duplikat
+            if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
+            const newStudent = { nis, nama, kelas };
+            db.ref('siswa/' + nis).set(newStudent).then(() => {
+                showToast(`Siswa ${nama} berhasil ditambahkan!`);
+                document.getElementById('addStudentNis').value = '';
+                document.getElementById('addStudentName').value = '';
+            }).catch(err => showToast('Gagal: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // VIOLATION AUTOCOMPLETE
+        // ============================================================
+        function renderViolationAutocomplete() {
+            const input = document.getElementById('recTypeSearch');
+            const result = document.getElementById('recTypeResults');
+            if (!input || !result) return;
+            input.addEventListener('input', function() {
+                const q = this.value.toLowerCase().trim();
+                if (!q) { result.style.display = 'none';
+                    result.innerHTML = ''; return; }
+                const items = Object.values(violationTypesCache || {}).filter(t =>
+                    t.nama.toLowerCase().includes(q)
+                );
+                if (!items.length) {
+                    result.style.display = 'block';
+                    result.innerHTML = '<div class="ac-item" style="color:var(--text-light);">Tidak ditemukan</div>';
+                    return;
+                }
+                result.style.display = 'block';
+                result.innerHTML = items.slice(0, 10).map(t => `
+                    <div class="ac-item" data-id="${t.id || ''}" data-nama="${escapeHtml(t.nama)}" data-kategori="${t.kategori}" data-poin="${t.poin}" data-konsekuensi="${escapeHtml(t.konsekuensi || '')}">
+                        <div><strong>${escapeHtml(t.nama)}</strong> <span class="badge">${t.kategori} (${t.poin} poin)</span></div>
+                        <div class="sub">${escapeHtml(t.konsekuensi || '-')}</div>
+                    </div>
+                `).join('');
+                result.querySelectorAll('.ac-item').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const nama = this.dataset.nama;
+                        const kategori = this.dataset.kategori;
+                        const poin = this.dataset.poin;
+                        const konsekuensi = this.dataset.konsekuensi;
+                        input.value = nama;
+                        document.getElementById('recCategoryDisplay').value = kategori;
+                        document.getElementById('recPoints').value = poin;
+                        document.getElementById('recConsequence').value = konsekuensi;
+                        // Cari id yang sesuai
+                        const id = this.dataset.id;
+                        const sel = document.getElementById('recType');
+                        if (sel) {
+                            for (let opt of sel.options) {
+                                if (opt.textContent.includes(nama)) { sel.value = opt.value; break; }
+                            }
+                        }
+                        result.style.display = 'none';
+                    });
+                });
+            });
+            document.addEventListener('click', function(e) {
+                if (!result.contains(e.target) && e.target !== input) { result.style.display = 'none'; }
+            });
+        }
+
+        // ============================================================
         // VIOLATION / REWARD TYPE SELECTS
         // ============================================================
         function populateViolationSelects() {
@@ -2382,6 +2524,7 @@
                 violationTypesCache = snap.val() || {};
                 renderRecTypeOptions();
                 renderFilterTypeOptions();
+                renderViolationAutocomplete();
             });
         }
 
@@ -2393,33 +2536,18 @@
         }
 
         function renderRecTypeOptions() {
-            const catSel = document.getElementById('recCategory');
             const typeSel = document.getElementById('recType');
-            if (!catSel || !typeSel) return;
-            const cat = catSel.value || 'ringan';
+            if (!typeSel) return;
             const prevVal = typeSel.value;
             typeSel.innerHTML = '<option value="">— Pilih jenis —</option>';
             Object.keys(violationTypesCache).forEach(id => {
                 const t = violationTypesCache[id];
-                if (t.kategori === cat) {
-                    const opt = document.createElement('option');
-                    opt.value = id;
-                    opt.textContent = `${t.nama} (${t.poin} poin)`;
-                    typeSel.appendChild(opt);
-                }
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = `${t.nama} (${t.kategori}, ${t.poin} poin)`;
+                typeSel.appendChild(opt);
             });
             if (prevVal && violationTypesCache[prevVal]) typeSel.value = prevVal;
-            updateRecAutoFields();
-        }
-
-        function updateRecAutoFields() {
-            const typeSel = document.getElementById('recType');
-            const pointsEl = document.getElementById('recPoints');
-            const consEl = document.getElementById('recConsequence');
-            if (!typeSel || !pointsEl || !consEl) return;
-            const t = violationTypesCache[typeSel.value];
-            pointsEl.value = t ? t.poin : '';
-            consEl.value = t ? (t.konsekuensi || '-') : '';
         }
 
         function renderFilterTypeOptions() {
@@ -2481,6 +2609,7 @@
             }
         }
 
+        // PASTIKAN EVENT LISTENER MENGGUNAKAN DELEGASI ATAU LANGSUNG
         document.querySelectorAll('.sidebar .nav-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -2528,9 +2657,8 @@
         });
 
         // ============================================================
-        // CORE FUNCTIONS: DASHBOARD, VIOLATIONS, REWARDS, LEADERBOARD
+        // DASHBOARD (dengan klik total reward)
         // ============================================================
-        // === POINT CALCULATION (EFFECTIVE) ===
         function getStudentStats(nis) {
             let lightMed = 0,
                 severe = 0,
@@ -2573,6 +2701,27 @@
             setText('statReward', totalRewardPoints);
             setText('statMoneyReward', formatRupiah(moneyTotal));
 
+            // Klik total reward -> tampilkan daftar penerima
+            const rewardCard = document.getElementById('statRewardCard');
+            if (rewardCard) {
+                rewardCard.onclick = function() {
+                    if (rewards.length === 0) { showToast('Belum ada data reward.', 'error'); return; }
+                    const map = {};
+                    rewards.forEach(r => {
+                        if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0 };
+                        map[r.nis].total += (r.poin || 0);
+                    });
+                    const list = Object.values(map).sort((a, b) => b.total - a.total);
+                    let html = `<div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Total Poin Reward</th></tr></thead><tbody>`;
+                    list.forEach((s, i) => {
+                        html +=
+                            `<tr><td>${i+1}</td><td>${escapeHtml(s.nama)}</td><td>${escapeHtml(s.kelas)}</td><td><span class="badge badge-success">${s.total}</span></td></tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                    openModal('🎉 Daftar Penerima Reward', html);
+                };
+            }
+
             renderRecentList('recentViolations', violations, (v) => `
                 <div class="leaderboard-item">
                     <div class="info">
@@ -2605,7 +2754,9 @@
             el.innerHTML = sorted.map(templateFn).join('');
         }
 
+        // ============================================================
         // VIOLATIONS TABLE
+        // ============================================================
         function loadViolations() {
             const tbody = document.getElementById('violationsTableBody');
             const emptyEl = document.getElementById('violationsEmpty');
@@ -2683,7 +2834,9 @@
             showToast('Data berhasil diekspor!');
         });
 
+        // ============================================================
         // REWARDS LIST
+        // ============================================================
         function loadRewardsList() {
             const tbody = document.getElementById('rewardsTableBody');
             const emptyEl = document.getElementById('rewardsEmpty');
@@ -2735,7 +2888,9 @@
             loadRewardsList();
         });
 
-        // LEADERBOARD (with Effective Points)
+        // ============================================================
+        // LEADERBOARD
+        // ============================================================
         function loadLeaderboard(type = 'violation') {
             currentLeaderboardTab = type;
             const el = document.getElementById('leaderboardList');
@@ -2790,7 +2945,6 @@
                     </div>`;
                 }).join('');
             } else {
-                // Reward Leaderboard
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
                     if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
@@ -2845,7 +2999,6 @@
                     `<span class="badge badge-danger">${v.poin}</span>`,
                     v.guru || '-'
                 ]);
-                // Tambahkan info efektif
                 rows.unshift(['', 'INFO EFEKTIF', `Ringan/Sedang: ${stats.lightMed} | Reward: ${stats.rewardPts} | Efektif: ${stats.effectiveLightMed} | Berat: ${stats.severe} | Total: ${stats.totalEffective}`, '', '']);
             } else {
                 records = Object.values(rewardsCache || {}).filter(r => r.nis === nis);
@@ -2885,7 +3038,7 @@
         });
 
         // ============================================================
-        // LATE (Keterlambatan)
+        // LATE
         // ============================================================
         document.getElementById('lateForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -2897,11 +3050,11 @@
             if (!nis || !tanggal || !waktu) { showToast('Lengkapi data siswa, tanggal, dan jam!', 'error'); return; }
             const s = siswaCache[nis];
             const record = {
-                nis: nis,
+                nis,
                 nama: s ? s.nama : 'Unknown',
-                kelas: kelas,
-                tanggal: tanggal,
-                waktu: waktu,
+                kelas,
+                tanggal,
+                waktu,
                 catatan: note,
                 guru: currentUser.name,
                 createdAt: Date.now()
@@ -2989,14 +3142,13 @@
             showToast('Data keterlambatan berhasil diekspor!');
         });
 
-        // Set default date for late form
         document.addEventListener('DOMContentLoaded', function() {
             const lateDate = document.getElementById('lateDate');
             if (lateDate) lateDate.value = today();
         });
 
         // ============================================================
-        // BK (disingkat agar tidak terlalu panjang, tetap fungsional)
+        // BK (disingkat, tetap fungsional)
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3426,7 +3578,7 @@
         }
 
         // ============================================================
-        // ADMIN PANEL
+        // ADMIN PANEL (dengan lihat password)
         // ============================================================
         function loadAdminPanel() {
             renderViolationTypesTable();
@@ -3508,17 +3660,20 @@
             if (!tbody) return;
             const entries = Object.entries(usersCache || {});
             if (!entries.length) { tbody.innerHTML =
-                '<tr><td colspan="6" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
+                '<tr><td colspan="7" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, u]) => {
                 const lastChange = (passwordHistoryCache && passwordHistoryCache[id]) || '-';
                 const status = (currentUser && currentUser.id === id) ? 'Online' : 'Offline';
                 const jabatan = u.jabatan || 'Guru';
+                // Tampilkan password dengan ikon mata
+                const showPass = `<span class="password-display" data-pass="${escapeHtml(u.password || '')}" style="cursor:pointer;" onclick="this.textContent=this.dataset.pass;setTimeout(()=>{this.textContent='••••••'},5000);">••••••</span>`;
                 return `
                 <tr>
                     <td>${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(u.name)}</td>
                     <td><span class="badge">${escapeHtml(jabatan)}</span></td>
                     <td><span class="badge ${u.role === 'admin' ? '' : 'badge-success'}">${escapeHtml(u.role)}</span></td>
+                    <td>${showPass}</td>
                     <td><span class="badge ${status === 'Online' ? 'badge-online' : 'badge'}">${status}</span></td>
                     <td class="actions">
                         <button class="btn btn-xs btn-outline" data-reset-pass="${id}"><i class="fas fa-key"></i></button>
@@ -3751,15 +3906,10 @@
         });
 
         // ============================================================
-        // RECORD & REWARD FORMS (with Point Reduction Logic)
+        // RECORD & REWARD FORMS
         // ============================================================
-        document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
-        document.getElementById('recType').addEventListener('change', updateRecAutoFields);
         document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent',
         'recClass'));
-
-        document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
-        document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
         document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent',
             'rewardClass'));
 
@@ -3792,10 +3942,13 @@
                     `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
                 this.reset();
-                document.getElementById('recCategory').value = 'ringan';
-                renderRecTypeOptions();
-                document.getElementById('recClass').value = '';
+                document.getElementById('recCategoryDisplay').value = '';
+                document.getElementById('recPoints').value = '';
+                document.getElementById('recConsequence').value = '';
                 document.getElementById('recStudentSearch').value = '';
+                document.getElementById('recTypeSearch').value = '';
+                document.getElementById('recClass').value = '';
+                document.getElementById('recNote').value = '';
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
@@ -3824,12 +3977,9 @@
                 saveNotif('reward', '⭐ Reward Kebaikan',
                     `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama} (+${t.poin} poin)`);
-
-                // Cek money reward
                 const allRewards = Object.values(rewardsCache || {});
                 const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
                 checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
-
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
