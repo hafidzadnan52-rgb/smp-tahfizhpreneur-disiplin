@@ -219,7 +219,7 @@
             font-style: italic;
             color: var(--gold-dark);
             padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255,255,255,0.5);
             border-radius: var(--radius-sm);
             margin-bottom: 20px;
             font-size: 0.9rem;
@@ -1071,7 +1071,6 @@
             object-fit: cover;
         }
 
-        /* Password reveal */
         .password-reveal {
             display: flex;
             align-items: center;
@@ -1086,7 +1085,6 @@
             padding: 4px 8px;
         }
 
-        /* Reward recipients modal */
         .reward-recipient-item {
             display: flex;
             justify-content: space-between;
@@ -1102,6 +1100,54 @@
         .reward-recipient-item .points {
             color: var(--success);
             font-weight: 700;
+        }
+
+        /* Autocomplete styles */
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        .autocomplete-wrapper .autocomplete-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 2px solid #e8e4dc;
+            border-top: none;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .autocomplete-wrapper .autocomplete-results .result-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0ece4;
+            transition: 0.2s;
+        }
+        .autocomplete-wrapper .autocomplete-results .result-item:hover {
+            background: #f8f5f0;
+        }
+        .autocomplete-wrapper .autocomplete-results .result-item .sub {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+        .autocomplete-wrapper input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e4dc;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            transition: 0.3s;
+            background: #faf8f5;
+            font-family: inherit;
+        }
+        .autocomplete-wrapper input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
         }
 
         @media (max-width: 992px) {
@@ -1229,8 +1275,7 @@
                 <div class="left-group">
                     <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
                     <div class="brand">
-                        <!-- ========== LOGO SEKOLAH ========== -->
-                        <!-- Ganti src dengan URL logo Anda di GitHub -->
+                        <!-- LOGO SEKOLAH: ganti src dengan URL logo Anda -->
                         <img class="logo-img" id="schoolLogo" src="" alt="Logo Sekolah" style="display:none;" />
                         <div class="logo-icon" id="logoText">
                             <div class="main">Tahfizh <span>Preneur</span></div>
@@ -1289,15 +1334,17 @@
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
                 </section>
 
-                <!-- RECORD -->
+                <!-- RECORD (Pelanggaran) -->
                 <section class="page-section" id="page-record">
-                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Pilih siswa, jenis pelanggaran, dan konsekuensi otomatis.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik nama siswa, pilih jenis pelanggaran.</p></div>
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
-                                <div class="form-group">
+                                <div class="form-group autocomplete-wrapper">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="recStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="recStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <div class="autocomplete-results" id="recStudentResults"></div>
+                                    <select id="recStudent" style="display:none;"></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1317,13 +1364,15 @@
 
                 <!-- REWARD -->
                 <section class="page-section" id="page-reward">
-                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Berikan poin reward untuk kebaikan siswa. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
+                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Ketik nama siswa, pilih bentuk kebaikan. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
                     <div class="card">
                         <form id="rewardForm">
                             <div class="form-row">
-                                <div class="form-group">
+                                <div class="form-group autocomplete-wrapper">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="rewardStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="rewardStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <div class="autocomplete-results" id="rewardStudentResults"></div>
+                                    <select id="rewardStudent" style="display:none;"></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1347,7 +1396,7 @@
                     </div>
                 </section>
 
-                <!-- VIOLATIONS -->
+                <!-- VIOLATIONS DATA -->
                 <section class="page-section" id="page-violations">
                     <div class="page-header"><h2><i class="fas fa-list"></i> Data Pelanggaran</h2><p>Semua pelanggaran yang tercatat oleh seluruh guru.</p></div>
                     <div class="card">
@@ -1378,15 +1427,17 @@
                     </div>
                 </section>
 
-                <!-- LATE -->
+                <!-- LATE (Keterlambatan) -->
                 <section class="page-section" id="page-late">
                     <div class="page-header"><h2><i class="fas fa-clock"></i> Keterlambatan Siswa</h2><p>Catat siswa yang datang terlambat.</p></div>
                     <div class="card">
                         <form id="lateForm">
                             <div class="form-row">
-                                <div class="form-group">
+                                <div class="form-group autocomplete-wrapper">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="lateStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="lateStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <div class="autocomplete-results" id="lateStudentResults"></div>
+                                    <select id="lateStudent" style="display:none;"></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="lateClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1418,9 +1469,11 @@
                     <div class="card">
                         <form id="bkForm">
                             <div class="form-row">
-                                <div class="form-group">
+                                <div class="form-group autocomplete-wrapper">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="bkStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="bkStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <div class="autocomplete-results" id="bkStudentResults"></div>
+                                    <select id="bkStudent" style="display:none;"></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="bkClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1700,7 +1753,7 @@
         const db = firebase.database();
 
         // ============================================================
-        // DATA DEFAULT
+        // DATA DEFAULT (diringkas)
         // ============================================================
         const GURU_LIST = [
             "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
@@ -1850,7 +1903,7 @@
         ];
 
         // ============================================================
-        // FUNGSI INISIALISASI & BANTUAN
+        // INISIALISASI & BANTUAN
         // ============================================================
         function initFirebaseData() {
             db.ref('users').once('value', (snap) => {
@@ -2206,13 +2259,20 @@
             if (adminNav) adminNav.style.display = isAdmin() ? 'flex' : 'none';
 
             setupRealtimeListeners();
-            populateSiswaSelects();
-            populateViolationSelects();
-            populateRewardSelects();
+            populateSiswaData();
 
             // Set default date for late form
             const lateDate = document.getElementById('lateDate');
             if (lateDate) lateDate.value = today();
+
+            // Setup autocomplete untuk semua form siswa
+            setupAutocomplete('recStudentInput', 'recStudentResults', 'recStudent', 'recClass');
+            setupAutocomplete('rewardStudentInput', 'rewardStudentResults', 'rewardStudent', 'rewardClass');
+            setupAutocomplete('bkStudentInput', 'bkStudentResults', 'bkStudent', 'bkClass');
+            setupAutocomplete('lateStudentInput', 'lateStudentResults', 'lateStudent', 'lateClass');
+
+            populateViolationSelects();
+            populateRewardSelects();
 
             navigateTo('dashboard');
             loadDashboard();
@@ -2227,9 +2287,7 @@
             loadLeaderboard(currentLeaderboardTab);
             loadLateList();
 
-            // Show logo if exists in localStorage
             loadSchoolLogo();
-
             requestNotificationPermission();
         }
 
@@ -2275,7 +2333,8 @@
                 if (!data) { const obj = {};
                     SISWA_DATA.forEach(s => { obj[s.nis] = s; });
                     db.ref('siswa').set(obj); return; }
-                renderSiswaOptions(data);
+                siswaCache = data;
+                populateSiswaData();
                 refreshActivePage();
             });
             db.ref('violationTypes').on('value', (snap) => {
@@ -2328,50 +2387,70 @@
         }
 
         // ============================================================
-        // SISWA
+        // AUTOCOMPLETE SISWA
         // ============================================================
-        function populateSiswaSelects() {
-            db.ref('siswa').once('value', (snap) => {
-                let data = snap.val();
-                if (!data) { const obj = {};
-                    SISWA_DATA.forEach(s => { obj[s.nis] = s; });
-                    db.ref('siswa').set(obj, () => { db.ref('siswa').once('value', (snap2) => renderSiswaOptions(snap2
-                            .val())); }); } else { renderSiswaOptions(data); }
-            });
+        function populateSiswaData() {
+            // Digunakan oleh autocomplete
         }
 
-        function renderSiswaOptions(data) {
-            siswaCache = data || {};
-            const siswaList = Object.values(siswaCache);
-            siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
-
-            ['recStudent', 'rewardStudent', 'bkStudent', 'lateStudent'].forEach(id => {
-                const sel = document.getElementById(id);
-                if (!sel) return;
-                const val = sel.value;
-                sel.innerHTML = '<option value="">— Pilih siswa —</option>';
-                siswaList.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.nis;
-                    opt.textContent = `${s.nama} (${s.kelas})`;
-                    sel.appendChild(opt);
-                });
-                if (val && siswaCache[val]) sel.value = val;
-            });
-
-            updateSelectedStudentClass('recStudent', 'recClass');
-            updateSelectedStudentClass('rewardStudent', 'rewardClass');
-            updateSelectedStudentClass('bkStudent', 'bkClass');
-            updateSelectedStudentClass('lateStudent', 'lateClass');
-            setText('statAllStudents', siswaList.length);
-        }
-
-        function updateSelectedStudentClass(selectId, classInputId) {
-            const sel = document.getElementById(selectId);
+        function setupAutocomplete(inputId, resultId, selectId, classInputId) {
+            const input = document.getElementById(inputId);
+            const result = document.getElementById(resultId);
+            const select = document.getElementById(selectId);
             const classInput = document.getElementById(classInputId);
-            if (!sel || !classInput) return;
-            const s = siswaCache[sel.value];
-            classInput.value = s ? s.kelas : '';
+            if (!input || !result || !select) return;
+
+            // Sembunyikan select asli
+            select.style.display = 'none';
+
+            input.addEventListener('input', function() {
+                const q = this.value.toLowerCase().trim();
+                if (!q) {
+                    result.style.display = 'none';
+                    result.innerHTML = '';
+                    select.value = '';
+                    if (classInput) classInput.value = '';
+                    return;
+                }
+                const siswaList = Object.values(siswaCache).filter(s =>
+                    s.nama.toLowerCase().includes(q) || s.nis.includes(q)
+                );
+                if (!siswaList.length) {
+                    result.style.display = 'block';
+                    result.innerHTML = '<div class="result-item" style="color:var(--text-light);">Tidak ditemukan</div>';
+                    return;
+                }
+                result.style.display = 'block';
+                result.innerHTML = siswaList.slice(0, 10).map(s => `
+                    <div class="result-item" data-nis="${s.nis}" data-kelas="${s.kelas}">
+                        <div><strong>${escapeHtml(s.nama)}</strong></div>
+                        <div class="sub">${escapeHtml(s.nis)} · ${escapeHtml(s.kelas)}</div>
+                    </div>
+                `).join('');
+
+                result.querySelectorAll('.result-item').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const nis = this.dataset.nis;
+                        const kelas = this.dataset.kelas;
+                        select.value = nis;
+                        input.value = siswaCache[nis] ? siswaCache[nis].nama : '';
+                        if (classInput) classInput.value = kelas || '';
+                        result.style.display = 'none';
+                        // Trigger change event
+                        select.dispatchEvent(new Event('change'));
+                    });
+                });
+            });
+
+            input.addEventListener('blur', function() {
+                setTimeout(() => { result.style.display = 'none'; }, 200);
+            });
+
+            input.addEventListener('focus', function() {
+                if (this.value.trim() && result.innerHTML) {
+                    result.style.display = 'block';
+                }
+            });
         }
 
         // ============================================================
@@ -2464,7 +2543,7 @@
         }
 
         // ============================================================
-        // NAVIGASI (DIPERBAIKI)
+        // NAVIGASI
         // ============================================================
         function navigateTo(page) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -2475,7 +2554,6 @@
             const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
             if (navItem) navItem.classList.add('active');
 
-            // Tutup sidebar di mobile
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             if (sidebar && window.innerWidth <= 992) {
@@ -2483,7 +2561,6 @@
                 if (overlay) overlay.classList.remove('show');
             }
 
-            // Load konten sesuai halaman
             if (page === 'dashboard') loadDashboard();
             if (page === 'violations') loadViolations();
             if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
@@ -2498,12 +2575,10 @@
                 populateChatRecipients(); }
         }
 
-        // Event listener untuk sidebar dengan event delegation
         document.querySelector('.sidebar').addEventListener('click', function(e) {
             const item = e.target.closest('.nav-item');
             if (!item) return;
             e.preventDefault();
-
             const page = item.dataset.page;
             if (!page) return;
             if (page === 'admin' && !isAdmin()) {
@@ -2513,7 +2588,6 @@
             navigateTo(page);
         });
 
-        // Menu toggle
         document.getElementById('menuToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2526,7 +2600,6 @@
             this.classList.remove('show');
         });
 
-        // Notification bell
         document.getElementById('notifBell').addEventListener('click', function() {
             const panel = document.getElementById('notifPanel');
             panel.classList.toggle('open');
@@ -2585,11 +2658,8 @@
             setText('statReward', totalRewardPoints);
             setText('statMoneyReward', formatRupiah(moneyTotal));
 
-            // Stat Reward card clickable
             const rewardCard = document.getElementById('statRewardCard');
-            rewardCard.onclick = function() {
-                showRewardRecipients();
-            };
+            rewardCard.onclick = function() { showRewardRecipients(); };
 
             renderRecentList('recentViolations', violations, (v) => `
                 <div class="leaderboard-item">
@@ -2623,13 +2693,9 @@
             el.innerHTML = sorted.map(templateFn).join('');
         }
 
-        // SHOW REWARD RECIPIENTS (klik Total Reward)
         function showRewardRecipients() {
             const rewards = Object.values(rewardsCache || {});
-            if (!rewards.length) {
-                showToast('Belum ada data reward.', 'error');
-                return;
-            }
+            if (!rewards.length) { showToast('Belum ada data reward.', 'error'); return; }
             const map = {};
             rewards.forEach(r => {
                 if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
@@ -2637,7 +2703,6 @@
                 map[r.nis].count += 1;
             });
             const list = Object.values(map).sort((a, b) => b.total - a.total);
-
             let html = `
                 <div style="margin-bottom:12px;"><strong>Total ${list.length} siswa menerima reward</strong></div>
                 <div class="table-wrap">
@@ -3042,7 +3107,7 @@
         });
 
         // ============================================================
-        // BK (Bimbingan Konseling) - disederhanakan
+        // BK (Bimbingan Konseling)
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3171,7 +3236,7 @@
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
                 document.getElementById('bkStudent').value = '';
-                document.getElementById('bkStudentSearch').value = '';
+                document.getElementById('bkStudentInput').value = '';
                 document.getElementById('bkClass').value = '';
                 document.getElementById('bkNote').value = '';
                 document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
@@ -3549,7 +3614,6 @@
             }));
         }
 
-        // USERS TABLE with password visibility
         function renderUsersTable() {
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
@@ -3581,7 +3645,6 @@
                 </tr>`;
             }).join('');
 
-            // Password toggle
             tbody.querySelectorAll('.toggle-pass').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const pass = this.dataset.pass;
@@ -3764,7 +3827,7 @@
         document.getElementById('addUserBtn').addEventListener('click', () => openAddUserModal());
 
         // ============================================================
-        // TAMBAH SISWA BARU (MANUAL)
+        // TAMBAH SISWA BARU
         // ============================================================
         document.getElementById('addStudentForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3779,7 +3842,8 @@
             db.ref('siswa/' + nis).set(newStudent).then(() => {
                 showToast(`Siswa ${nama} berhasil ditambahkan!`);
                 this.reset();
-                populateSiswaSelects();
+                // Refresh autocomplete data
+                siswaCache[nis] = newStudent;
             }).catch(err => showToast('Gagal menambah: ' + err.message, 'error'));
         });
 
@@ -3787,7 +3851,6 @@
         // LOGO SEKOLAH
         // ============================================================
         function loadSchoolLogo() {
-            // Cek di localStorage apakah ada logo yang disimpan
             const savedLogo = localStorage.getItem('schoolLogo');
             if (savedLogo) {
                 const img = document.getElementById('schoolLogo');
@@ -3796,11 +3859,6 @@
                 document.getElementById('logoText').style.display = 'none';
             }
         }
-
-        // Pengguna bisa mengupload logo di sini (opsional) - kita tambahkan di profil atau admin
-        // Untuk sementara, kita beri cara manual via console:
-        // localStorage.setItem('schoolLogo', 'URL_LOGO_ANDA');
-        // Atau bisa ditambahkan form upload nanti
 
         // ============================================================
         // PROFILE
@@ -3870,13 +3928,27 @@
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
-        document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent',
-        'recClass'));
 
         document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
         document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
-        document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent',
-            'rewardClass'));
+
+        // Saat siswa dipilih dari autocomplete, update class
+        document.getElementById('recStudent').addEventListener('change', function() {
+            const s = siswaCache[this.value];
+            document.getElementById('recClass').value = s ? s.kelas : '';
+        });
+        document.getElementById('rewardStudent').addEventListener('change', function() {
+            const s = siswaCache[this.value];
+            document.getElementById('rewardClass').value = s ? s.kelas : '';
+        });
+        document.getElementById('bkStudent').addEventListener('change', function() {
+            const s = siswaCache[this.value];
+            document.getElementById('bkClass').value = s ? s.kelas : '';
+        });
+        document.getElementById('lateStudent').addEventListener('change', function() {
+            const s = siswaCache[this.value];
+            document.getElementById('lateClass').value = s ? s.kelas : '';
+        });
 
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3909,6 +3981,7 @@
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
+                document.getElementById('recStudentInput').value = '';
                 document.getElementById('recClass').value = '';
                 loadViolations();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
@@ -3947,6 +4020,7 @@
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
+                document.getElementById('rewardStudentInput').value = '';
                 document.getElementById('rewardClass').value = '';
                 setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
