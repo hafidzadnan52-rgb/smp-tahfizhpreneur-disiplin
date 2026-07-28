@@ -7,8 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
     <style>
         /* ===== RESET & VARIABEL ===== */
         * {
@@ -33,6 +35,7 @@
             --danger: #d1453b;
             --success: #2a9d8f;
             --warning: #e9b741;
+            --sidebar-width: 260px;
         }
         body {
             font-family: "Inter", sans-serif;
@@ -86,6 +89,18 @@
             background: #e0f5f0;
             color: var(--success);
         }
+        .badge-gold {
+            background: var(--gold);
+            color: #fff;
+        }
+        .badge-online {
+            background: #4caf50;
+            color: #fff;
+        }
+        .badge-warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -99,6 +114,7 @@
             transition: 0.3s ease;
             background: var(--primary);
             color: #fff;
+            text-decoration: none;
         }
         .btn:hover {
             transform: translateY(-2px);
@@ -135,6 +151,19 @@
         .btn-outline:hover {
             background: var(--primary);
             color: #fff;
+        }
+        .btn-rec {
+            background: #dc3545;
+            color: #fff;
+            animation: pulse 1.5s infinite;
+        }
+        .btn-rec:hover {
+            background: #c82333;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
 
         /* LOGIN */
@@ -183,7 +212,18 @@
             background: rgba(201, 168, 76, 0.10);
             border-radius: var(--radius-sm);
             border-right: 4px solid var(--gold);
-            margin-bottom: 24px;
+            margin-bottom: 16px;
+        }
+        .login-card .motivation {
+            text-align: center;
+            font-style: italic;
+            color: var(--gold-dark);
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--gold);
         }
         .form-group {
             margin-bottom: 18px;
@@ -206,8 +246,13 @@
             background: #faf8f5;
             font-family: inherit;
         }
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
@@ -273,13 +318,15 @@
         #app.active {
             display: flex;
         }
+
+        /* TOPBAR */
         .topbar {
             background: var(--primary);
             color: #fff;
-            padding: 12px 0;
+            padding: 10px 0;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
         .topbar .container {
@@ -288,6 +335,16 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
+        }
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar .brand .logo-img {
+            height: 40px;
+            width: auto;
+            border-radius: 8px;
         }
         .topbar .brand .logo-icon .main {
             font-size: 1.1rem;
@@ -300,6 +357,25 @@
             font-size: 0.55rem;
             letter-spacing: 3px;
             opacity: 0.8;
+        }
+        .topbar .left-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar .menu-toggle {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: none;
+            transition: 0.3s;
+        }
+        .topbar .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
         .topbar .user-info {
             display: flex;
@@ -317,6 +393,15 @@
             justify-content: center;
             font-weight: 700;
             color: var(--primary);
+            background-size: cover;
+            background-position: center;
+            background-color: var(--gold);
+        }
+        .topbar .user-info .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
         .topbar .logout-btn {
             background: rgba(255, 255, 255, 0.12);
@@ -331,21 +416,55 @@
         .topbar .logout-btn:hover {
             background: rgba(255, 255, 255, 0.25);
         }
+        .topbar .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 10px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            transition: 0.3s;
+        }
+        .topbar .notification-bell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .topbar .notification-bell .badge-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
 
+        /* APP BODY */
         .app-body {
             display: flex;
             flex: 1;
+            position: relative;
         }
+
+        /* SIDEBAR */
         .sidebar {
-            width: 240px;
+            width: var(--sidebar-width);
             background: #fff;
             border-right: 1px solid #eee8e0;
-            padding: 20px 0;
+            padding: 16px 0;
             flex-shrink: 0;
-            height: calc(100vh - 68px);
+            height: calc(100vh - 64px);
             position: sticky;
-            top: 68px;
+            top: 64px;
             overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease;
+            z-index: 150;
+            transform: translateX(0);
         }
         .sidebar .nav-item {
             display: flex;
@@ -358,6 +477,7 @@
             cursor: pointer;
             border-left: 4px solid transparent;
             transition: 0.3s;
+            text-decoration: none;
         }
         .sidebar .nav-item:hover {
             background: #f8f5f0;
@@ -381,12 +501,43 @@
             background: #eee8e0;
             margin: 12px 24px;
         }
+        .sidebar .sidebar-brand {
+            padding: 0 24px 16px 24px;
+            border-bottom: 1px solid #eee8e0;
+            margin-bottom: 12px;
+        }
+        .sidebar .sidebar-brand .brand-text {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        .sidebar .sidebar-brand .brand-text span {
+            color: var(--gold);
+        }
+        .sidebar .sidebar-brand .brand-sub {
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--text-light);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 140;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.show {
+            display: block;
+        }
 
         .main-content {
             flex: 1;
             padding: 28px 32px;
             overflow-y: auto;
-            max-height: calc(100vh - 68px);
+            max-height: calc(100vh - 64px);
+            min-width: 0;
         }
         .page-section {
             display: none;
@@ -420,10 +571,9 @@
             color: var(--text-light);
             margin-top: 4px;
         }
-
         .stat-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 16px;
             margin-bottom: 28px;
         }
@@ -433,15 +583,27 @@
             padding: 18px 22px;
             box-shadow: var(--shadow);
             border: 1px solid #f0ece4;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
         }
         .stat-card .stat-number {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
             color: var(--primary);
         }
         .stat-card .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-light);
+        }
+        .stat-card.clickable {
+            cursor: pointer;
+        }
+        .stat-card.clickable:hover .stat-number {
+            color: var(--gold);
         }
 
         .card {
@@ -552,10 +714,13 @@
             background: #faf8f5;
             margin-bottom: 8px;
             border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.3s;
         }
         .leaderboard-item:hover {
             border-color: var(--gold-light);
             background: #fff;
+            transform: scale(1.01);
         }
         .leaderboard-item .rank {
             font-weight: 800;
@@ -577,6 +742,10 @@
         }
         .leaderboard-item .info .name {
             font-weight: 600;
+            color: var(--primary);
+        }
+        .leaderboard-item .info .name:hover {
+            text-decoration: underline;
         }
         .leaderboard-item .info .detail {
             font-size: 0.8rem;
@@ -587,7 +756,49 @@
             font-size: 1.1rem;
             color: var(--danger);
         }
+        .leaderboard-item .points.reward-points {
+            color: var(--success);
+        }
+        .point-breakdown {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .point-breakdown span {
+            background: #f0ece4;
+            padding: 1px 8px;
+            border-radius: 10px;
+        }
+        .point-breakdown .severe {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        .point-breakdown .reduced {
+            color: var(--success);
+            font-weight: 600;
+        }
 
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .tab-buttons .btn {
+            border-radius: 30px;
+        }
+        .tab-buttons .btn.active {
+            background: var(--gold);
+            color: #fff;
+            border-color: var(--gold);
+        }
+        .tab-buttons .btn:not(.active) {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* MODAL */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -605,7 +816,7 @@
         .modal {
             background: #fff;
             border-radius: var(--radius);
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             padding: 32px 36px;
             box-shadow: 0 40px 80px rgba(0, 0, 0, 0.25);
@@ -625,6 +836,7 @@
             cursor: pointer;
             color: var(--text-light);
         }
+
         .toast {
             position: fixed;
             bottom: 30px;
@@ -641,6 +853,7 @@
             transform: translateY(120px);
             opacity: 0;
             transition: 0.4s;
+            max-width: 400px;
         }
         .toast.show {
             transform: translateY(0);
@@ -653,52 +866,319 @@
             background: var(--danger);
         }
 
-        .password-history {
-            font-size: 0.75rem;
+        .notification-panel {
+            position: fixed;
+            top: 64px;
+            right: 0;
+            width: 380px;
+            max-height: calc(100vh - 64px);
+            background: #fff;
+            box-shadow: -4px 0 30px rgba(0, 0, 0, 0.12);
+            z-index: 300;
+            transform: translateX(100%);
+            transition: transform 0.35s ease;
+            overflow-y: auto;
+            padding: 16px 20px;
+            border-left: 1px solid #eee8e0;
+        }
+        .notification-panel.open {
+            transform: translateX(0);
+        }
+        .notification-panel .notif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0ece4;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .notification-panel .notif-item {
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            background: #faf8f5;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--gold);
+            font-size: 0.85rem;
+        }
+        .notification-panel .notif-item .notif-time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        .notification-panel .notif-item.violation {
+            border-left-color: var(--danger);
+        }
+        .notification-panel .notif-item.reward {
+            border-left-color: var(--success);
+        }
+        .notification-panel .notif-empty {
+            color: var(--text-light);
+            text-align: center;
+            padding: 30px 0;
+        }
+        .notification-panel .notif-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
             color: var(--text-light);
         }
 
-        @media (max-width: 768px) {
-            .app-body {
-                flex-direction: column;
-            }
+        .accordion-section {
+            margin-bottom: 12px;
+            border: 1px solid #f0ece4;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .accordion-header {
+            background: #f8f5f0;
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            transition: 0.3s;
+            user-select: none;
+        }
+        .accordion-header:hover {
+            background: #f0ece4;
+        }
+        .accordion-header i {
+            transition: transform 0.3s;
+        }
+        .accordion-header.open i {
+            transform: rotate(180deg);
+        }
+        .accordion-body {
+            padding: 16px 20px;
+            display: none;
+            background: #fff;
+        }
+        .accordion-body.open {
+            display: block;
+        }
+
+        .feedback-item {
+            padding: 14px 18px;
+            background: #faf8f5;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border-left: 4px solid var(--gold);
+        }
+        .feedback-item .feedback-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        .feedback-item .feedback-text {
+            font-size: 0.95rem;
+        }
+
+        /* BK */
+        .bk-transcript {
+            background: #f8f5f0;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: 0.95rem;
+            border: 2px solid #e8e4dc;
+        }
+        .bk-transcript:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        .bk-summary {
+            background: #e8f5e9;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--success);
+            font-size: 0.95rem;
+        }
+        .bk-solution {
+            background: #fff3e0;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--warning);
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+
+        .chat-container {
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: #faf8f5;
+            border-radius: var(--radius-sm);
+            border: 1px solid #e8e4dc;
+        }
+        .chat-msg {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            background: #fff;
+            max-width: 80%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--gold);
+        }
+        .chat-msg .sender {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--primary);
+        }
+        .chat-msg .time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-left: 8px;
+        }
+        .chat-msg .text {
+            margin-top: 4px;
+            font-size: 0.95rem;
+        }
+        .chat-msg.own {
+            align-self: flex-end;
+            border-left-color: var(--success);
+            background: #e8f5e9;
+        }
+
+        .profile-photo-upload {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .profile-photo-upload .preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f0ece4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid var(--gold);
+        }
+        .profile-photo-upload .preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Password reveal */
+        .password-reveal {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .password-reveal .toggle-pass {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 1rem;
+            padding: 4px 8px;
+        }
+
+        /* Reward recipients modal */
+        .reward-recipient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0ece4;
+        }
+        .reward-recipient-item:last-child {
+            border-bottom: none;
+        }
+        .reward-recipient-item .name {
+            font-weight: 600;
+        }
+        .reward-recipient-item .points {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        @media (max-width: 992px) {
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: static;
-                border-right: none;
-                border-bottom: 1px solid #eee8e0;
-                padding: 12px 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 4px;
-                justify-content: center;
+                transform: translateX(-100%);
+                position: fixed;
+                top: 64px;
+                left: 0;
+                height: calc(100vh - 64px);
+                z-index: 160;
+                box-shadow: 4px 0 30px rgba(0, 0, 0, 0.1);
             }
-            .sidebar .nav-item {
-                padding: 8px 16px;
-                border-left: none;
-                border-bottom: 3px solid transparent;
-                font-size: 0.8rem;
+            .sidebar.open {
+                transform: translateX(0);
             }
-            .sidebar .nav-item.active {
-                border-left: none;
-                border-bottom-color: var(--gold);
+            .topbar .menu-toggle {
+                display: block;
+            }
+            .sidebar-overlay.show {
+                display: block;
             }
             .main-content {
-                max-height: none;
                 padding: 16px;
+                max-height: none;
             }
+            .notification-panel {
+                width: 100%;
+                max-width: 380px;
+            }
+            .topbar .brand .logo-img {
+                height: 32px;
+            }
+        }
+        @media (max-width: 768px) {
             .stat-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
             .login-card {
                 padding: 32px 24px;
             }
+            .main-content {
+                padding: 12px;
+            }
+            .card {
+                padding: 16px 18px;
+            }
+            .topbar .brand .logo-icon .sub {
+                display: none;
+            }
+            .topbar .user-info .name {
+                display: none;
+            }
+            .notification-panel {
+                max-width: 100%;
+                right: 0;
+                width: 100%;
+            }
+            .chat-msg {
+                max-width: 95%;
+            }
         }
         @media (max-width: 480px) {
             .stat-cards {
                 grid-template-columns: 1fr;
             }
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0ece4;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -712,9 +1192,9 @@
                 <div class="logo-sub">✦ SMP CAHAYA QURAN ✦</div>
             </div>
             <div class="greeting">
-                <i class="fas fa-hand-peace"></i> Assalaamu'alaykum warahmatullah hiwabarakaatuh<br />
-                <span style="font-weight:700;color:var(--gold-dark);">Guru Hebat!</span>
+                <i class="fas fa-hand-peace"></i> Assalaamu'alaykum warahmatullah hiwabarakaatuh
             </div>
+            <div class="motivation" id="motivationText">"Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain."</div>
             <div id="loginError" class="login-error"><i class="fas fa-exclamation-circle"></i> Username atau password salah!</div>
             <form id="loginForm">
                 <div class="form-group">
@@ -746,13 +1226,23 @@
     <div id="app">
         <header class="topbar">
             <div class="container">
-                <div class="brand">
-                    <div class="logo-icon">
-                        <div class="main">Tahfizh <span>Preneur</span></div>
-                        <div class="sub">✦ SMP CAHAYA QURAN ✦</div>
+                <div class="left-group">
+                    <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                    <div class="brand">
+                        <!-- ========== LOGO SEKOLAH ========== -->
+                        <!-- Ganti src dengan URL logo Anda di GitHub -->
+                        <img class="logo-img" id="schoolLogo" src="" alt="Logo Sekolah" style="display:none;" />
+                        <div class="logo-icon" id="logoText">
+                            <div class="main">Tahfizh <span>Preneur</span></div>
+                            <div class="sub">✦ SMP CAHAYA QURAN ✦</div>
+                        </div>
                     </div>
                 </div>
                 <div class="user-info">
+                    <button class="notification-bell" id="notifBell">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-count" id="notifCount">0</span>
+                    </button>
                     <span class="avatar" id="userAvatar">A</span>
                     <span class="name" id="userName">Admin</span>
                     <span class="role-badge" id="userRole" style="background:rgba(255,255,255,0.15);padding:2px 12px;border-radius:20px;font-size:0.7rem;">ADMIN</span>
@@ -760,28 +1250,40 @@
                 </div>
             </div>
         </header>
+
         <div class="app-body">
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
             <nav class="sidebar" id="sidebar">
+                <div class="sidebar-brand">
+                    <div class="brand-text">Tahfizh <span>Preneur</span></div>
+                    <div class="brand-sub">✦ SMP CAHAYA QURAN ✦</div>
+                </div>
                 <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 <a class="nav-item" data-page="record"><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</a>
                 <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
                 <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
+                <a class="nav-item" data-page="late"><i class="fas fa-clock"></i> Keterlambatan</a>
+                <a class="nav-item" data-page="bk"><i class="fas fa-hand-holding-heart"></i> BK (Konseling)</a>
+                <a class="nav-item" data-page="chat"><i class="fas fa-comment-dots"></i> Chat Guru</a>
+                <a class="nav-item" data-page="feedback"><i class="fas fa-comment"></i> Kirim Saran</a>
                 <div class="nav-divider"></div>
                 <a class="nav-item" data-page="admin" id="adminNav"><i class="fas fa-user-gear"></i> Panel Admin</a>
                 <a class="nav-item" data-page="profile"><i class="fas fa-user"></i> Profil & Sandi</a>
             </nav>
+
             <main class="main-content">
                 <!-- DASHBOARD -->
                 <section class="page-section active" id="page-dashboard">
-                    <div class="page-header"><h2><i class="fas fa-chart-pie"></i> Dashboard</h2><p>Ringkasan data pelanggaran dan reward siswa.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-chart-pie"></i> Dashboard</h2><p>Ringkasan data pelanggaran dan reward siswa. <span class="badge badge-success">Reward mengurangi poin ringan/sedang</span></p></div>
                     <div class="stat-cards" id="dashStats">
-                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Pelanggaran</div></div><i class="fas fa-clipboard-list" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Pelanggaran Efektif</div></div><i class="fas fa-clipboard-list" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statStudents">0</div><div class="stat-label">Siswa Tercatat</div></div><i class="fas fa-user-graduate" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statAllStudents">0</div><div class="stat-label">Jumlah Seluruh Siswa</div></div><i class="fas fa-users" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statToday">0</div><div class="stat-label">Hari Ini</div></div><i class="fas fa-calendar-day" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statHighest">0</div><div class="stat-label">Poin Tertinggi</div></div><i class="fas fa-arrow-up" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
-                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward</div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
+                        <div class="stat-card clickable" id="statRewardCard" title="Klik untuk lihat penerima reward"><div class="flex-between"><div><div class="stat-number" id="statReward">0</div><div class="stat-label">Total Reward <i class="fas fa-chevron-right" style="font-size:0.6rem;"></i></div></div><i class="fas fa-star" style="font-size:1.6rem;color:var(--success);opacity:0.6;"></i></div></div>
+                        <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statMoneyReward">Rp0</div><div class="stat-label">Total Uang Reward</div></div><i class="fas fa-money-bill-wave" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
@@ -793,7 +1295,10 @@
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
-                                <div class="form-group"><label>Siswa <span class="text-muted">*</span></label><select id="recStudent" required><option value="">— Pilih siswa —</option></select></div>
+                                <div class="form-group">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <select id="recStudent" required><option value="">— Pilih siswa —</option></select>
+                                </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
@@ -812,11 +1317,14 @@
 
                 <!-- REWARD -->
                 <section class="page-section" id="page-reward">
-                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Berikan poin reward untuk kebaikan siswa.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Berikan poin reward untuk kebaikan siswa. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
                     <div class="card">
                         <form id="rewardForm">
                             <div class="form-row">
-                                <div class="form-group"><label>Siswa <span class="text-muted">*</span></label><select id="rewardStudent" required><option value="">— Pilih siswa —</option></select></div>
+                                <div class="form-group">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <select id="rewardStudent" required><option value="">— Pilih siswa —</option></select>
+                                </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
                             <div class="form-row">
@@ -826,6 +1334,16 @@
                             <div class="form-group"><label>Poin Reward <span class="text-muted">(otomatis)</span></label><input type="text" id="rewardPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
                             <button type="submit" class="btn btn-success"><i class="fas fa-star"></i> Berikan Reward</button>
                         </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-list"></i> Riwayat Reward</h3></div>
+                        <div class="filter-bar">
+                            <input type="text" id="rewardFilterStudent" placeholder="Cari nama siswa..." />
+                            <select id="rewardFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <button class="btn btn-sm btn-outline" id="clearRewardFilters"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Bentuk Kebaikan</th><th>Poin</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="rewardsTableBody"></tbody></table></div>
+                        <div id="rewardsEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data reward.</p></div>
                     </div>
                 </section>
 
@@ -847,41 +1365,314 @@
 
                 <!-- LEADERBOARD -->
                 <section class="page-section" id="page-leaderboard">
-                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Total poin pelanggaran (tertinggi → terendah) & total reward.</p></div>
-                    <div class="card"><div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div></div>
+                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Klik nama siswa untuk melihat riwayat. <span class="badge badge-success">Poin efektif = (Ringan+Sedang - Reward) + Berat</span></p></div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-trophy"></i> Peringkat</h3>
+                            <div class="tab-buttons">
+                                <button class="btn btn-sm btn-gold active" data-leaderboard-tab="violation">Pelanggaran</button>
+                                <button class="btn btn-sm btn-outline" data-leaderboard-tab="reward">Kebaikan</button>
+                            </div>
+                        </div>
+                        <div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div>
+                    </div>
+                </section>
+
+                <!-- LATE -->
+                <section class="page-section" id="page-late">
+                    <div class="page-header"><h2><i class="fas fa-clock"></i> Keterlambatan Siswa</h2><p>Catat siswa yang datang terlambat.</p></div>
+                    <div class="card">
+                        <form id="lateForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <select id="lateStudent" required><option value="">— Pilih siswa —</option></select>
+                                </div>
+                                <div class="form-group"><label>Kelas</label><input type="text" id="lateClass" readonly style="background:#f4f1ea;" /></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Tanggal</label><input type="date" id="lateDate" required /></div>
+                                <div class="form-group"><label>Jam Masuk</label><input type="time" id="lateTime" required /></div>
+                            </div>
+                            <div class="form-group"><label>Keterangan</label><input type="text" id="lateNote" placeholder="Alasan terlambat (opsional)" /></div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Keterlambatan</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-list"></i> Rekap Keterlambatan</h3>
+                            <button class="btn btn-sm export-btn" id="exportLateBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                        </div>
+                        <div class="filter-bar">
+                            <input type="text" id="lateFilterStudent" placeholder="Cari nama siswa..." />
+                            <input type="date" id="lateFilterDate" />
+                            <button class="btn btn-sm btn-outline" id="clearLateFilters"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Tanggal</th><th>Jam Masuk</th><th>Keterangan</th><th>Guru</th><th>Aksi</th></tr></thead><tbody id="lateTableBody"></tbody></table></div>
+                        <div id="lateEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data keterlambatan.</p></div>
+                    </div>
+                </section>
+
+                <!-- BK -->
+                <section class="page-section" id="page-bk">
+                    <div class="page-header"><h2><i class="fas fa-hand-holding-heart"></i> Bimbingan Konseling</h2><p>Rekam percakapan dengan siswa (Speech-to-Text) atau tulis transkrip manual.</p></div>
+                    <div class="card">
+                        <form id="bkForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Siswa <span class="text-muted">*</span></label>
+                                    <select id="bkStudent" required><option value="">— Pilih siswa —</option></select>
+                                </div>
+                                <div class="form-group"><label>Kelas</label><input type="text" id="bkClass" readonly style="background:#f4f1ea;" /></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Catatan Guru (opsional)</label>
+                                <input type="text" id="bkNote" placeholder="Catatan sebelum konseling" />
+                            </div>
+                            <div class="form-group">
+                                <label>Transkrip Percakapan</label>
+                                <div class="bk-transcript" id="bkTranscript" contenteditable="true">Klik tombol rekam untuk mulai, atau ketik manual di sini.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Ringkasan Masalah (AI dari transkrip)</label>
+                                <div class="bk-summary" id="bkSummary">Belum ada ringkasan.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Solusi Saran (AI dari ringkasan)</label>
+                                <div class="bk-solution" id="bkSolution">Belum ada solusi.</div>
+                            </div>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+                                <button type="button" class="btn btn-danger" id="bkRecordBtn"><i class="fas fa-microphone"></i> Rekam Langsung</button>
+                                <button type="button" class="btn btn-outline" id="bkStopBtn"><i class="fas fa-stop"></i> Hentikan</button>
+                                <button type="button" class="btn btn-gold" id="bkTranscribeBtn"><i class="fas fa-magic"></i> Proses AI</button>
+                                <button type="submit" class="btn btn-success" id="bkSaveBtn"><i class="fas fa-save"></i> Simpan</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-history"></i> Riwayat Konseling</h3>
+                            <button class="btn btn-sm export-btn" id="exportBkExcelBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                        </div>
+                        <div class="filter-bar">
+                            <input type="text" id="bkFilterStudent" placeholder="Cari nama siswa..." />
+                            <button class="btn btn-sm btn-outline" id="clearBkFilters"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Ringkasan</th><th>Solusi</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
+                        <div id="bkEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada catatan BK.</p></div>
+                    </div>
+                </section>
+
+                <!-- CHAT -->
+                <section class="page-section" id="page-chat">
+                    <div class="page-header"><h2><i class="fas fa-comment-dots"></i> Chat Guru</h2><p>Kirim pesan pribadi ke guru lain atau chat grup.</p></div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-users"></i> Guru Online</h3></div>
+                        <div id="onlineTeachers" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+                            <span class="badge badge-online">Memuat...</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-comments"></i> Ruang Chat</h3></div>
+                        <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                            <select id="chatRecipient" style="flex:1; min-width:180px; padding:8px 14px; border:2px solid #e8e4dc; border-radius:var(--radius-sm); background:#faf8f5;">
+                                <option value="grup">💬 Semua Guru (Grup)</option>
+                            </select>
+                            <span class="text-muted" style="font-size:0.85rem;align-self:center;">Pilih penerima</span>
+                        </div>
+                        <div class="chat-container" id="chatMessages">
+                            <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesan. Mulai chat!</p></div>
+                        </div>
+                        <form id="chatForm" style="display:flex; gap:12px; margin-top:12px;">
+                            <input type="text" id="chatInput" placeholder="Tulis pesan..." style="flex:1; padding:10px 16px; border:2px solid #e8e4dc; border-radius:var(--radius-sm); font-family:inherit;" required />
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Kirim</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- FEEDBACK -->
+                <section class="page-section" id="page-feedback">
+                    <div class="page-header"><h2><i class="fas fa-comment"></i> Kirim Saran untuk Aplikasi</h2><p>Bagikan masukan Anda untuk pengembangan aplikasi ini.</p></div>
+                    <div class="card">
+                        <form id="feedbackForm">
+                            <div class="form-group">
+                                <label>Nama Anda <span class="text-muted">(opsional)</span></label>
+                                <input type="text" id="feedbackName" placeholder="Nama atau biarkan kosong" />
+                            </div>
+                            <div class="form-group">
+                                <label>Jenis Saran</label>
+                                <select id="feedbackType">
+                                    <option value="saran">Saran</option>
+                                    <option value="masalah">Laporan Masalah</option>
+                                    <option value="fitur">Usulan Fitur</option>
+                                    <option value="lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Pesan <span class="text-muted">*</span></label>
+                                <textarea id="feedbackMessage" placeholder="Tulis saran atau masukan Anda..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Kirim Saran</button>
+                        </form>
+                    </div>
                 </section>
 
                 <!-- ADMIN -->
                 <section class="page-section" id="page-admin">
-                    <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, dan pengguna. <span class="text-muted">(Data tersimpan di Cloud Firebase)</span></p></div>
-                    <div class="card"><div class="card-header"><h3><i class="fas fa-list-check"></i> Jenis Pelanggaran</h3><button class="btn btn-sm btn-gold" id="addViolationTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="violationTypesTable"></tbody></table></div></div>
-                    <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Jenis Reward</h3><button class="btn btn-sm btn-success" id="addRewardTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div><div class="table-wrap"><table><thead><tr><th>Bentuk Kebaikan</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="rewardTypesTable"></tbody></table></div></div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-users"></i> Manajemen Pengguna & Guru</h3><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
-                        <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Terakhir Ubah Sandi</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
-                        <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Admin dapat mereset password guru kapan saja.</div>
+                    <div class="page-header"><h2><i class="fas fa-user-gear"></i> Panel Admin</h2><p>Kelola jenis pelanggaran, reward, pengguna, dan lihat saran dari guru.</p></div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header open" data-target="accFeedback">
+                            <span><i class="fas fa-comments" style="color:var(--gold);"></i> Saran & Masukan Guru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body open" id="accFeedback">
+                            <div id="feedbackList"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div></div>
+                        </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-chalkboard-user"></i> Daftar Guru (Database)</h3></div>
-                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Nama Guru</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accViolationTypes">
+                            <span><i class="fas fa-list-check" style="color:var(--gold);"></i> Jenis Pelanggaran</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accViolationTypes">
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addViolationTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="violationTypesTable"></tbody></table></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accRewardTypes">
+                            <span><i class="fas fa-star" style="color:var(--success);"></i> Jenis Reward</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accRewardTypes">
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-success" id="addRewardTypeBtn"><i class="fas fa-plus"></i> Tambah</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Bentuk Kebaikan</th><th>Kategori</th><th>Poin</th><th>Aksi</th></tr></thead><tbody id="rewardTypesTable"></tbody></table></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accUsers">
+                            <span><i class="fas fa-users"></i> Manajemen Pengguna & Guru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accUsers">
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addUserBtn"><i class="fas fa-plus"></i> Tambah Pengguna</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Username</th><th>Nama</th><th>Jabatan</th><th>Role</th><th>Password</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+                            <div style="margin-top:12px;font-size:0.8rem;color:var(--text-light);"><i class="fas fa-info-circle"></i> Klik mata 👁️ untuk melihat password.</div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accGuru">
+                            <span><i class="fas fa-chalkboard-user"></i> Daftar Guru (Database)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accGuru">
+                            <div class="table-wrap"><table><thead><tr><th>#</th><th>Foto</th><th>Nama Guru</th><th>Jabatan</th><th>Status</th></tr></thead><tbody id="guruTableBody"></tbody></table></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accMoneyReward">
+                            <span><i class="fas fa-money-bill-wave" style="color:var(--gold);"></i> Aturan Reward Uang</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accMoneyReward">
+                            <div class="form-row">
+                                <div class="form-group"><label>Poin 50 → Rp</label><input type="number" id="rewardMoney50" value="100000" /></div>
+                                <div class="form-group"><label>Poin 80 → Rp</label><input type="number" id="rewardMoney80" value="20000" /></div>
+                                <div class="form-group"><label>Poin 90 → Rp</label><input type="number" id="rewardMoney90" value="30000" /></div>
+                                <div class="form-group"><label>Poin 100 → Rp</label><input type="number" id="rewardMoney100" value="50000" /></div>
+                            </div>
+                            <button class="btn btn-sm btn-gold" id="saveMoneyRewardBtn"><i class="fas fa-save"></i> Simpan</button>
+                        </div>
+                    </div>
+
+                    <!-- Tambah Siswa Baru -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accAddStudent">
+                            <span><i class="fas fa-user-plus" style="color:var(--success);"></i> Tambah Siswa Baru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accAddStudent">
+                            <form id="addStudentForm">
+                                <div class="form-row">
+                                    <div class="form-group"><label>NIS <span class="text-muted">*</span></label><input type="text" id="newNis" placeholder="Contoh: 262707036" required /></div>
+                                    <div class="form-group"><label>Nama Lengkap <span class="text-muted">*</span></label><input type="text" id="newNama" placeholder="Nama siswa" required /></div>
+                                    <div class="form-group"><label>Kelas <span class="text-muted">*</span></label>
+                                        <select id="newKelas" required>
+                                            <option value="">— Pilih Kelas —</option>
+                                            <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
+                                            <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
+                                            <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
+                            </form>
+                        </div>
                     </div>
                 </section>
 
                 <!-- PROFILE -->
                 <section class="page-section" id="page-profile">
-                    <div class="page-header"><h2><i class="fas fa-user"></i> Profil & Sandi</h2><p>Ubah password akun Anda. Perubahan akan tercatat oleh admin.</p></div>
-                    <div class="card" style="max-width:500px;">
-                        <form id="changePasswordForm">
-                            <div class="form-group"><label>Username</label><input type="text" id="profileUsername" disabled style="background:#f4f1ea;" /></div>
-                            <div class="form-group"><label>Nama Lengkap</label><input type="text" id="profileFullname" disabled style="background:#f4f1ea;" /></div>
-                            <div class="form-group"><label>Sandi Baru <span class="text-muted">*</span></label><input type="password" id="newPassword" placeholder="Minimal 6 karakter" required minlength="6" /></div>
-                            <div class="form-group"><label>Konfirmasi Sandi</label><input type="password" id="confirmPassword" placeholder="Ketik ulang" required minlength="6" /></div>
-                            <button type="submit" class="btn btn-gold"><i class="fas fa-key"></i> Ubah Sandi</button>
+                    <div class="page-header"><h2><i class="fas fa-user"></i> Profil & Sandi</h2><p>Perbarui foto profil, jabatan, dan password.</p></div>
+                    <div class="card" style="max-width:600px;">
+                        <form id="profileForm">
+                            <div class="form-group profile-photo-upload">
+                                <div class="preview" id="profilePhotoPreview">
+                                    <i class="fas fa-user" style="font-size:2rem;color:var(--text-light);"></i>
+                                </div>
+                                <div>
+                                    <label>Foto Profil</label>
+                                    <input type="file" id="profilePhotoInput" accept="image/*" />
+                                    <span class="text-muted" style="font-size:0.8rem;display:block;">Maks 200KB (JPG, PNG)</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="profileUsername" disabled style="background:#f4f1ea;" />
+                            </div>
+                            <div class="form-group">
+                                <label>Nama Lengkap</label>
+                                <input type="text" id="profileFullname" disabled style="background:#f4f1ea;" />
+                            </div>
+                            <div class="form-group">
+                                <label>Jabatan</label>
+                                <select id="profileJabatan">
+                                    <option value="Guru Mapel Umum">Guru Mapel Umum</option>
+                                    <option value="Wali Kelas">Wali Kelas</option>
+                                    <option value="Guru Diniyah">Guru Diniyah</option>
+                                    <option value="Guru Tahfizh">Guru Tahfizh</option>
+                                    <option value="Kabid">Kabid</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sandi Baru <span class="text-muted">(kosongkan jika tidak diubah)</span></label>
+                                <input type="password" id="newPassword" placeholder="Minimal 6 karakter" minlength="6" />
+                            </div>
+                            <div class="form-group">
+                                <label>Konfirmasi Sandi</label>
+                                <input type="password" id="confirmPassword" placeholder="Ketik ulang" minlength="6" />
+                            </div>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Profil</button>
                         </form>
-                        <div style="margin-top:16px;font-size:0.8rem;color:var(--text-light);border-top:1px solid #eee;padding-top:16px;"><i class="fas fa-history"></i> Riwayat perubahan password tercatat di Firebase.</div>
                     </div>
                 </section>
             </main>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION PANEL -->
+    <div class="notification-panel" id="notifPanel">
+        <div class="notif-header">
+            <span><i class="fas fa-bell" style="color:var(--gold);"></i> Notifikasi</span>
+            <button class="notif-close" id="notifClose">&times;</button>
+        </div>
+        <div id="notifList">
+            <div class="notif-empty">Belum ada notifikasi.</div>
         </div>
     </div>
 
@@ -909,7 +1700,7 @@
         const db = firebase.database();
 
         // ============================================================
-        // DATA DEFAULT (seed)
+        // DATA DEFAULT
         // ============================================================
         const GURU_LIST = [
             "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
@@ -1025,52 +1816,57 @@
         ];
 
         const VIOLATION_TYPES_INIT = [
-            { nama: "Terlambat masuk kelas", kategori: "ringan", poin: 2, konsekuensi: "Menulis surat permohonan maaf" },
-            { nama: "Tidak mengerjakan PR", kategori: "ringan", poin: 3, konsekuensi: "Mengerjakan tugas tambahan sepulang sekolah" },
-            { nama: "Atribut seragam tidak lengkap", kategori: "ringan", poin: 2, konsekuensi: "Teguran lisan & catatan wali kelas" },
-            { nama: "Makan/minum saat pelajaran", kategori: "ringan", poin: 2, konsekuensi: "Teguran lisan" },
-            { nama: "Membuang sampah sembarangan", kategori: "ringan", poin: 3, konsekuensi: "Membersihkan area sekitar kelas" },
-            { nama: "Ribut/mengganggu KBM", kategori: "ringan", poin: 5, konsekuensi: "Duduk di depan & menulis refleksi diri" },
-            { nama: "Tidak mengikuti sholat berjamaah", kategori: "sedang", poin: 15, konsekuensi: "Sholat munfarid didampingi & hafalan doa" },
-            { nama: "Bolos pelajaran/kegiatan", kategori: "sedang", poin: 20, konsekuensi: "Panggilan orang tua & surat pernyataan" },
-            { nama: "Menyontek saat ujian", kategori: "sedang", poin: 25, konsekuensi: "Ujian ulang & pembinaan akhlak" },
-            { nama: "Berkata kasar/tidak sopan", kategori: "sedang", poin: 15, konsekuensi: "Pembinaan akhlak oleh wali kelas" },
-            { nama: "Membawa HP tanpa izin", kategori: "sedang", poin: 10, konsekuensi: "HP disita sementara & pembinaan" },
-            { nama: "Merusak fasilitas sekolah", kategori: "sedang", poin: 20, konsekuensi: "Mengganti/memperbaiki fasilitas" },
-            { nama: "Berkelahi dengan teman", kategori: "berat", poin: 50, konsekuensi: "Panggilan orang tua & bimbingan konseling" },
-            { nama: "Merokok di lingkungan sekolah", kategori: "berat", poin: 75, konsekuensi: "Panggilan orang tua & surat perjanjian" },
-            { nama: "Perundungan (bullying)", kategori: "berat", poin: 100, konsekuensi: "Konseling intensif & panggilan orang tua" },
-            { nama: "Mengambil barang bukan miliknya", kategori: "berat", poin: 100, konsekuensi: "Panggilan orang tua & pembinaan khusus" },
-            { nama: "Membawa barang terlarang", kategori: "berat", poin: 100, konsekuensi: "Panggilan orang tua & tindak lanjut pihak sekolah" }
+            { nama: "Terlambat lebih dari 15 menit", kategori: "ringan", poin: 5,
+            konsekuensi: "Memungut sampah 15 menit + istighfar 3x" },
+            { nama: "Tidak membawa kartu pelajar", kategori: "ringan", poin: 3,
+            konsekuensi: "Memungut sampah 10 menit" },
+            { nama: "Tidak mengenakan seragam sesuai ketentuan", kategori: "ringan", poin: 5,
+                konsekuensi: "Memungut sampah 15 menit + menulis tata tertib" },
+            { nama: "Berkata kasar/berkata kotor", kategori: "ringan", poin: 5,
+                konsekuensi: "Menulis istighfar 20x + memungut sampah" },
+            { nama: "Membuang sampah sembarangan", kategori: "ringan", poin: 3,
+                konsekuensi: "Memungut sampah 15 menit di seluruh area" },
+            { nama: "Meninggalkan area sekolah tanpa izin saat KBM", kategori: "sedang", poin: 10,
+                konsekuensi: "Membersihkan lingkungan 1 jam + surat pernyataan" },
+            { nama: "Melakukan pemerasan kepada siswa lain", kategori: "sedang", poin: 21,
+                konsekuensi: "Membersihkan lingkungan + mediasi + surat pernyataan" },
+            { nama: "Berkelahi", kategori: "berat", poin: 30,
+            konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Membawa atau menggunakan rokok maupun vape", kategori: "berat", poin: 50,
+                konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan" },
+            { nama: "Melakukan pembulian (bullying)", kategori: "berat", poin: 75,
+                konsekuensi: "Membersihkan lingkungan 1 minggu + surat pernyataan + mediasi" },
         ];
 
         const REWARD_TYPES_INIT = [
-            { nama: "Membantu teman kesulitan", kategori: "kecil", poin: 1 },
-            { nama: "Menjaga kebersihan kelas", kategori: "kecil", poin: 1 },
-            { nama: "Disiplin & tepat waktu", kategori: "kecil", poin: 2 },
-            { nama: "Aktif bertanya/menjawab di kelas", kategori: "kecil", poin: 1 },
-            { nama: "Menghafal juz baru tepat waktu", kategori: "sedang", poin: 4 },
-            { nama: "Memimpin doa/menjadi imam", kategori: "sedang", poin: 3 },
-            { nama: "Membantu guru mengajar teman", kategori: "sedang", poin: 3 },
-            { nama: "Menolong teman yang kesulitan/sakit", kategori: "sedang", poin: 4 },
-            { nama: "Juara lomba akademik/non-akademik", kategori: "besar", poin: 5 },
-            { nama: "Menunjukkan akhlak teladan", kategori: "besar", poin: 5 }
+            { nama: "Memungut sampah di lingkungan sekolah", kategori: "kecil", poin: 1 },
+            { nama: "Membuang sampah pada tempatnya", kategori: "kecil", poin: 1 },
+            { nama: "Mengucapkan salam terlebih dahulu kepada guru/teman", kategori: "kecil", poin: 1 },
+            { nama: "Membantu guru membawa buku/bahan ajar", kategori: "kecil", poin: 1 },
+            { nama: "Menjadi imam shalat berjamaah", kategori: "sedang", poin: 3 },
+            { nama: "Mengajar teman yang kesulitan belajar (tutor sebaya)", kategori: "sedang", poin: 3 },
+            { nama: "Menjadi juara lomba tingkat sekolah", kategori: "besar", poin: 5 },
+            { nama: "Menjadi siswa teladan (Student of the Month)", kategori: "besar", poin: 5 },
         ];
 
         // ============================================================
-        // FUNGSI INISIALISASI DATA (SEED)
+        // FUNGSI INISIALISASI & BANTUAN
         // ============================================================
         function initFirebaseData() {
             db.ref('users').once('value', (snap) => {
                 if (!snap.exists()) {
                     const defaultUsers = {
-                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
-                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher' },
-                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher' }
+                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin',
+                            jabatan: 'Kabid' },
+                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher',
+                            jabatan: 'Wali Kelas' },
+                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher',
+                            jabatan: 'Guru Mapel Umum' }
                     };
                     db.ref('users').set(defaultUsers);
                     const now = new Date().toLocaleString('id-ID');
                     db.ref('passwordHistory').set({ u1: now, u2: now, u3: now });
+                    db.ref('userProfiles').set({ u1: { foto: '' }, u2: { foto: '' }, u3: { foto: '' } });
                 }
             });
             db.ref('siswa').once('value', (snap) => {
@@ -1101,12 +1897,34 @@
                     db.ref('rewardTypes').set(obj);
                 }
             });
+            db.ref('moneyRewardRules').once('value', (snap) => {
+                if (!snap.exists()) {
+                    db.ref('moneyRewardRules').set({
+                        '50': 100000,
+                        '80': 20000,
+                        '90': 30000,
+                        '100': 50000
+                    });
+                }
+            });
+            db.ref('chat').once('value', (snap) => {
+                if (!snap.exists()) {
+                    db.ref('chat').set({
+                        'init': {
+                            sender: 'Sistem',
+                            senderId: 'system',
+                            recipientId: 'grup',
+                            message: 'Selamat datang di Chat Guru!',
+                            timestamp: Date.now(),
+                            time: new Date().toLocaleString('id-ID')
+                        }
+                    });
+                }
+            });
             console.log('🔥 Firebase siap!');
         }
+        initFirebaseData();
 
-        // ============================================================
-        // FUNGSI BANTUAN
-        // ============================================================
         function genId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
 
         function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -1118,7 +1936,12 @@
         function escapeHtml(str) {
             if (str === undefined || str === null) return '';
             return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
-                "'": '&#39;' } [c]));
+                "'": '&#39;' }[c]));
+        }
+
+        function formatRupiah(val) {
+            if (!val) return 'Rp0';
+            return 'Rp' + Number(val).toLocaleString('id-ID');
         }
 
         let currentUser = null;
@@ -1130,7 +1953,21 @@
         let usersCache = {};
         let guruCache = {};
         let passwordHistoryCache = {};
+        let notificationsCache = {};
+        let feedbackCache = {};
+        let bkCache = {};
+        let chatCache = {};
+        let latesCache = {};
+        let moneyRewardRules = {};
+        let userProfilesCache = {};
         let listenersAttached = false;
+        let notifCount = 0;
+        let currentLeaderboardTab = 'violation';
+
+        // Speech recognition
+        let recognition = null;
+        let isRecording = false;
+        let transcriptText = '';
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
 
@@ -1150,7 +1987,7 @@
             clearTimeout(toastTimer);
             void el.offsetWidth;
             el.classList.add('show');
-            toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
         }
 
         const modalOverlay = document.getElementById('modalOverlay');
@@ -1159,15 +1996,136 @@
         const modalClose = document.getElementById('modalClose');
 
         function openModal(title, html) { if (modalTitle) modalTitle.textContent = title; if (modalBody) modalBody.innerHTML =
-                html; if (modalOverlay) modalOverlay.classList.add('show'); }
+            html; if (modalOverlay) modalOverlay.classList.add('show'); }
 
         function closeModal() { if (modalOverlay) modalOverlay.classList.remove('show'); }
         if (modalClose) modalClose.addEventListener('click', closeModal);
         if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
         // ============================================================
-        // AUTH
+        // NOTIFIKASI
         // ============================================================
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function sendBrowserNotification(title, body) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            try {
+                new Notification(title, { body });
+            } catch (e) { /* ignore */ }
+        }
+
+        function saveNotif(type, title, message) {
+            const id = genId();
+            db.ref('notifications/' + id).set({
+                id: id,
+                type: type,
+                title: title,
+                message: message,
+                createdAt: Date.now(),
+                read: false,
+                timestamp: new Date().toLocaleString('id-ID')
+            });
+        }
+
+        let lastViolationCheck = 0,
+            lastRewardCheck = 0,
+            lastChatCheck = 0;
+
+        function checkNewViolations() {
+            const items = Object.values(violationsCache || {});
+            if (!items.length) return;
+            const latest = items.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+            if (latest.createdAt && latest.createdAt > lastViolationCheck) {
+                lastViolationCheck = latest.createdAt;
+                const msg = `${latest.nama} - ${latest.pelanggaran} (${latest.poin} poin)`;
+                sendBrowserNotification('⚠️ Pelanggaran Baru', msg);
+                saveNotif('violation', 'Pelanggaran Baru', msg);
+            }
+        }
+
+        function checkNewRewards() {
+            const items = Object.values(rewardsCache || {});
+            if (!items.length) return;
+            const latest = items.reduce((a, b) => (a.createdAt > b.createdAt ? a : b));
+            if (latest.createdAt && latest.createdAt > lastRewardCheck) {
+                lastRewardCheck = latest.createdAt;
+                const msg = `${latest.nama} - ${latest.bentuk} (+${latest.poin} poin)`;
+                sendBrowserNotification('⭐ Reward Baru', msg);
+                saveNotif('reward', 'Reward Baru', msg);
+            }
+        }
+
+        function checkNewChatMessages() {
+            const items = Object.values(chatCache || {});
+            if (!items.length) return;
+            const latest = items.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
+            if (latest.timestamp && latest.timestamp > lastChatCheck && latest.senderId !== currentUser?.id) {
+                lastChatCheck = latest.timestamp;
+                if (latest.recipientId === 'grup' || latest.recipientId === currentUser?.id || !latest.recipientId) {
+                    const msg = `${latest.sender}: ${latest.message}`;
+                    sendBrowserNotification('💬 Pesan Chat Baru', msg);
+                    saveNotif('chat', 'Pesan Chat', msg);
+                }
+            }
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notifList');
+            if (!list) return;
+            const items = Object.values(notificationsCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) {
+                list.innerHTML = '<div class="notif-empty">Belum ada notifikasi.</div>';
+                return;
+            }
+            list.innerHTML = items.map(n => `
+                <div class="notif-item ${n.type === 'violation' ? 'violation' : n.type === 'reward' ? 'reward' : ''}">
+                    <div><strong>${escapeHtml(n.title)}</strong></div>
+                    <div>${escapeHtml(n.message)}</div>
+                    <div class="notif-time">${escapeHtml(n.timestamp || '-')}</div>
+                </div>
+            `).join('');
+            const unread = items.filter(n => !n.read).length;
+            notifCount = unread;
+            const countEl = document.getElementById('notifCount');
+            if (countEl) {
+                countEl.textContent = unread;
+                countEl.style.display = unread > 0 ? 'block' : 'none';
+            }
+        }
+
+        function markAllNotificationsRead() {
+            const items = Object.values(notificationsCache || {});
+            items.forEach(n => { if (!n.read) db.ref('notifications/' + n.id).update({ read: true }); });
+        }
+
+        // ============================================================
+        // AUTH & KATA PENYEMANGAT
+        // ============================================================
+        const quotes = [
+            "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain.",
+            "Guru adalah pahlawan tanpa tanda jasa, teruslah menginspirasi.",
+            "Ilmu tanpa amal bagai pohon tanpa buah.",
+            "Senyummu adalah sedekah, semangatmu adalah cahaya.",
+            "Setiap anak adalah bintang, tugasmu adalah membuatnya bersinar.",
+            "Pendidikan adalah senjata paling ampuh untuk mengubah dunia.",
+            "Jadilah guru yang membuka pintu, bukan hanya mengisi pikiran.",
+            "Kesabaran adalah kunci, cinta adalah bahasamu.",
+            "Hari ini adalah kesempatan baru untuk menebar kebaikan.",
+            "Jangan lelah menjadi baik, karena kebaikan itu menular."
+        ];
+
+        function showMotivationQuote() {
+            const el = document.getElementById('motivationText');
+            if (el) {
+                const random = quotes[Math.floor(Math.random() * quotes.length)];
+                el.textContent = `"${random}"`;
+            }
+        }
+
         function login(username, password) {
             db.ref('users').once('value', (snap) => {
                 const users = snap.val() || {};
@@ -1179,13 +2137,16 @@
                     }
                 }
                 const errEl = document.getElementById('loginError');
-                if (!found) {
-                    if (errEl) errEl.classList.add('show');
-                    return;
-                }
+                if (!found) { if (errEl) errEl.classList.add('show'); return; }
                 if (errEl) errEl.classList.remove('show');
                 currentUser = found;
                 sessionStorage.setItem('cq_currentUser', JSON.stringify(found));
+                db.ref('onlineStatus/' + found.id).set({
+                    online: true,
+                    lastSeen: Date.now(),
+                    name: found.name,
+                    jabatan: found.jabatan || 'Guru'
+                });
                 const rememberEl = document.getElementById('rememberMe');
                 if (rememberEl && rememberEl.checked) {
                     localStorage.setItem('cq_remembered_user', username);
@@ -1194,11 +2155,20 @@
                     localStorage.removeItem('cq_remembered_user');
                     localStorage.setItem('cq_remember_me', 'false');
                 }
+                showMotivationQuote();
                 renderApp();
             });
         }
 
         function logout() {
+            if (currentUser) {
+                db.ref('onlineStatus/' + currentUser.id).set({
+                    online: false,
+                    lastSeen: Date.now(),
+                    name: currentUser.name,
+                    jabatan: currentUser.jabatan || 'Guru'
+                });
+            }
             currentUser = null;
             sessionStorage.removeItem('cq_currentUser');
             detachRealtimeListeners();
@@ -1206,10 +2176,14 @@
             if (app) app.classList.remove('active');
             const loginPage = document.getElementById('loginPage');
             if (loginPage) loginPage.style.display = 'flex';
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) overlay.classList.remove('show');
         }
 
         // ============================================================
-        // RENDER APP
+        // RENDER APP & LISTENERS
         // ============================================================
         function renderApp() {
             if (!currentUser) return;
@@ -1219,7 +2193,10 @@
             if (app) app.classList.add('active');
 
             const avatar = document.getElementById('userAvatar');
-            if (avatar) avatar.textContent = currentUser.name.charAt(0).toUpperCase();
+            if (avatar) {
+                avatar.innerHTML = currentUser.name.charAt(0).toUpperCase();
+                loadUserPhoto(currentUser.id, avatar);
+            }
             const nameEl = document.getElementById('userName');
             if (nameEl) nameEl.textContent = currentUser.name;
             const roleEl = document.getElementById('userRole');
@@ -1232,14 +2209,41 @@
             populateSiswaSelects();
             populateViolationSelects();
             populateRewardSelects();
+
+            // Set default date for late form
+            const lateDate = document.getElementById('lateDate');
+            if (lateDate) lateDate.value = today();
+
             navigateTo('dashboard');
             loadDashboard();
             loadProfile();
+            loadMoneyRewardRules();
+            loadFeedbackList();
+            loadBkList();
+            loadChat();
+            loadOnlineTeachers();
+            populateChatRecipients();
+            currentLeaderboardTab = 'violation';
+            loadLeaderboard(currentLeaderboardTab);
+            loadLateList();
+
+            // Show logo if exists in localStorage
+            loadSchoolLogo();
+
+            requestNotificationPermission();
         }
 
-        // ============================================================
-        // REALTIME LISTENERS
-        // ============================================================
+        function loadUserPhoto(userId, element) {
+            db.ref('userProfiles/' + userId + '/foto').once('value', (snap) => {
+                const foto = snap.val();
+                if (foto) {
+                    element.innerHTML = `<img src="${foto}" alt="Foto" />`;
+                } else {
+                    element.innerHTML = currentUser.name.charAt(0).toUpperCase();
+                }
+            });
+        }
+
         function isPageActive(page) {
             const el = document.getElementById('page-' + page);
             return !!(el && el.classList.contains('active'));
@@ -1248,24 +2252,29 @@
         function refreshActivePage() {
             if (isPageActive('dashboard')) loadDashboard();
             if (isPageActive('violations')) loadViolations();
-            if (isPageActive('leaderboard')) loadLeaderboard();
+            if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
+            if (isPageActive('reward')) loadRewardsList();
+            if (isPageActive('admin')) loadFeedbackList();
+            if (isPageActive('bk')) loadBkList();
+            if (isPageActive('chat')) { loadChat();
+                loadOnlineTeachers(); }
+            if (isPageActive('late')) loadLateList();
         }
 
         function setupRealtimeListeners() {
             if (listenersAttached) return;
             listenersAttached = true;
             db.ref('violations').on('value', (snap) => { violationsCache = snap.val() || {};
-                refreshActivePage(); });
+                refreshActivePage();
+                checkNewViolations(); });
             db.ref('rewards').on('value', (snap) => { rewardsCache = snap.val() || {};
-                refreshActivePage(); });
+                refreshActivePage();
+                checkNewRewards(); });
             db.ref('siswa').on('value', (snap) => {
                 let data = snap.val();
-                if (!data) {
-                    const obj = {};
+                if (!data) { const obj = {};
                     SISWA_DATA.forEach(s => { obj[s.nis] = s; });
-                    db.ref('siswa').set(obj);
-                    return;
-                }
+                    db.ref('siswa').set(obj); return; }
                 renderSiswaOptions(data);
                 refreshActivePage();
             });
@@ -1283,38 +2292,51 @@
             db.ref('users').on('value', (snap) => {
                 usersCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel();
+                if (isPageActive('chat')) { loadOnlineTeachers();
+                    populateChatRecipients(); }
             });
-            db.ref('guru').on('value', (snap) => {
-                guruCache = snap.val() || {};
+            db.ref('guru').on('value', (snap) => { guruCache = snap.val() || {};
+                if (isPageActive('admin')) loadAdminPanel(); });
+            db.ref('passwordHistory').on('value', (snap) => { passwordHistoryCache = snap.val() || {};
+                if (isPageActive('admin')) loadAdminPanel(); });
+            db.ref('notifications').on('value', (snap) => { notificationsCache = snap.val() || {};
+                renderNotifications(); if (isPageActive('dashboard')) loadDashboard(); });
+            db.ref('moneyRewardRules').on('value', (snap) => { moneyRewardRules = snap.val() || {};
+                loadMoneyRewardRules(); });
+            db.ref('feedback').on('value', (snap) => { feedbackCache = snap.val() || {};
+                loadFeedbackList(); if (isPageActive('admin')) loadAdminPanel(); });
+            db.ref('bk').on('value', (snap) => { bkCache = snap.val() || {};
+                loadBkList(); });
+            db.ref('chat').on('value', (snap) => { chatCache = snap.val() || {};
+                if (isPageActive('chat')) loadChat();
+                checkNewChatMessages(); });
+            db.ref('onlineStatus').on('value', (snap) => { if (isPageActive('chat')) loadOnlineTeachers(); });
+            db.ref('userProfiles').on('value', (snap) => {
+                userProfilesCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel();
+                if (currentUser) loadUserPhoto(currentUser.id, document.getElementById('userAvatar'));
             });
-            db.ref('passwordHistory').on('value', (snap) => {
-                passwordHistoryCache = snap.val() || {};
-                if (isPageActive('admin')) loadAdminPanel();
-            });
+            db.ref('lates').on('value', (snap) => { latesCache = snap.val() || {};
+                if (isPageActive('late')) loadLateList(); });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
-            ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory'].forEach(
-                r => db.ref(r).off());
+            ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
+                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'chat', 'onlineStatus', 'userProfiles', 'lates'
+            ].forEach(r => db.ref(r).off());
         }
 
         // ============================================================
-        // SISWA SELECTS
+        // SISWA
         // ============================================================
         function populateSiswaSelects() {
             db.ref('siswa').once('value', (snap) => {
                 let data = snap.val();
-                if (!data) {
-                    const obj = {};
+                if (!data) { const obj = {};
                     SISWA_DATA.forEach(s => { obj[s.nis] = s; });
-                    db.ref('siswa').set(obj, () => {
-                        db.ref('siswa').once('value', (snap2) => renderSiswaOptions(snap2.val()));
-                    });
-                } else {
-                    renderSiswaOptions(data);
-                }
+                    db.ref('siswa').set(obj, () => { db.ref('siswa').once('value', (snap2) => renderSiswaOptions(snap2
+                            .val())); }); } else { renderSiswaOptions(data); }
             });
         }
 
@@ -1322,7 +2344,8 @@
             siswaCache = data || {};
             const siswaList = Object.values(siswaCache);
             siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
-            ['recStudent', 'rewardStudent'].forEach(id => {
+
+            ['recStudent', 'rewardStudent', 'bkStudent', 'lateStudent'].forEach(id => {
                 const sel = document.getElementById(id);
                 if (!sel) return;
                 const val = sel.value;
@@ -1333,12 +2356,14 @@
                     opt.textContent = `${s.nama} (${s.kelas})`;
                     sel.appendChild(opt);
                 });
-                if (val) sel.value = val;
+                if (val && siswaCache[val]) sel.value = val;
             });
+
             updateSelectedStudentClass('recStudent', 'recClass');
             updateSelectedStudentClass('rewardStudent', 'rewardClass');
+            updateSelectedStudentClass('bkStudent', 'bkClass');
+            updateSelectedStudentClass('lateStudent', 'lateClass');
             setText('statAllStudents', siswaList.length);
-            console.log(`✅ ${siswaList.length} siswa dimuat.`);
         }
 
         function updateSelectedStudentClass(selectId, classInputId) {
@@ -1403,12 +2428,10 @@
             const prevVal = sel.value;
             sel.innerHTML = '<option value="">Semua Jenis</option>';
             const names = Array.from(new Set(Object.values(violationTypesCache).map(t => t.nama))).sort();
-            names.forEach(n => {
-                const opt = document.createElement('option');
+            names.forEach(n => { const opt = document.createElement('option');
                 opt.value = n;
                 opt.textContent = n;
-                sel.appendChild(opt);
-            });
+                sel.appendChild(opt); });
             if (prevVal) sel.value = prevVal;
         }
 
@@ -1441,49 +2464,132 @@
         }
 
         // ============================================================
-        // NAVIGASI
+        // NAVIGASI (DIPERBAIKI)
         // ============================================================
         function navigateTo(page) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             const target = document.getElementById('page-' + page);
             if (target) target.classList.add('active');
+
             document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
             const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
             if (navItem) navItem.classList.add('active');
+
+            // Tutup sidebar di mobile
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar && window.innerWidth <= 992) {
+                sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('show');
+            }
+
+            // Load konten sesuai halaman
+            if (page === 'dashboard') loadDashboard();
+            if (page === 'violations') loadViolations();
+            if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
+            if (page === 'admin') { loadAdminPanel();
+                loadFeedbackList(); }
+            if (page === 'profile') loadProfile();
+            if (page === 'reward') loadRewardsList();
+            if (page === 'bk') loadBkList();
+            if (page === 'late') loadLateList();
+            if (page === 'chat') { loadChat();
+                loadOnlineTeachers();
+                populateChatRecipients(); }
         }
-        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const page = this.dataset.page;
-                if (page === 'admin' && !isAdmin()) { showToast('Akses hanya untuk admin!', 'error'); return; }
-                navigateTo(page);
-                if (page === 'dashboard') loadDashboard();
-                if (page === 'violations') loadViolations();
-                if (page === 'leaderboard') loadLeaderboard();
-                if (page === 'admin') loadAdminPanel();
-                if (page === 'profile') loadProfile();
-            });
+
+        // Event listener untuk sidebar dengan event delegation
+        document.querySelector('.sidebar').addEventListener('click', function(e) {
+            const item = e.target.closest('.nav-item');
+            if (!item) return;
+            e.preventDefault();
+
+            const page = item.dataset.page;
+            if (!page) return;
+            if (page === 'admin' && !isAdmin()) {
+                showToast('Akses hanya untuk admin!', 'error');
+                return;
+            }
+            navigateTo(page);
+        });
+
+        // Menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('show');
+        });
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
+            this.classList.remove('show');
+        });
+
+        // Notification bell
+        document.getElementById('notifBell').addEventListener('click', function() {
+            const panel = document.getElementById('notifPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                markAllNotificationsRead();
+                renderNotifications();
+            }
+        });
+        document.getElementById('notifClose').addEventListener('click', function() {
+            document.getElementById('notifPanel').classList.remove('open');
         });
 
         // ============================================================
-        // DASHBOARD
+        // CORE FUNCTIONS
         // ============================================================
+        function getStudentStats(nis) {
+            let lightMed = 0,
+                severe = 0,
+                rewardPts = 0;
+            const violations = Object.values(violationsCache || {});
+            const rewards = Object.values(rewardsCache || {});
+            violations.forEach(v => {
+                if (v.nis === nis) {
+                    if (v.kategori === 'ringan' || v.kategori === 'sedang') lightMed += (v.poin || 0);
+                    else if (v.kategori === 'berat') severe += (v.poin || 0);
+                }
+            });
+            rewards.forEach(r => { if (r.nis === nis) rewardPts += (r.poin || 0); });
+            const effectiveLightMed = Math.max(0, lightMed - rewardPts);
+            const totalEffective = effectiveLightMed + severe;
+            return { lightMed, severe, rewardPts, effectiveLightMed, totalEffective };
+        }
+
+        // DASHBOARD
         function loadDashboard() {
             const violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v }));
             const rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
             const studentSet = new Set(violations.map(v => v.nis));
             const todayStr = today();
-            const totalPoints = {};
-            violations.forEach(v => { totalPoints[v.nis] = (totalPoints[v.nis] || 0) + (v.poin || 0); });
-            const highest = Object.values(totalPoints).length ? Math.max(...Object.values(totalPoints)) : 0;
+            const totalEffectivePts = {};
+            violations.forEach(v => {
+                const stats = getStudentStats(v.nis);
+                totalEffectivePts[v.nis] = stats.totalEffective;
+            });
+            const highest = Object.values(totalEffectivePts).length ? Math.max(...Object.values(totalEffectivePts)) : 0;
             const totalRewardPoints = rewards.reduce((sum, r) => sum + (r.poin || 0), 0);
             const todayCount = violations.filter(v => v.tanggal === todayStr).length;
+            let moneyTotal = 0;
+            rewards.forEach(r => { if (r.moneyAwarded) moneyTotal += r.moneyAwarded; });
 
-            setText('statTotal', violations.length);
+            setText('statTotal', Object.values(totalEffectivePts).reduce((a, b) => a + b, 0));
             setText('statStudents', studentSet.size);
             setText('statAllStudents', Object.keys(siswaCache || {}).length);
             setText('statToday', todayCount);
             setText('statHighest', highest);
             setText('statReward', totalRewardPoints);
+            setText('statMoneyReward', formatRupiah(moneyTotal));
+
+            // Stat Reward card clickable
+            const rewardCard = document.getElementById('statRewardCard');
+            rewardCard.onclick = function() {
+                showRewardRecipients();
+            };
 
             renderRecentList('recentViolations', violations, (v) => `
                 <div class="leaderboard-item">
@@ -1499,9 +2605,9 @@
                 <div class="leaderboard-item">
                     <div class="info">
                         <div class="name">${escapeHtml(r.nama)} <span class="badge">${escapeHtml(r.kelas || '')}</span></div>
-                        <div class="detail">${escapeHtml(r.bentuk)} • dicatat oleh ${escapeHtml(r.guru || '-')} • ${formatDate(r.tanggal)}</div>
+                        <div class="detail">${escapeHtml(r.bentuk)} • dicatat oleh ${escapeHtml(r.guru || '-')} • ${formatDate(r.tanggal)}${r.moneyAwarded ? ' 🎉 ' + formatRupiah(r.moneyAwarded) : ''}</div>
                     </div>
-                    <div class="points" style="color:var(--success);">+${r.poin}</div>
+                    <div class="points reward-points">+${r.poin}</div>
                 </div>
             `, 'Belum ada reward.');
         }
@@ -1517,9 +2623,44 @@
             el.innerHTML = sorted.map(templateFn).join('');
         }
 
-        // ============================================================
-        // DATA PELANGGARAN
-        // ============================================================
+        // SHOW REWARD RECIPIENTS (klik Total Reward)
+        function showRewardRecipients() {
+            const rewards = Object.values(rewardsCache || {});
+            if (!rewards.length) {
+                showToast('Belum ada data reward.', 'error');
+                return;
+            }
+            const map = {};
+            rewards.forEach(r => {
+                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
+                map[r.nis].total += (r.poin || 0);
+                map[r.nis].count += 1;
+            });
+            const list = Object.values(map).sort((a, b) => b.total - a.total);
+
+            let html = `
+                <div style="margin-bottom:12px;"><strong>Total ${list.length} siswa menerima reward</strong></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>Total Poin</th><th>Jumlah Reward</th></tr></thead>
+                        <tbody>
+                            ${list.map((s, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td><strong>${escapeHtml(s.nama)}</strong></td>
+                                    <td>${escapeHtml(s.kelas || '')}</td>
+                                    <td><span class="badge badge-success">${s.total} ⭐</span></td>
+                                    <td>${s.count} kali</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            openModal('📊 Daftar Penerima Reward', html);
+        }
+
+        // VIOLATIONS TABLE
         function loadViolations() {
             const tbody = document.getElementById('violationsTableBody');
             const emptyEl = document.getElementById('violationsEmpty');
@@ -1537,11 +2678,8 @@
             violations.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             window.__filteredViolations = violations;
 
-            if (!violations.length) {
-                tbody.innerHTML = '';
-                if (emptyEl) emptyEl.classList.remove('hidden');
-                return;
-            }
+            if (!violations.length) { tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden'); return; }
             if (emptyEl) emptyEl.classList.add('hidden');
 
             tbody.innerHTML = violations.map((v, i) => `
@@ -1583,10 +2721,11 @@
             const data = window.__filteredViolations || [];
             if (!data.length) { showToast('Tidak ada data untuk diekspor.', 'error'); return; }
             const headers = ['No', 'Nama Siswa', 'Kelas', 'Pelanggaran', 'Poin', 'Konsekuensi', 'Guru', 'Tanggal'];
-            const rows = data.map((v, i) => [i + 1, v.nama, v.kelas, v.pelanggaran, v.poin, v.konsekuensi || '-', v.guru || '-',
-                formatDate(v.tanggal)
+            const rows = data.map((v, i) => [i + 1, v.nama, v.kelas, v.pelanggaran, v.poin, v.konsekuensi || '-', v.guru ||
+                '-', formatDate(v.tanggal)
             ]);
-            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            '\r\n');
             const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1599,51 +2738,760 @@
             showToast('Data berhasil diekspor!');
         });
 
-        // ============================================================
-        // PAPAN PERINGKAT
-        // ============================================================
-        function loadLeaderboard() {
+        // REWARDS LIST
+        function loadRewardsList() {
+            const tbody = document.getElementById('rewardsTableBody');
+            const emptyEl = document.getElementById('rewardsEmpty');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('rewardFilterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('rewardFilterClass').value;
+
+            let rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
+            rewards = rewards.filter(r =>
+                (!filterStudent || (r.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || r.kelas === filterClass)
+            );
+            rewards.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            if (!rewards.length) { tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden'); return; }
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            tbody.innerHTML = rewards.map((r, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(r.nama)}</td>
+                    <td>${escapeHtml(r.kelas || '')}</td>
+                    <td>${escapeHtml(r.bentuk)}</td>
+                    <td><span class="badge badge-success">+${r.poin}</span>${r.moneyAwarded ? ' 🎉' + formatRupiah(r.moneyAwarded) : ''}</td>
+                    <td>${escapeHtml(r.guru || '-')}</td>
+                    <td>${formatDate(r.tanggal)}</td>
+                    <td class="actions">
+                        ${(isAdmin() || r.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-reward="${r.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-delete-reward]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-delete-reward');
+                    if (confirm('Hapus catatan reward ini?')) {
+                        db.ref('rewards/' + id).remove().then(() => showToast('Reward dihapus.'));
+                    }
+                });
+            });
+        }
+
+        document.getElementById('rewardFilterStudent').addEventListener('input', loadRewardsList);
+        document.getElementById('rewardFilterClass').addEventListener('change', loadRewardsList);
+        document.getElementById('clearRewardFilters').addEventListener('click', () => {
+            document.getElementById('rewardFilterStudent').value = '';
+            document.getElementById('rewardFilterClass').value = '';
+            loadRewardsList();
+        });
+
+        // LEADERBOARD
+        function loadLeaderboard(type = 'violation') {
+            currentLeaderboardTab = type;
             const el = document.getElementById('leaderboardList');
             if (!el) return;
-            const violations = Object.values(violationsCache || {});
-            const rewards = Object.values(rewardsCache || {});
-            const map = {};
-            violations.forEach(v => {
-                if (!map[v.nis]) map[v.nis] = { nama: v.nama, kelas: v.kelas, poinPelanggaran: 0, poinReward: 0 };
-                map[v.nis].poinPelanggaran += (v.poin || 0);
+
+            document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
             });
-            rewards.forEach(r => {
-                if (!map[r.nis]) map[r.nis] = { nama: r.nama, kelas: r.kelas, poinPelanggaran: 0, poinReward: 0 };
-                map[r.nis].poinReward += (r.poin || 0);
+
+            if (type === 'violation') {
+                const statsMap = {};
+                const siswaList = Object.values(siswaCache || {});
+                siswaList.forEach(s => {
+                    const stats = getStudentStats(s.nis);
+                    if (stats.totalEffective > 0 || stats.severe > 0 || stats.lightMed > 0) {
+                        statsMap[s.nis] = {
+                            nis: s.nis,
+                            nama: s.nama,
+                            kelas: s.kelas,
+                            total: stats.totalEffective,
+                            lightMed: stats.lightMed,
+                            severe: stats.severe,
+                            rewardPts: stats.rewardPts,
+                            effectiveLightMed: stats.effectiveLightMed,
+                            count: Object.values(violationsCache || {}).filter(v => v.nis === s.nis).length
+                        };
+                    }
+                });
+                const list = Object.values(statsMap).sort((a, b) => b.total - a.total);
+                if (!list.length) {
+                    el.innerHTML =
+                    '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data pelanggaran.</p></div>';
+                    return;
+                }
+                el.innerHTML = list.map((s, i) => {
+                    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    return `
+                    <div class="leaderboard-item" data-nis="${s.nis}" data-type="violation">
+                        <div class="rank ${rankClass}">#${i + 1}</div>
+                        <div class="info">
+                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
+                            <div class="point-breakdown">
+                                <span>Ringan/Sedang: ${s.lightMed}</span>
+                                <span class="reduced">- Reward: ${s.rewardPts}</span>
+                                <span>Efektif: ${s.effectiveLightMed}</span>
+                                <span class="severe">Berat: ${s.severe}</span>
+                                <span>Total: <strong>${s.total}</strong></span>
+                            </div>
+                        </div>
+                        <div class="points">${s.total} poin</div>
+                    </div>`;
+                }).join('');
+            } else {
+                const map = {};
+                Object.values(rewardsCache || {}).forEach(r => {
+                    if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
+                    map[r.nis].total += (r.poin || 0);
+                    map[r.nis].count += 1;
+                });
+                const list = Object.values(map).sort((a, b) => b.total - a.total);
+                if (!list.length) {
+                    el.innerHTML =
+                    '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data kebaikan.</p></div>';
+                    return;
+                }
+                el.innerHTML = list.map((s, i) => {
+                    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    return `
+                    <div class="leaderboard-item" data-nis="${s.nis}" data-type="reward">
+                        <div class="rank ${rankClass}">#${i + 1}</div>
+                        <div class="info">
+                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
+                            <div class="detail">${s.count} kali kebaikan</div>
+                        </div>
+                        <div class="points reward-points">${s.total} ⭐</div>
+                    </div>`;
+                }).join('');
+            }
+
+            el.querySelectorAll('.leaderboard-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const nis = this.dataset.nis;
+                    const type = this.dataset.type;
+                    showStudentDetail(nis, type);
+                });
             });
-            const list = Object.values(map).sort((a, b) => b.poinPelanggaran - a.poinPelanggaran);
-            if (!list.length) {
-                el.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div>';
+        }
+
+        function showStudentDetail(nis, type) {
+            const student = siswaCache[nis];
+            if (!student) { showToast('Data siswa tidak ditemukan.', 'error'); return; }
+            let records = [],
+                title = '',
+                headers = ['#', 'Tanggal', 'Deskripsi', 'Poin', 'Guru'];
+            let rows = [];
+            if (type === 'violation') {
+                records = Object.values(violationsCache || {}).filter(v => v.nis === nis);
+                records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                title = `Riwayat Pelanggaran - ${student.nama}`;
+                const stats = getStudentStats(nis);
+                rows = records.map((v, i) => [
+                    i + 1,
+                    formatDate(v.tanggal),
+                    `${v.pelanggaran} (${v.kategori})`,
+                    `<span class="badge badge-danger">${v.poin}</span>`,
+                    v.guru || '-'
+                ]);
+                rows.unshift(['', 'INFO EFEKTIF', `Ringan/Sedang: ${stats.lightMed} | Reward: ${stats.rewardPts} | Efektif: ${stats.effectiveLightMed} | Berat: ${stats.severe} | Total: ${stats.totalEffective}`, '',
+                    ''
+                ]);
+            } else {
+                records = Object.values(rewardsCache || {}).filter(r => r.nis === nis);
+                records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                title = `Riwayat Kebaikan - ${student.nama}`;
+                rows = records.map((r, i) => [
+                    i + 1,
+                    formatDate(r.tanggal),
+                    r.bentuk || '-',
+                    `<span class="badge badge-success">+${r.poin}</span>`,
+                    r.guru || '-'
+                ]);
+            }
+            if (!records.length && type === 'violation') {
+                showToast('Tidak ada riwayat pelanggaran untuk siswa ini.', 'error');
                 return;
             }
-            el.innerHTML = list.map((s, i) => {
-                const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            let tableHtml = `
+                <div style="margin-bottom:12px;"><strong>Kelas:</strong> ${student.kelas} | <strong>Total:</strong> ${rows.length} catatan</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            openModal(title, tableHtml);
+        }
+
+        document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.dataset.leaderboardTab;
+                if (type) loadLeaderboard(type);
+            });
+        });
+
+        // ============================================================
+        // LATE (Keterlambatan)
+        // ============================================================
+        document.getElementById('lateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('lateStudent').value;
+            const kelas = document.getElementById('lateClass').value;
+            const tanggal = document.getElementById('lateDate').value;
+            const waktu = document.getElementById('lateTime').value;
+            const note = document.getElementById('lateNote').value.trim();
+            if (!nis || !tanggal || !waktu) { showToast('Lengkapi data siswa, tanggal, dan jam!', 'error'); return; }
+            const s = siswaCache[nis];
+            const record = {
+                nis: nis,
+                nama: s ? s.nama : 'Unknown',
+                kelas: kelas,
+                tanggal: tanggal,
+                waktu: waktu,
+                catatan: note,
+                guru: currentUser.name,
+                createdAt: Date.now()
+            };
+            db.ref('lates/' + genId()).set(record).then(() => {
+                showToast('Data keterlambatan berhasil dicatat!');
+                this.reset();
+                document.getElementById('lateDate').value = today();
+                document.getElementById('lateNote').value = '';
+                loadLateList();
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        function loadLateList() {
+            const tbody = document.getElementById('lateTableBody');
+            const emptyEl = document.getElementById('lateEmpty');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('lateFilterStudent').value || '').toLowerCase().trim();
+            const filterDate = document.getElementById('lateFilterDate').value;
+
+            let items = Object.entries(latesCache || {}).map(([id, l]) => ({ id, ...l }));
+            items = items.filter(l =>
+                (!filterStudent || (l.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterDate || l.tanggal === filterDate)
+            );
+            items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            window.__filteredLates = items;
+
+            if (!items.length) { tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden'); return; }
+            if (emptyEl) emptyEl.classList.add('hidden');
+
+            tbody.innerHTML = items.map((l, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(l.nama)}</td>
+                    <td>${escapeHtml(l.kelas || '')}</td>
+                    <td>${formatDate(l.tanggal)}</td>
+                    <td>${escapeHtml(l.waktu)}</td>
+                    <td>${escapeHtml(l.catatan || '-')}</td>
+                    <td>${escapeHtml(l.guru || '-')}</td>
+                    <td class="actions">
+                        ${(isAdmin() || l.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-late="${l.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-delete-late]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-delete-late');
+                    if (confirm('Hapus data keterlambatan ini?')) {
+                        db.ref('lates/' + id).remove().then(() => { showToast('Data dihapus.');
+                            loadLateList(); });
+                    }
+                });
+            });
+        }
+
+        document.getElementById('lateFilterStudent').addEventListener('input', loadLateList);
+        document.getElementById('lateFilterDate').addEventListener('change', loadLateList);
+        document.getElementById('clearLateFilters').addEventListener('click', () => {
+            document.getElementById('lateFilterStudent').value = '';
+            document.getElementById('lateFilterDate').value = '';
+            loadLateList();
+        });
+        document.getElementById('exportLateBtn').addEventListener('click', function() {
+            const data = window.__filteredLates || [];
+            if (!data.length) { showToast('Tidak ada data keterlambatan.', 'error'); return; }
+            const headers = ['No', 'Nama Siswa', 'Kelas', 'Tanggal', 'Jam Masuk', 'Keterangan', 'Guru'];
+            const rows = data.map((l, i) => [i + 1, l.nama, l.kelas, l.tanggal, l.waktu, l.catatan || '-', l.guru || '-']);
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            '\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `data-keterlambatan-${today()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data keterlambatan berhasil diekspor!');
+        });
+
+        // ============================================================
+        // BK (Bimbingan Konseling) - disederhanakan
+        // ============================================================
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { showToast('Browser tidak mendukung Speech Recognition.', 'error'); return null; }
+            const rec = new SpeechRecognition();
+            rec.lang = 'id-ID';
+            rec.continuous = true;
+            rec.interimResults = true;
+            rec.maxAlternatives = 1;
+            return rec;
+        }
+
+        function startRecording() {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) return;
+                recognition.onresult = function(event) {
+                    let interim = '',
+                        final = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) { final += transcript + ' '; } else { interim += transcript; }
+                    }
+                    if (final) { transcriptText += final; }
+                    const displayText = transcriptText + (interim ? ' (mengetik...) ' + interim : '');
+                    document.getElementById('bkTranscript').textContent = displayText || '...';
+                    generateBkSummary(transcriptText);
+                };
+                recognition.onerror = function(event) {
+                    if (event.error === 'not-allowed') showToast('Izin mikrofon ditolak.', 'error');
+                    else showToast('Error: ' + event.error, 'error');
+                    stopRecording();
+                };
+                recognition.onend = function() { if (isRecording) { try { recognition.start(); } catch (e) { /* ignore */ } } };
+            }
+            try {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('bkRecordBtn').innerHTML = '<i class="fas fa-microphone"></i> Merekam...';
+                document.getElementById('bkRecordBtn').classList.add('btn-rec');
+                document.getElementById('bkTranscript').textContent = 'Merekam...';
+                transcriptText = '';
+                document.getElementById('bkSummary').textContent = 'Menganalisis...';
+                document.getElementById('bkSolution').textContent = 'Menganalisis...';
+                showToast('Merekam... bicaralah dengan siswa.', 'success');
+            } catch (e) { showToast('Gagal memulai rekaman: ' + e.message, 'error'); }
+        }
+
+        function stopRecording() {
+            if (recognition) { try { recognition.stop(); } catch (e) { /* ignore */ }
+                isRecording = false;
+                document.getElementById('bkRecordBtn').innerHTML = '<i class="fas fa-microphone"></i> Rekam Langsung';
+                document.getElementById('bkRecordBtn').classList.remove('btn-rec');
+                if (transcriptText.trim() === '') {
+                    document.getElementById('bkTranscript').textContent = 'Belum ada transkrip.';
+                    document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                    document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
+                }
+                showToast('Rekaman dihentikan.', 'success'); }
+        }
+
+        function generateBkSummary(text) {
+            if (!text.trim()) { document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                document.getElementById('bkSolution').textContent = 'Belum ada solusi.'; return; }
+            const lower = text.toLowerCase();
+            const keywords = ['masalah', 'sulit', 'takut', 'khawatir', 'marah', 'sedih', 'kecewa', 'stress', 'tekanan',
+                'keluarga', 'teman', 'sekolah', 'guru', 'nilai', 'ujian', 'tugas', 'orang tua', 'ayah', 'ibu', 'saudara',
+                'bully', 'diam', 'menangis', 'kesal'
+            ];
+            const found = keywords.filter(k => lower.includes(k));
+            let summary = 'Siswa menyampaikan topik: ';
+            if (found.length) { summary += found.join(', ') + '. '; } else { summary += 'Topik belum teridentifikasi secara spesifik. '; }
+            const snippet = text.substring(0, 200).replace(/\n/g, ' ');
+            summary += 'Cuplikan: "' + snippet + '..."';
+            document.getElementById('bkSummary').textContent = summary;
+
+            let solution = 'Saran untuk guru: ';
+            if (found.includes('keluarga') || found.includes('ayah') || found.includes('ibu')) { solution +=
+                    'Libatkan orang tua dengan pendekatan komunikasi yang baik. '; }
+            if (found.includes('bully') || found.includes('teman') || found.includes('diam')) { solution +=
+                    'Lakukan mediasi dengan teman-teman, ciptakan lingkungan yang aman. '; }
+            if (found.includes('nilai') || found.includes('ujian') || found.includes('tugas')) { solution +=
+                    'Berikan pendampingan belajar tambahan dan motivasi. '; }
+            if (found.includes('marah') || found.includes('sedih') || found.includes('kecewa')) { solution +=
+                    'Berikan ruang untuk mengekspresikan perasaan, latih relaksasi. '; }
+            if (found.length === 0) { solution +=
+                'Dengarkan lebih dalam, identifikasi akar masalah dengan pertanyaan terbuka. '; }
+            solution += 'Lakukan pendekatan personal dan konseling lanjutan jika diperlukan.';
+            document.getElementById('bkSolution').textContent = solution;
+        }
+
+        document.getElementById('bkRecordBtn').addEventListener('click', startRecording);
+        document.getElementById('bkStopBtn').addEventListener('click', stopRecording);
+        document.getElementById('bkTranscribeBtn').addEventListener('click', function() {
+            const transcript = document.getElementById('bkTranscript').textContent;
+            if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
+                'Belum ada transkrip.') { showToast('Tulis atau rekam transkrip terlebih dahulu.', 'error'); return; }
+            generateBkSummary(transcript);
+            showToast('Ringkasan dan solusi telah dibuat!', 'success');
+        });
+
+        document.getElementById('bkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('bkStudent').value;
+            const kelas = document.getElementById('bkClass').value;
+            const note = document.getElementById('bkNote').value.trim();
+            const transcript = document.getElementById('bkTranscript').textContent;
+            const summary = document.getElementById('bkSummary').textContent;
+            const solution = document.getElementById('bkSolution').textContent;
+
+            if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
+            if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
+                'Belum ada transkrip.') { showToast('Belum ada transkrip.', 'error'); return; }
+            const record = {
+                nis,
+                nama: siswaCache[nis] ? siswaCache[nis].nama : 'Unknown',
+                kelas,
+                catatan: note,
+                transkrip: transcript,
+                ringkasan: summary,
+                solusi: solution,
+                guru: currentUser.name,
+                tanggal: today(),
+                createdAt: Date.now()
+            };
+            db.ref('bk/' + genId()).set(record).then(() => {
+                showToast('Catatan BK berhasil disimpan!');
+                document.getElementById('bkStudent').value = '';
+                document.getElementById('bkStudentSearch').value = '';
+                document.getElementById('bkClass').value = '';
+                document.getElementById('bkNote').value = '';
+                document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
+                document.getElementById('bkSummary').textContent = 'Belum ada ringkasan.';
+                document.getElementById('bkSolution').textContent = 'Belum ada solusi.';
+                transcriptText = '';
+                stopRecording();
+                loadBkList();
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        function loadBkList() {
+            const tbody = document.getElementById('bkTableBody');
+            const emptyEl = document.getElementById('bkEmpty');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('bkFilterStudent').value || '').toLowerCase().trim();
+            let items = Object.entries(bkCache || {}).map(([id, b]) => ({ id, ...b }));
+            items = items.filter(b => (!filterStudent || (b.nama || '').toLowerCase().includes(filterStudent)));
+            items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) { tbody.innerHTML = '';
+                if (emptyEl) emptyEl.classList.remove('hidden'); return; }
+            if (emptyEl) emptyEl.classList.add('hidden');
+            tbody.innerHTML = items.map((b, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(b.nama)}</td>
+                    <td>${escapeHtml(b.kelas || '')}</td>
+                    <td>${escapeHtml(b.ringkasan || '-')}</td>
+                    <td>${escapeHtml(b.solusi || '-')}</td>
+                    <td>${escapeHtml(b.guru || '-')}</td>
+                    <td>${formatDate(b.tanggal)}</td>
+                    <td class="actions">
+                        <button class="btn btn-xs btn-outline" data-view-bk="${b.id}"><i class="fas fa-eye"></i></button>
+                        ${(isAdmin() || b.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-bk="${b.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            tbody.querySelectorAll('[data-view-bk]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-view-bk');
+                    const b = bkCache[id];
+                    if (b) openModal('Detail BK', `
+                        <p><strong>Siswa:</strong> ${escapeHtml(b.nama)} (${escapeHtml(b.kelas || '')})</p>
+                        <p><strong>Guru:</strong> ${escapeHtml(b.guru || '-')}</p>
+                        <p><strong>Tanggal:</strong> ${formatDate(b.tanggal)}</p>
+                        <p><strong>Catatan:</strong> ${escapeHtml(b.catatan || '-')}</p>
+                        <p><strong>Ringkasan:</strong> ${escapeHtml(b.ringkasan || '-')}</p>
+                        <p><strong>Solusi:</strong> ${escapeHtml(b.solusi || '-')}</p>
+                        <p><strong>Transkrip:</strong></p>
+                        <div style="background:#f8f5f0;padding:12px;border-radius:var(--radius-sm);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(b.transkrip || '-')}</div>
+                    `);
+                });
+            });
+            tbody.querySelectorAll('[data-delete-bk]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-delete-bk');
+                    if (confirm('Hapus catatan BK ini?')) { db.ref('bk/' + id).remove().then(() => showToast(
+                            'Catatan BK dihapus.')); }
+                });
+            });
+        }
+
+        document.getElementById('bkFilterStudent').addEventListener('input', loadBkList);
+        document.getElementById('clearBkFilters').addEventListener('click', () => {
+            document.getElementById('bkFilterStudent').value = '';
+            loadBkList();
+        });
+        document.getElementById('exportBkExcelBtn').addEventListener('click', function() {
+            const items = Object.values(bkCache || {});
+            if (!items.length) { showToast('Tidak ada data BK.', 'error'); return; }
+            const headers = ['No', 'Siswa', 'Kelas', 'Ringkasan', 'Solusi', 'Guru', 'Tanggal'];
+            const rows = items.map((b, i) => [i + 1, b.nama, b.kelas, b.ringkasan, b.solusi, b.guru, formatDate(b
+            .tanggal)]);
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            '\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `data-bk-${today()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data BK berhasil diekspor!');
+        });
+
+        // ============================================================
+        // CHAT
+        // ============================================================
+        function populateChatRecipients() {
+            const select = document.getElementById('chatRecipient');
+            if (!select) return;
+            const current = select.value;
+            select.innerHTML = '<option value="grup">💬 Semua Guru (Grup)</option>';
+            const users = usersCache || {};
+            for (let id in users) {
+                if (id === currentUser.id) continue;
+                const u = users[id];
+                if (u) {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = `${u.name} (${u.jabatan || 'Guru'})`;
+                    select.appendChild(opt);
+                }
+            }
+            if (current) select.value = current;
+        }
+
+        function loadChat() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            const recipient = document.getElementById('chatRecipient').value;
+            let items = Object.values(chatCache || {});
+            if (recipient === 'grup') {
+                items = items.filter(msg => msg.recipientId === 'grup' || !msg.recipientId);
+            } else {
+                items = items.filter(msg =>
+                    (msg.senderId === currentUser.id && msg.recipientId === recipient) ||
+                    (msg.senderId === recipient && msg.recipientId === currentUser.id) ||
+                    (msg.senderId === currentUser.id && !msg.recipientId) ||
+                    (msg.senderId === recipient && !msg.recipientId)
+                );
+            }
+            items.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            if (!items.length) {
+                container.innerHTML =
+                    '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesan di percakapan ini.</p></div>';
+                return;
+            }
+            container.innerHTML = items.map(msg => {
+                const isOwn = msg.senderId === currentUser.id;
                 return `
-                <div class="leaderboard-item">
-                    <div class="rank ${rankClass}">#${i + 1}</div>
-                    <div class="info">
-                        <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
-                        <div class="detail">Reward: <span style="color:var(--success);font-weight:600;">+${s.poinReward}</span></div>
+                    <div class="chat-msg ${isOwn ? 'own' : ''}">
+                        <div class="sender">${escapeHtml(msg.sender)} <span class="badge">${escapeHtml(msg.jabatan || 'Guru')}</span> <span class="time">${escapeHtml(msg.time || '-')}</span></div>
+                        <div class="text">${escapeHtml(msg.message)}</div>
                     </div>
-                    <div class="points">${s.poinPelanggaran} poin</div>
-                </div>`;
+                `;
             }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById('chatRecipient').addEventListener('change', loadChat);
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            if (!currentUser) { showToast('Anda belum login.', 'error'); return; }
+            const recipientId = document.getElementById('chatRecipient').value;
+            const id = genId();
+            const chatMsg = {
+                id,
+                sender: currentUser.name,
+                senderId: currentUser.id,
+                recipientId,
+                jabatan: currentUser.jabatan || 'Guru',
+                message,
+                timestamp: Date.now(),
+                time: new Date().toLocaleString('id-ID')
+            };
+            db.ref('chat/' + id).set(chatMsg).then(() => {
+                input.value = '';
+                loadChat();
+                if (recipientId !== 'grup') {
+                    const recipientUser = usersCache[recipientId];
+                    if (recipientUser) sendBrowserNotification('💬 Pesan Pribadi',
+                        `${currentUser.name} mengirim pesan: ${message}`);
+                } else {
+                    sendBrowserNotification('💬 Pesan Grup', `${currentUser.name}: ${message}`);
+                }
+            }).catch(err => showToast('Gagal kirim: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // ONLINE TEACHERS
+        // ============================================================
+        function loadOnlineTeachers() {
+            const container = document.getElementById('onlineTeachers');
+            if (!container) return;
+            db.ref('onlineStatus').once('value', (snap) => {
+                const data = snap.val() || {};
+                const online = Object.values(data).filter(s => s.online === true);
+                if (online.length === 0) {
+                    container.innerHTML = '<span class="text-muted">Tidak ada guru online.</span>';
+                    return;
+                }
+                container.innerHTML = online.map(g => `
+                    <span class="badge badge-online" style="font-size:0.8rem;padding:4px 12px;">
+                        <i class="fas fa-circle" style="font-size:0.5rem;color:#4caf50;margin-right:4px;"></i>
+                        ${escapeHtml(g.name)} (${escapeHtml(g.jabatan || 'Guru')})
+                    </span>
+                `).join('');
+            });
         }
 
         // ============================================================
-        // PANEL ADMIN
+        // FEEDBACK
+        // ============================================================
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('feedbackName').value.trim() || 'Anonim';
+            const type = document.getElementById('feedbackType').value;
+            const message = document.getElementById('feedbackMessage').value.trim();
+            if (!message) { showToast('Pesan tidak boleh kosong!', 'error'); return; }
+            const feedback = {
+                id: genId(),
+                name,
+                type,
+                message,
+                guru: currentUser ? currentUser.name : 'Unknown',
+                createdAt: Date.now(),
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+            db.ref('feedback/' + feedback.id).set(feedback).then(() => {
+                showToast('Saran berhasil dikirim!');
+                this.reset();
+                document.getElementById('feedbackName').value = '';
+                document.getElementById('feedbackMessage').value = '';
+            }).catch(err => showToast('Gagal mengirim: ' + err.message, 'error'));
+        });
+
+        function loadFeedbackList() {
+            const container = document.getElementById('feedbackList');
+            if (!container) return;
+            const items = Object.values(feedbackCache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            if (!items.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div>';
+                return;
+            }
+            container.innerHTML = items.map(f => `
+                <div class="feedback-item">
+                    <div class="feedback-text"><strong>${escapeHtml(f.name)}</strong> <span class="badge">${escapeHtml(f.type)}</span></div>
+                    <div class="feedback-text">${escapeHtml(f.message)}</div>
+                    <div class="feedback-meta">${escapeHtml(f.guru || 'Guru')} • ${escapeHtml(f.timestamp || '-')}</div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================================
+        // MONEY REWARD
+        // ============================================================
+        function loadMoneyRewardRules() {
+            const rules = moneyRewardRules || {};
+            ['50', '80', '90', '100'].forEach(key => {
+                const el = document.getElementById('rewardMoney' + key);
+                if (el && rules[key] !== undefined) el.value = rules[key];
+            });
+        }
+
+        document.getElementById('saveMoneyRewardBtn').addEventListener('click', function() {
+            const rules = {
+                '50': parseInt(document.getElementById('rewardMoney50').value) || 0,
+                '80': parseInt(document.getElementById('rewardMoney80').value) || 0,
+                '90': parseInt(document.getElementById('rewardMoney90').value) || 0,
+                '100': parseInt(document.getElementById('rewardMoney100').value) || 0
+            };
+            db.ref('moneyRewardRules').set(rules).then(() => { showToast('Aturan reward uang disimpan!');
+                loadMoneyRewardRules(); });
+        });
+
+        function checkAndAwardMoney(nis, nama, kelas, totalPoin) {
+            const rules = moneyRewardRules || {};
+            const thresholds = [100, 90, 80, 50];
+            let awarded = 0,
+                threshold = 0;
+            for (let t of thresholds) {
+                if (totalPoin >= t && rules[t] && rules[t] > 0) { awarded = rules[t];
+                    threshold = t; break; }
+            }
+            if (awarded > 0) {
+                const existingRewards = Object.values(rewardsCache || {}).filter(r =>
+                    r.nis === nis && r.moneyAwarded && r.moneyThreshold === threshold
+                );
+                if (existingRewards.length === 0) {
+                    const moneyRecord = {
+                        nis,
+                        nama,
+                        kelas,
+                        bentuk: `🎉 Reward Uang ${threshold} Poin`,
+                        kategori: 'besar',
+                        poin: 0,
+                        moneyAwarded: awarded,
+                        moneyThreshold: threshold,
+                        guru: 'Sistem',
+                        tanggal: today(),
+                        createdAt: Date.now(),
+                        isMoneyReward: true
+                    };
+                    db.ref('rewards/' + genId()).set(moneyRecord).then(() => {
+                        saveNotif('money', '💰 Reward Uang!',
+                            `${nama} mendapat ${formatRupiah(awarded)} karena mencapai ${threshold} poin!`);
+                        showToast(`🎉 ${nama} mendapat ${formatRupiah(awarded)}!`, 'success');
+                        sendBrowserNotification('💰 Reward Uang', `${nama} mendapat ${formatRupiah(awarded)}!`);
+                    });
+                }
+            }
+        }
+
+        // ============================================================
+        // ADMIN PANEL
         // ============================================================
         function loadAdminPanel() {
             renderViolationTypesTable();
             renderRewardTypesTable();
             renderUsersTable();
             renderGuruTable();
+            loadFeedbackList();
         }
+
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const targetId = this.dataset.target;
+                const body = document.getElementById(targetId);
+                if (body) {
+                    body.classList.toggle('open');
+                    this.classList.toggle('open');
+                }
+            });
+        });
 
         function renderViolationTypesTable() {
             const tbody = document.getElementById('violationTypesTable');
@@ -1697,39 +3545,72 @@
             tbody.querySelectorAll('[data-del-rtype]').forEach(btn => btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-del-rtype');
                 if (confirm('Hapus jenis reward ini?')) db.ref('rewardTypes/' + id).remove().then(() =>
-                    showToast('Dihapus.'));
+                showToast('Dihapus.'));
             }));
         }
 
+        // USERS TABLE with password visibility
         function renderUsersTable() {
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
             const entries = Object.entries(usersCache || {});
             if (!entries.length) { tbody.innerHTML =
-                '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
+                '<tr><td colspan="7" style="text-align:center;color:var(--text-light);">Belum ada pengguna.</td></tr>'; return; }
             tbody.innerHTML = entries.map(([id, u]) => {
                 const lastChange = (passwordHistoryCache && passwordHistoryCache[id]) || '-';
+                const status = (currentUser && currentUser.id === id) ? 'Online' : 'Offline';
+                const jabatan = u.jabatan || 'Guru';
+                const passId = 'pass_' + id;
                 return `
                 <tr>
                     <td>${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(u.name)}</td>
+                    <td><span class="badge">${escapeHtml(jabatan)}</span></td>
                     <td><span class="badge ${u.role === 'admin' ? '' : 'badge-success'}">${escapeHtml(u.role)}</span></td>
-                    <td class="password-history">${escapeHtml(lastChange)}</td>
+                    <td>
+                        <div class="password-reveal">
+                            <span id="${passId}">••••••</span>
+                            <button class="toggle-pass" data-pass="${u.password}" data-target="${passId}" title="Lihat password"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </td>
+                    <td><span class="badge ${status === 'Online' ? 'badge-online' : 'badge'}">${status}</span></td>
                     <td class="actions">
                         <button class="btn btn-xs btn-outline" data-reset-pass="${id}"><i class="fas fa-key"></i></button>
                         ${(currentUser && id !== currentUser.id) ? `<button class="btn btn-xs btn-danger" data-del-user="${id}"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>`;
             }).join('');
-            tbody.querySelectorAll('[data-reset-pass]').forEach(btn => btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-reset-pass');
-                openResetPasswordModal(id, usersCache[id]);
-            }));
-            tbody.querySelectorAll('[data-del-user]').forEach(btn => btn.addEventListener('click', function() {
-                const id = this.getAttribute('data-del-user');
-                if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast(
-                    'Pengguna dihapus.'));
-            }));
+
+            // Password toggle
+            tbody.querySelectorAll('.toggle-pass').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const pass = this.dataset.pass;
+                    const targetId = this.dataset.target;
+                    const target = document.getElementById(targetId);
+                    if (!target) return;
+                    if (target.textContent === '••••••') {
+                        target.textContent = pass;
+                        this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                    } else {
+                        target.textContent = '••••••';
+                        this.innerHTML = '<i class="fas fa-eye"></i>';
+                    }
+                });
+            });
+
+            tbody.querySelectorAll('[data-reset-pass]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-reset-pass');
+                    openResetPasswordModal(id, usersCache[id]);
+                });
+            });
+            tbody.querySelectorAll('[data-del-user]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-del-user');
+                    if (confirm('Hapus pengguna ini?')) db.ref('users/' + id).remove().then(() => showToast(
+                        'Pengguna dihapus.'));
+                });
+            });
         }
 
         function renderGuruTable() {
@@ -1737,16 +3618,33 @@
             if (!tbody) return;
             const entries = Object.entries(guruCache || {});
             if (!entries.length) { tbody.innerHTML =
-                '<tr><td colspan="3" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
-            tbody.innerHTML = entries.map(([id, g], i) => `
+                '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada data.</td></tr>'; return; }
+            const users = usersCache || {};
+            const profiles = userProfilesCache || {};
+            tbody.innerHTML = entries.map(([id, g], i) => {
+                let jabatan = 'Guru',
+                    foto = '';
+                for (let uid in users) {
+                    if (users[uid].name === g.nama) {
+                        jabatan = users[uid].jabatan || 'Guru';
+                        if (profiles[uid] && profiles[uid].foto) foto = profiles[uid].foto;
+                        break;
+                    }
+                }
+                return `
                 <tr>
                     <td>${i + 1}</td>
+                    <td>${foto ? `<img src="${foto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />` : '<i class="fas fa-user" style="font-size:1.5rem;color:var(--text-light);"></i>'}</td>
                     <td>${escapeHtml(g.nama)}</td>
+                    <td><span class="badge">${escapeHtml(jabatan)}</span></td>
                     <td><span class="badge badge-success">Aktif</span></td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
+        // ============================================================
+        // MODALS
+        // ============================================================
         function openViolationTypeModal(id, existing) {
             const t = existing || { nama: '', kategori: 'ringan', poin: '', konsekuensi: '' };
             openModal(id ? 'Edit Jenis Pelanggaran' : 'Tambah Jenis Pelanggaran', `
@@ -1761,7 +3659,7 @@
                     </div>
                     <div class="form-group"><label>Poin</label><input type="number" id="mVPoints" value="${t.poin}" /></div>
                 </div>
-                <div class="form-group"><label>Konsekuensi Edukatif</label><input type="text" id="mVConsequence" value="${escapeHtml(t.konsekuensi || '')}" /></div>
+                <div class="form-group"><label>Konsekuensi</label><input type="text" id="mVConsequence" value="${escapeHtml(t.konsekuensi || '')}" /></div>
                 <button type="button" class="btn btn-gold" id="mVSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Simpan</button>
             `);
             document.getElementById('mVSaveBtn').addEventListener('click', () => {
@@ -1809,6 +3707,16 @@
             openModal('Tambah Pengguna', `
                 <div class="form-group"><label>Username</label><input type="text" id="mUUsername" /></div>
                 <div class="form-group"><label>Nama Lengkap</label><input type="text" id="mUName" /></div>
+                <div class="form-group"><label>Jabatan</label>
+                    <select id="mUJabatan">
+                        <option value="Guru Mapel Umum">Guru Mapel Umum</option>
+                        <option value="Wali Kelas">Wali Kelas</option>
+                        <option value="Guru Diniyah">Guru Diniyah</option>
+                        <option value="Guru Tahfizh">Guru Tahfizh</option>
+                        <option value="Kabid">Kabid</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
                 <div class="form-group"><label>Password Awal</label><input type="text" id="mUPassword" placeholder="Minimal 6 karakter" /></div>
                 <div class="form-group"><label>Role</label>
                     <select id="mURole"><option value="teacher">Guru</option><option value="admin">Admin</option></select>
@@ -1820,13 +3728,15 @@
                 const name = document.getElementById('mUName').value.trim();
                 const password = document.getElementById('mUPassword').value.trim();
                 const role = document.getElementById('mURole').value;
-                if (!username || !name || password.length < 6) { showToast(
-                        'Lengkapi data (password min. 6 karakter)!', 'error'); return; }
+                const jabatan = document.getElementById('mUJabatan').value;
+                if (!username || !name || password.length < 6) { showToast('Lengkapi data (password min. 6 karakter)!',
+                        'error'); return; }
                 const existingUsername = Object.values(usersCache || {}).some(u => u.username === username);
                 if (existingUsername) { showToast('Username sudah digunakan!', 'error'); return; }
                 const id = genId();
-                db.ref('users/' + id).set({ username, name, password, role }).then(() => {
+                db.ref('users/' + id).set({ username, name, password, role, jabatan }).then(() => {
                     db.ref('passwordHistory/' + id).set(new Date().toLocaleString('id-ID'));
+                    db.ref('userProfiles/' + id).set({ foto: '' });
                     showToast('Pengguna baru ditambahkan!');
                     closeModal();
                 });
@@ -1836,14 +3746,13 @@
         function openResetPasswordModal(id, user) {
             openModal('Reset Password: ' + (user ? user.name : ''), `
                 <div class="form-group"><label>Password Baru</label><input type="text" id="mResetPass" placeholder="Minimal 6 karakter" /></div>
-                <button type="button" class="btn btn-gold" id="mResetSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Reset Password</button>
+                <button type="button" class="btn btn-gold" id="mResetSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Reset</button>
             `);
             document.getElementById('mResetSaveBtn').addEventListener('click', () => {
                 const pass = document.getElementById('mResetPass').value.trim();
                 if (pass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
                 db.ref('users/' + id).update({ password: pass }).then(() => {
-                    db.ref('passwordHistory/' + id).set(new Date().toLocaleString('id-ID') +
-                        ' (direset admin)');
+                    db.ref('passwordHistory/' + id).set(new Date().toLocaleString('id-ID') + ' (direset admin)');
                     showToast('Password berhasil direset!');
                     closeModal();
                 });
@@ -1855,7 +3764,46 @@
         document.getElementById('addUserBtn').addEventListener('click', () => openAddUserModal());
 
         // ============================================================
-        // PROFIL & GANTI PASSWORD
+        // TAMBAH SISWA BARU (MANUAL)
+        // ============================================================
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nis = document.getElementById('newNis').value.trim();
+            const nama = document.getElementById('newNama').value.trim();
+            const kelas = document.getElementById('newKelas').value;
+
+            if (!nis || !nama || !kelas) { showToast('Lengkapi semua data siswa!', 'error'); return; }
+            if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
+
+            const newStudent = { nis, nama, kelas };
+            db.ref('siswa/' + nis).set(newStudent).then(() => {
+                showToast(`Siswa ${nama} berhasil ditambahkan!`);
+                this.reset();
+                populateSiswaSelects();
+            }).catch(err => showToast('Gagal menambah: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // LOGO SEKOLAH
+        // ============================================================
+        function loadSchoolLogo() {
+            // Cek di localStorage apakah ada logo yang disimpan
+            const savedLogo = localStorage.getItem('schoolLogo');
+            if (savedLogo) {
+                const img = document.getElementById('schoolLogo');
+                img.src = savedLogo;
+                img.style.display = 'block';
+                document.getElementById('logoText').style.display = 'none';
+            }
+        }
+
+        // Pengguna bisa mengupload logo di sini (opsional) - kita tambahkan di profil atau admin
+        // Untuk sementara, kita beri cara manual via console:
+        // localStorage.setItem('schoolLogo', 'URL_LOGO_ANDA');
+        // Atau bisa ditambahkan form upload nanti
+
+        // ============================================================
+        // PROFILE
         // ============================================================
         function loadProfile() {
             const user = currentUser;
@@ -1864,33 +3812,71 @@
             if (usernameEl) usernameEl.value = user.username;
             const nameEl = document.getElementById('profileFullname');
             if (nameEl) nameEl.value = user.name;
+            const jabatanEl = document.getElementById('profileJabatan');
+            if (jabatanEl) jabatanEl.value = user.jabatan || 'Guru Mapel Umum';
+            db.ref('userProfiles/' + user.id + '/foto').once('value', (snap) => {
+                const foto = snap.val();
+                const preview = document.getElementById('profilePhotoPreview');
+                if (foto) { preview.innerHTML = `<img src="${foto}" alt="Foto" />`; } else { preview.innerHTML =
+                        `<i class="fas fa-user" style="font-size:2rem;color:var(--text-light);"></i>`; }
+            });
         }
 
-        document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        document.getElementById('profilePhotoInput').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            if (file.size > 200 * 1024) { showToast('File terlalu besar! Maks 200KB.', 'error');
+                this.value = ''; return; }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const dataUrl = ev.target.result;
+                const preview = document.getElementById('profilePhotoPreview');
+                preview.innerHTML = `<img src="${dataUrl}" alt="Foto" />`;
+                db.ref('userProfiles/' + currentUser.id + '/foto').set(dataUrl).then(() => {
+                    showToast('Foto profil berhasil diupdate!');
+                    const avatar = document.getElementById('userAvatar');
+                    avatar.innerHTML = `<img src="${dataUrl}" alt="Foto" />`;
+                }).catch(err => showToast('Gagal simpan foto: ' + err.message, 'error'));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const newPass = document.getElementById('newPassword').value;
             const confirmPass = document.getElementById('confirmPassword').value;
-            if (newPass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
-            if (newPass !== confirmPass) { showToast('Konfirmasi password tidak cocok!', 'error'); return; }
-            db.ref('users/' + currentUser.id).update({ password: newPass }).then(() => {
-                db.ref('passwordHistory/' + currentUser.id).set(new Date().toLocaleString('id-ID'));
-                showToast('Password berhasil diubah!');
-                this.reset();
-            }).catch(err => showToast('Gagal: ' + err.message, 'error'));
+            const jabatan = document.getElementById('profileJabatan').value;
+
+            db.ref('users/' + currentUser.id + '/jabatan').set(jabatan).then(() => {
+                currentUser.jabatan = jabatan;
+                sessionStorage.setItem('cq_currentUser', JSON.stringify(currentUser));
+                showToast('Jabatan diperbarui!');
+            }).catch(err => showToast('Gagal update jabatan: ' + err.message, 'error'));
+
+            if (newPass) {
+                if (newPass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
+                if (newPass !== confirmPass) { showToast('Konfirmasi password tidak cocok!', 'error'); return; }
+                db.ref('users/' + currentUser.id).update({ password: newPass }).then(() => {
+                    db.ref('passwordHistory/' + currentUser.id).set(new Date().toLocaleString('id-ID'));
+                    showToast('Password berhasil diubah!');
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                }).catch(err => showToast('Gagal: ' + err.message, 'error'));
+            }
         });
 
         // ============================================================
-        // FORM CATAT PELANGGARAN & REWARD
+        // RECORD & REWARD FORMS
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
         document.getElementById('recStudent').addEventListener('change', () => updateSelectedStudentClass('recStudent',
-            'recClass'));
+        'recClass'));
 
         document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
         document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
-        document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass(
-            'rewardStudent', 'rewardClass'));
+        document.getElementById('rewardStudent').addEventListener('change', () => updateSelectedStudentClass('rewardStudent',
+            'rewardClass'));
 
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1900,7 +3886,7 @@
             if (!nis || !typeId) { showToast('Pilih siswa dan jenis pelanggaran!', 'error'); return; }
             const s = siswaCache[nis];
             const t = violationTypesCache[typeId];
-            if (!s || !t) { showToast('Data tidak valid, coba muat ulang halaman.', 'error'); return; }
+            if (!s || !t) { showToast('Data tidak valid!', 'error'); return; }
             const record = {
                 nis,
                 nama: s.nama,
@@ -1917,10 +3903,14 @@
             };
             db.ref('violations/' + genId()).set(record).then(() => {
                 showToast('Pelanggaran berhasil dicatat!');
+                saveNotif('violation', '⚠️ Pelanggaran',
+                    `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
+                sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
                 document.getElementById('recClass').value = '';
+                loadViolations();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
@@ -1931,7 +3921,7 @@
             if (!nis || !typeId) { showToast('Pilih siswa dan bentuk kebaikan!', 'error'); return; }
             const s = siswaCache[nis];
             const t = rewardTypesCache[typeId];
-            if (!s || !t) { showToast('Data tidak valid, coba muat ulang halaman.', 'error'); return; }
+            if (!s || !t) { showToast('Data tidak valid!', 'error'); return; }
             const record = {
                 nis,
                 nama: s.nama,
@@ -1945,16 +3935,25 @@
                 createdAt: Date.now()
             };
             db.ref('rewards/' + genId()).set(record).then(() => {
-                showToast('Reward berhasil diberikan!');
+                showToast('Reward berhasil diberikan! Poin ringan/sedang akan otomatis berkurang!');
+                saveNotif('reward', '⭐ Reward Kebaikan',
+                    `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`);
+                sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama} (+${t.poin} poin)`);
+
+                const allRewards = Object.values(rewardsCache || {});
+                const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
+                checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
+
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
                 document.getElementById('rewardClass').value = '';
+                setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
         // ============================================================
-        // LOGIN / LOGOUT / TOGGLE PASSWORD
+        // LOGIN / LOGOUT
         // ============================================================
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1986,6 +3985,8 @@
                 if (passInput) passInput.focus();
             }
 
+            showMotivationQuote();
+
             const userData = sessionStorage.getItem('cq_currentUser');
             if (userData) {
                 const user = JSON.parse(userData);
@@ -2006,7 +4007,6 @@
             }
         })();
 
-        initFirebaseData();
         console.log('🔥 Aplikasi siap! Login dengan admin/admin123');
     </script>
 </body>
