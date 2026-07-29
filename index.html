@@ -1005,45 +1005,6 @@
             margin-top: 8px;
         }
 
-        .chat-container {
-            max-height: 500px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 12px;
-            background: #faf8f5;
-            border-radius: var(--radius-sm);
-            border: 1px solid #e8e4dc;
-        }
-        .chat-msg {
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            background: #fff;
-            max-width: 80%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid var(--gold);
-        }
-        .chat-msg .sender {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: var(--primary);
-        }
-        .chat-msg .time {
-            font-size: 0.7rem;
-            color: var(--text-light);
-            margin-left: 8px;
-        }
-        .chat-msg .text {
-            margin-top: 4px;
-            font-size: 0.95rem;
-        }
-        .chat-msg.own {
-            align-self: flex-end;
-            border-left-color: var(--success);
-            background: #e8f5e9;
-        }
-
         .profile-photo-upload {
             display: flex;
             align-items: center;
@@ -1096,54 +1057,6 @@
         .reward-recipient-item .points {
             color: var(--success);
             font-weight: 700;
-        }
-
-        /* Autocomplete styles */
-        .autocomplete-wrapper {
-            position: relative;
-        }
-        .autocomplete-wrapper .autocomplete-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 2px solid #e8e4dc;
-            border-top: none;
-            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            display: none;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-        .autocomplete-wrapper .autocomplete-results .result-item {
-            padding: 10px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0ece4;
-            transition: 0.2s;
-        }
-        .autocomplete-wrapper .autocomplete-results .result-item:hover {
-            background: #f8f5f0;
-        }
-        .autocomplete-wrapper .autocomplete-results .result-item .sub {
-            font-size: 0.75rem;
-            color: var(--text-light);
-        }
-        .autocomplete-wrapper input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e8e4dc;
-            border-radius: var(--radius-sm);
-            font-size: 0.95rem;
-            transition: 0.3s;
-            background: #faf8f5;
-            font-family: inherit;
-        }
-        .autocomplete-wrapper input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
         }
 
         @media (max-width: 992px) {
@@ -1200,9 +1113,6 @@
                 max-width: 100%;
                 right: 0;
                 width: 100%;
-            }
-            .chat-msg {
-                max-width: 95%;
             }
         }
         @media (max-width: 480px) {
@@ -1304,7 +1214,6 @@
                 <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
                 <a class="nav-item" data-page="late"><i class="fas fa-clock"></i> Keterlambatan</a>
                 <a class="nav-item" data-page="bk"><i class="fas fa-hand-holding-heart"></i> BK (Konseling)</a>
-                <a class="nav-item" data-page="chat"><i class="fas fa-comment-dots"></i> Chat Guru</a>
                 <a class="nav-item" data-page="feedback"><i class="fas fa-comment"></i> Kirim Saran</a>
                 <div class="nav-divider"></div>
                 <a class="nav-item" data-page="admin" id="adminNav"><i class="fas fa-user-gear"></i> Panel Admin</a>
@@ -1330,15 +1239,13 @@
 
                 <!-- RECORD -->
                 <section class="page-section" id="page-record">
-                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik nama siswa, pilih jenis pelanggaran.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Pilih siswa, jenis pelanggaran, dan konsekuensi otomatis.</p></div>
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
-                                <div class="form-group autocomplete-wrapper">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="recStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <div class="autocomplete-results" id="recStudentResults"></div>
-                                    <select id="recStudent" style="display:none;"></select>
+                                    <select id="recStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1358,15 +1265,13 @@
 
                 <!-- REWARD -->
                 <section class="page-section" id="page-reward">
-                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Ketik nama siswa, pilih bentuk kebaikan. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
+                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Pilih siswa dan bentuk kebaikan. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
                     <div class="card">
                         <form id="rewardForm">
                             <div class="form-row">
-                                <div class="form-group autocomplete-wrapper">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="rewardStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <div class="autocomplete-results" id="rewardStudentResults"></div>
-                                    <select id="rewardStudent" style="display:none;"></select>
+                                    <select id="rewardStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1427,11 +1332,9 @@
                     <div class="card">
                         <form id="lateForm">
                             <div class="form-row">
-                                <div class="form-group autocomplete-wrapper">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="lateStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <div class="autocomplete-results" id="lateStudentResults"></div>
-                                    <select id="lateStudent" style="display:none;"></select>
+                                    <select id="lateStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="lateClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1463,11 +1366,9 @@
                     <div class="card">
                         <form id="bkForm">
                             <div class="form-row">
-                                <div class="form-group autocomplete-wrapper">
+                                <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <input type="text" id="bkStudentInput" placeholder="Ketik nama siswa..." autocomplete="off" />
-                                    <div class="autocomplete-results" id="bkStudentResults"></div>
-                                    <select id="bkStudent" style="display:none;"></select>
+                                    <select id="bkStudent" required><option value="">— Pilih siswa —</option></select>
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="bkClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1505,33 +1406,6 @@
                         </div>
                         <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Ringkasan</th><th>Solusi</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
                         <div id="bkEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada catatan BK.</p></div>
-                    </div>
-                </section>
-
-                <!-- CHAT -->
-                <section class="page-section" id="page-chat">
-                    <div class="page-header"><h2><i class="fas fa-comment-dots"></i> Chat Guru</h2><p>Kirim pesan pribadi ke guru lain atau chat grup.</p></div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-users"></i> Guru Online</h3></div>
-                        <div id="onlineTeachers" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
-                            <span class="badge badge-online">Memuat...</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-comments"></i> Ruang Chat</h3></div>
-                        <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
-                            <select id="chatRecipient" style="flex:1; min-width:180px; padding:8px 14px; border:2px solid #e8e4dc; border-radius:var(--radius-sm); background:#faf8f5;">
-                                <option value="grup">💬 Semua Guru (Grup)</option>
-                            </select>
-                            <span class="text-muted" style="font-size:0.85rem;align-self:center;">Pilih penerima</span>
-                        </div>
-                        <div class="chat-container" id="chatMessages">
-                            <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesan. Mulai chat!</p></div>
-                        </div>
-                        <form id="chatForm" style="display:flex; gap:12px; margin-top:12px;">
-                            <input type="text" id="chatInput" placeholder="Tulis pesan..." style="flex:1; padding:10px 16px; border:2px solid #e8e4dc; border-radius:var(--radius-sm); font-family:inherit;" required />
-                            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Kirim</button>
-                        </form>
                     </div>
                 </section>
 
@@ -1930,7 +1804,6 @@
         let notificationsCache = {};
         let feedbackCache = {};
         let bkCache = {};
-        let chatCache = {};
         let latesCache = {};
         let moneyRewardRules = {};
         let userProfilesCache = {};
@@ -2003,8 +1876,7 @@
         }
 
         let lastViolationCheck = 0,
-            lastRewardCheck = 0,
-            lastChatCheck = 0;
+            lastRewardCheck = 0;
 
         function checkNewViolations() {
             const items = Object.values(violationsCache || {});
@@ -2027,20 +1899,6 @@
                 const msg = `${latest.nama} - ${latest.bentuk} (+${latest.poin} poin)`;
                 sendBrowserNotification('⭐ Reward Baru', msg);
                 saveNotif('reward', 'Reward Baru', msg);
-            }
-        }
-
-        function checkNewChatMessages() {
-            const items = Object.values(chatCache || {});
-            if (!items.length) return;
-            const latest = items.reduce((a, b) => (a.timestamp > b.timestamp ? a : b));
-            if (latest.timestamp && latest.timestamp > lastChatCheck && latest.senderId !== currentUser?.id) {
-                lastChatCheck = latest.timestamp;
-                if (latest.recipientId === 'grup' || latest.recipientId === currentUser?.id || !latest.recipientId) {
-                    const msg = `${latest.sender}: ${latest.message}`;
-                    sendBrowserNotification('💬 Pesan Chat Baru', msg);
-                    saveNotif('chat', 'Pesan Chat', msg);
-                }
             }
         }
 
@@ -2209,20 +2067,6 @@
                     });
                 }
             });
-            db.ref('chat').once('value', (snap) => {
-                if (!snap.exists()) {
-                    db.ref('chat').set({
-                        'init': {
-                            sender: 'Sistem',
-                            senderId: 'system',
-                            recipientId: 'grup',
-                            message: 'Selamat datang di Chat Guru!',
-                            timestamp: Date.now(),
-                            time: new Date().toLocaleString('id-ID')
-                        }
-                    });
-                }
-            });
             console.log('🔥 Firebase siap!');
         }
         initFirebaseData();
@@ -2248,16 +2092,10 @@
             if (adminNav) adminNav.style.display = isAdmin() ? 'flex' : 'none';
 
             setupRealtimeListeners();
-            populateSiswaData();
+            populateSiswaSelects();
 
             const lateDate = document.getElementById('lateDate');
             if (lateDate) lateDate.value = today();
-
-            // Setup autocomplete
-            setupAutocomplete('recStudentInput', 'recStudentResults', 'recStudent', 'recClass');
-            setupAutocomplete('rewardStudentInput', 'rewardStudentResults', 'rewardStudent', 'rewardClass');
-            setupAutocomplete('bkStudentInput', 'bkStudentResults', 'bkStudent', 'bkClass');
-            setupAutocomplete('lateStudentInput', 'lateStudentResults', 'lateStudent', 'lateClass');
 
             populateViolationSelects();
             populateRewardSelects();
@@ -2268,11 +2106,6 @@
             loadMoneyRewardRules();
             loadFeedbackList();
             loadBkList();
-            loadChat();
-            loadOnlineTeachers();
-            populateChatRecipients();
-            currentLeaderboardTab = 'violation';
-            loadLeaderboard(currentLeaderboardTab);
             loadLateList();
 
             loadSchoolLogo();
@@ -2302,8 +2135,6 @@
             if (isPageActive('reward')) loadRewardsList();
             if (isPageActive('admin')) loadFeedbackList();
             if (isPageActive('bk')) loadBkList();
-            if (isPageActive('chat')) { loadChat();
-                loadOnlineTeachers(); }
             if (isPageActive('late')) loadLateList();
         }
 
@@ -2322,7 +2153,7 @@
                     SISWA_DATA.forEach(s => { obj[s.nis] = s; });
                     db.ref('siswa').set(obj); return; }
                 siswaCache = data;
-                populateSiswaData();
+                populateSiswaSelects();
                 refreshActivePage();
             });
             db.ref('violationTypes').on('value', (snap) => {
@@ -2339,8 +2170,6 @@
             db.ref('users').on('value', (snap) => {
                 usersCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel();
-                if (isPageActive('chat')) { loadOnlineTeachers();
-                    populateChatRecipients(); }
             });
             db.ref('guru').on('value', (snap) => { guruCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel(); });
@@ -2354,10 +2183,6 @@
                 loadFeedbackList(); if (isPageActive('admin')) loadAdminPanel(); });
             db.ref('bk').on('value', (snap) => { bkCache = snap.val() || {};
                 loadBkList(); });
-            db.ref('chat').on('value', (snap) => { chatCache = snap.val() || {};
-                if (isPageActive('chat')) loadChat();
-                checkNewChatMessages(); });
-            db.ref('onlineStatus').on('value', (snap) => { if (isPageActive('chat')) loadOnlineTeachers(); });
             db.ref('userProfiles').on('value', (snap) => {
                 userProfilesCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel();
@@ -2370,113 +2195,50 @@
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
-                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'chat', 'onlineStatus', 'userProfiles', 'lates'
+                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates'
             ].forEach(r => db.ref(r).off());
         }
 
         // ============================================================
-        // AUTOCOMPLETE SISWA (DIPERBAIKI)
+        // POPULATE SISWA SELECT
         // ============================================================
-        function populateSiswaData() {
-            // Data sudah di cache dari Firebase
-        }
+        function populateSiswaSelects() {
+            const siswaList = Object.values(siswaCache);
+            siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
 
-        function setupAutocomplete(inputId, resultId, selectId, classInputId) {
-            const input = document.getElementById(inputId);
-            const result = document.getElementById(resultId);
-            const select = document.getElementById(selectId);
-            const classInput = document.getElementById(classInputId);
-            if (!input || !result || !select) return;
-
-            // Sembunyikan select asli
-            select.style.display = 'none';
-
-            function selectStudent(nis) {
-                const s = siswaCache[nis];
-                if (s) {
-                    select.value = nis;
-                    input.value = s.nama;
-                    if (classInput) classInput.value = s.kelas;
-                    result.style.display = 'none';
-                    select.dispatchEvent(new Event('change'));
-                    return true;
-                }
-                return false;
-            }
-
-            input.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
-                if (!q) {
-                    result.style.display = 'none';
-                    result.innerHTML = '';
-                    select.value = '';
-                    if (classInput) classInput.value = '';
-                    return;
-                }
-                const siswaList = Object.values(siswaCache).filter(s =>
-                    s.nama.toLowerCase().includes(q) || s.nis.includes(q)
-                );
-                if (!siswaList.length) {
-                    result.style.display = 'block';
-                    result.innerHTML = '<div class="result-item" style="color:var(--text-light);">Tidak ditemukan</div>';
-                    return;
-                }
-                result.style.display = 'block';
-                result.innerHTML = siswaList.slice(0, 10).map(s => `
-                    <div class="result-item" data-nis="${s.nis}" data-kelas="${s.kelas}">
-                        <div><strong>${escapeHtml(s.nama)}</strong></div>
-                        <div class="sub">${escapeHtml(s.nis)} · ${escapeHtml(s.kelas)}</div>
-                    </div>
-                `).join('');
-
-                result.querySelectorAll('.result-item').forEach(el => {
-                    el.addEventListener('click', function() {
-                        const nis = this.dataset.nis;
-                        selectStudent(nis);
-                    });
+            ['recStudent', 'rewardStudent', 'bkStudent', 'lateStudent'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                const val = sel.value;
+                sel.innerHTML = '<option value="">— Pilih siswa —</option>';
+                siswaList.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.nis;
+                    opt.textContent = `${s.nama} (${s.kelas})`;
+                    sel.appendChild(opt);
                 });
+                if (val && siswaCache[val]) sel.value = val;
             });
 
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    const firstItem = result.querySelector('.result-item');
-                    if (firstItem) {
-                        e.preventDefault();
-                        const nis = firstItem.dataset.nis;
-                        selectStudent(nis);
-                    }
-                }
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!result.contains(e.target) && e.target !== input) {
-                    result.style.display = 'none';
-                }
-            });
-
-            select.addEventListener('change', function() {
+            // Update kelas saat select berubah
+            document.getElementById('recStudent').addEventListener('change', function() {
                 const s = siswaCache[this.value];
-                if (s) {
-                    input.value = s.nama;
-                    if (classInput) classInput.value = s.kelas;
-                } else {
-                    if (classInput) classInput.value = '';
-                }
+                document.getElementById('recClass').value = s ? s.kelas : '';
+            });
+            document.getElementById('rewardStudent').addEventListener('change', function() {
+                const s = siswaCache[this.value];
+                document.getElementById('rewardClass').value = s ? s.kelas : '';
+            });
+            document.getElementById('bkStudent').addEventListener('change', function() {
+                const s = siswaCache[this.value];
+                document.getElementById('bkClass').value = s ? s.kelas : '';
+            });
+            document.getElementById('lateStudent').addEventListener('change', function() {
+                const s = siswaCache[this.value];
+                document.getElementById('lateClass').value = s ? s.kelas : '';
             });
 
-            input.addEventListener('blur', function() {
-                setTimeout(() => {
-                    const val = this.value.trim();
-                    if (val) {
-                        const match = Object.values(siswaCache).find(s =>
-                            s.nama.toLowerCase() === val.toLowerCase()
-                        );
-                        if (match) {
-                            selectStudent(match.nis);
-                        }
-                    }
-                }, 300);
-            });
+            setText('statAllStudents', siswaList.length);
         }
 
         // ============================================================
@@ -2596,9 +2358,6 @@
             if (page === 'reward') loadRewardsList();
             if (page === 'bk') loadBkList();
             if (page === 'late') loadLateList();
-            if (page === 'chat') { loadChat();
-                loadOnlineTeachers();
-                populateChatRecipients(); }
         }
 
         document.querySelector('.sidebar').addEventListener('click', function(e) {
@@ -3261,7 +3020,6 @@
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
                 document.getElementById('bkStudent').value = '';
-                document.getElementById('bkStudentInput').value = '';
                 document.getElementById('bkClass').value = '';
                 document.getElementById('bkNote').value = '';
                 document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
@@ -3348,115 +3106,6 @@
             URL.revokeObjectURL(url);
             showToast('Data BK berhasil diekspor!');
         });
-
-        // ============================================================
-        // CHAT
-        // ============================================================
-        function populateChatRecipients() {
-            const select = document.getElementById('chatRecipient');
-            if (!select) return;
-            const current = select.value;
-            select.innerHTML = '<option value="grup">💬 Semua Guru (Grup)</option>';
-            const users = usersCache || {};
-            for (let id in users) {
-                if (id === currentUser.id) continue;
-                const u = users[id];
-                if (u) {
-                    const opt = document.createElement('option');
-                    opt.value = id;
-                    opt.textContent = `${u.name} (${u.jabatan || 'Guru'})`;
-                    select.appendChild(opt);
-                }
-            }
-            if (current) select.value = current;
-        }
-
-        function loadChat() {
-            const container = document.getElementById('chatMessages');
-            if (!container) return;
-            const recipient = document.getElementById('chatRecipient').value;
-            let items = Object.values(chatCache || {});
-            if (recipient === 'grup') {
-                items = items.filter(msg => msg.recipientId === 'grup' || !msg.recipientId);
-            } else {
-                items = items.filter(msg =>
-                    (msg.senderId === currentUser.id && msg.recipientId === recipient) ||
-                    (msg.senderId === recipient && msg.recipientId === currentUser.id) ||
-                    (msg.senderId === currentUser.id && !msg.recipientId) ||
-                    (msg.senderId === recipient && !msg.recipientId)
-                );
-            }
-            items.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            if (!items.length) {
-                container.innerHTML =
-                    '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pesan di percakapan ini.</p></div>';
-                return;
-            }
-            container.innerHTML = items.map(msg => {
-                const isOwn = msg.senderId === currentUser.id;
-                return `
-                    <div class="chat-msg ${isOwn ? 'own' : ''}">
-                        <div class="sender">${escapeHtml(msg.sender)} <span class="badge">${escapeHtml(msg.jabatan || 'Guru')}</span> <span class="time">${escapeHtml(msg.time || '-')}</span></div>
-                        <div class="text">${escapeHtml(msg.message)}</div>
-                    </div>
-                `;
-            }).join('');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        document.getElementById('chatRecipient').addEventListener('change', loadChat);
-        document.getElementById('chatForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message) return;
-            if (!currentUser) { showToast('Anda belum login.', 'error'); return; }
-            const recipientId = document.getElementById('chatRecipient').value;
-            const id = genId();
-            const chatMsg = {
-                id,
-                sender: currentUser.name,
-                senderId: currentUser.id,
-                recipientId,
-                jabatan: currentUser.jabatan || 'Guru',
-                message,
-                timestamp: Date.now(),
-                time: new Date().toLocaleString('id-ID')
-            };
-            db.ref('chat/' + id).set(chatMsg).then(() => {
-                input.value = '';
-                loadChat();
-                if (recipientId !== 'grup') {
-                    const recipientUser = usersCache[recipientId];
-                    if (recipientUser) sendBrowserNotification('💬 Pesan Pribadi',
-                        `${currentUser.name} mengirim pesan: ${message}`);
-                } else {
-                    sendBrowserNotification('💬 Pesan Grup', `${currentUser.name}: ${message}`);
-                }
-            }).catch(err => showToast('Gagal kirim: ' + err.message, 'error'));
-        });
-
-        // ============================================================
-        // ONLINE TEACHERS
-        // ============================================================
-        function loadOnlineTeachers() {
-            const container = document.getElementById('onlineTeachers');
-            if (!container) return;
-            db.ref('onlineStatus').once('value', (snap) => {
-                const data = snap.val() || {};
-                const online = Object.values(data).filter(s => s.online === true);
-                if (online.length === 0) {
-                    container.innerHTML = '<span class="text-muted">Tidak ada guru online.</span>';
-                    return;
-                }
-                container.innerHTML = online.map(g => `
-                    <span class="badge badge-online" style="font-size:0.8rem;padding:4px 12px;">
-                        <i class="fas fa-circle" style="font-size:0.5rem;color:#4caf50;margin-right:4px;"></i>
-                        ${escapeHtml(g.name)} (${escapeHtml(g.jabatan || 'Guru')})
-                    </span>
-                `).join('');
-            });
-        }
 
         // ============================================================
         // FEEDBACK
@@ -3868,6 +3517,7 @@
                 showToast(`Siswa ${nama} berhasil ditambahkan!`);
                 this.reset();
                 siswaCache[nis] = newStudent;
+                populateSiswaSelects();
             }).catch(err => showToast('Gagal menambah: ' + err.message, 'error'));
         });
 
@@ -3956,24 +3606,6 @@
         document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
         document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
 
-        // Saat siswa dipilih dari autocomplete, update class
-        document.getElementById('recStudent').addEventListener('change', function() {
-            const s = siswaCache[this.value];
-            document.getElementById('recClass').value = s ? s.kelas : '';
-        });
-        document.getElementById('rewardStudent').addEventListener('change', function() {
-            const s = siswaCache[this.value];
-            document.getElementById('rewardClass').value = s ? s.kelas : '';
-        });
-        document.getElementById('bkStudent').addEventListener('change', function() {
-            const s = siswaCache[this.value];
-            document.getElementById('bkClass').value = s ? s.kelas : '';
-        });
-        document.getElementById('lateStudent').addEventListener('change', function() {
-            const s = siswaCache[this.value];
-            document.getElementById('lateClass').value = s ? s.kelas : '';
-        });
-
         // FORM PELANGGARAN
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3982,7 +3614,7 @@
             const note = document.getElementById('recNote').value.trim();
 
             if (!nis) {
-                showToast('Pilih siswa terlebih dahulu! Ketik nama lalu pilih dari daftar.', 'error');
+                showToast('Pilih siswa terlebih dahulu!', 'error');
                 return;
             }
             if (!typeId) {
@@ -4019,7 +3651,7 @@
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
-                document.getElementById('recStudentInput').value = '';
+                document.getElementById('recStudent').value = '';
                 document.getElementById('recClass').value = '';
                 loadViolations();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
@@ -4032,7 +3664,7 @@
             const typeId = document.getElementById('rewardType').value;
 
             if (!nis) {
-                showToast('Pilih siswa terlebih dahulu! Ketik nama lalu pilih dari daftar.', 'error');
+                showToast('Pilih siswa terlebih dahulu!', 'error');
                 return;
             }
             if (!typeId) {
@@ -4072,7 +3704,7 @@
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
-                document.getElementById('rewardStudentInput').value = '';
+                document.getElementById('rewardStudent').value = '';
                 document.getElementById('rewardClass').value = '';
                 setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
