@@ -97,10 +97,6 @@
             background: #4caf50;
             color: #fff;
         }
-        .badge-warning {
-            background: #fff3e0;
-            color: #e65100;
-        }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -1229,7 +1225,6 @@
     </style>
 </head>
 <body>
-
     <!-- LOGIN PAGE -->
     <div id="loginPage">
         <div class="login-card">
@@ -1275,7 +1270,6 @@
                 <div class="left-group">
                     <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
                     <div class="brand">
-                        <!-- LOGO SEKOLAH: ganti src dengan URL logo Anda -->
                         <img class="logo-img" id="schoolLogo" src="" alt="Logo Sekolah" style="display:none;" />
                         <div class="logo-icon" id="logoText">
                             <div class="main">Tahfizh <span>Preneur</span></div>
@@ -1334,7 +1328,7 @@
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
                 </section>
 
-                <!-- RECORD (Pelanggaran) -->
+                <!-- RECORD -->
                 <section class="page-section" id="page-record">
                     <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik nama siswa, pilih jenis pelanggaran.</p></div>
                     <div class="card">
@@ -1396,7 +1390,7 @@
                     </div>
                 </section>
 
-                <!-- VIOLATIONS DATA -->
+                <!-- VIOLATIONS -->
                 <section class="page-section" id="page-violations">
                     <div class="page-header"><h2><i class="fas fa-list"></i> Data Pelanggaran</h2><p>Semua pelanggaran yang tercatat oleh seluruh guru.</p></div>
                     <div class="card">
@@ -1427,7 +1421,7 @@
                     </div>
                 </section>
 
-                <!-- LATE (Keterlambatan) -->
+                <!-- LATE -->
                 <section class="page-section" id="page-late">
                     <div class="page-header"><h2><i class="fas fa-clock"></i> Keterlambatan Siswa</h2><p>Catat siswa yang datang terlambat.</p></div>
                     <div class="card">
@@ -1642,7 +1636,7 @@
                         </div>
                     </div>
 
-                    <!-- Tambah Siswa Baru -->
+                    <!-- Tambah Siswa -->
                     <div class="accordion-section">
                         <div class="accordion-header" data-target="accAddStudent">
                             <span><i class="fas fa-user-plus" style="color:var(--success);"></i> Tambah Siswa Baru</span>
@@ -1737,7 +1731,7 @@
 
     <script>
         // ============================================================
-        // 🔥 KONFIGURASI FIREBASE
+        // FIREBASE CONFIG
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCV4t1cv8Rfb2lByx0LEeJEvIgzj5mk4Lg",
@@ -1903,81 +1897,8 @@
         ];
 
         // ============================================================
-        // INISIALISASI & BANTUAN
+        // FUNGSI BANTUAN
         // ============================================================
-        function initFirebaseData() {
-            db.ref('users').once('value', (snap) => {
-                if (!snap.exists()) {
-                    const defaultUsers = {
-                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin',
-                            jabatan: 'Kabid' },
-                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher',
-                            jabatan: 'Wali Kelas' },
-                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher',
-                            jabatan: 'Guru Mapel Umum' }
-                    };
-                    db.ref('users').set(defaultUsers);
-                    const now = new Date().toLocaleString('id-ID');
-                    db.ref('passwordHistory').set({ u1: now, u2: now, u3: now });
-                    db.ref('userProfiles').set({ u1: { foto: '' }, u2: { foto: '' }, u3: { foto: '' } });
-                }
-            });
-            db.ref('siswa').once('value', (snap) => {
-                if (!snap.exists()) {
-                    const obj = {};
-                    SISWA_DATA.forEach(s => { obj[s.nis] = s; });
-                    db.ref('siswa').set(obj);
-                }
-            });
-            db.ref('guru').once('value', (snap) => {
-                if (!snap.exists()) {
-                    const obj = {};
-                    GURU_LIST.forEach((nama, i) => { obj['g' + i] = { nama }; });
-                    db.ref('guru').set(obj);
-                }
-            });
-            db.ref('violationTypes').once('value', (snap) => {
-                if (!snap.exists()) {
-                    const obj = {};
-                    VIOLATION_TYPES_INIT.forEach((t) => { obj[genId()] = t; });
-                    db.ref('violationTypes').set(obj);
-                }
-            });
-            db.ref('rewardTypes').once('value', (snap) => {
-                if (!snap.exists()) {
-                    const obj = {};
-                    REWARD_TYPES_INIT.forEach((t) => { obj[genId()] = t; });
-                    db.ref('rewardTypes').set(obj);
-                }
-            });
-            db.ref('moneyRewardRules').once('value', (snap) => {
-                if (!snap.exists()) {
-                    db.ref('moneyRewardRules').set({
-                        '50': 100000,
-                        '80': 20000,
-                        '90': 30000,
-                        '100': 50000
-                    });
-                }
-            });
-            db.ref('chat').once('value', (snap) => {
-                if (!snap.exists()) {
-                    db.ref('chat').set({
-                        'init': {
-                            sender: 'Sistem',
-                            senderId: 'system',
-                            recipientId: 'grup',
-                            message: 'Selamat datang di Chat Guru!',
-                            timestamp: Date.now(),
-                            time: new Date().toLocaleString('id-ID')
-                        }
-                    });
-                }
-            });
-            console.log('🔥 Firebase siap!');
-        }
-        initFirebaseData();
-
         function genId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
 
         function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -2017,7 +1938,6 @@
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
 
-        // Speech recognition
         let recognition = null;
         let isRecording = false;
         let transcriptText = '';
@@ -2066,9 +1986,7 @@
 
         function sendBrowserNotification(title, body) {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            try {
-                new Notification(title, { body });
-            } catch (e) { /* ignore */ }
+            try { new Notification(title, { body }); } catch (e) { /* ignore */ }
         }
 
         function saveNotif(type, title, message) {
@@ -2144,10 +2062,8 @@
             const unread = items.filter(n => !n.read).length;
             notifCount = unread;
             const countEl = document.getElementById('notifCount');
-            if (countEl) {
-                countEl.textContent = unread;
-                countEl.style.display = unread > 0 ? 'block' : 'none';
-            }
+            if (countEl) { countEl.textContent = unread;
+                countEl.style.display = unread > 0 ? 'block' : 'none'; }
         }
 
         function markAllNotificationsRead() {
@@ -2156,7 +2072,7 @@
         }
 
         // ============================================================
-        // AUTH & KATA PENYEMANGAT
+        // AUTH
         // ============================================================
         const quotes = [
             "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain.",
@@ -2238,6 +2154,79 @@
         // ============================================================
         // RENDER APP & LISTENERS
         // ============================================================
+        function initFirebaseData() {
+            db.ref('users').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const defaultUsers = {
+                        u1: { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin',
+                            jabatan: 'Kabid' },
+                        u2: { username: 'guru', password: 'guru123', name: 'Guru Utama', role: 'teacher',
+                            jabatan: 'Wali Kelas' },
+                        u3: { username: 'guru2', password: 'guru123', name: 'Guru Pendamping', role: 'teacher',
+                            jabatan: 'Guru Mapel Umum' }
+                    };
+                    db.ref('users').set(defaultUsers);
+                    const now = new Date().toLocaleString('id-ID');
+                    db.ref('passwordHistory').set({ u1: now, u2: now, u3: now });
+                    db.ref('userProfiles').set({ u1: { foto: '' }, u2: { foto: '' }, u3: { foto: '' } });
+                }
+            });
+            db.ref('siswa').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    SISWA_DATA.forEach(s => { obj[s.nis] = s; });
+                    db.ref('siswa').set(obj);
+                }
+            });
+            db.ref('guru').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    GURU_LIST.forEach((nama, i) => { obj['g' + i] = { nama }; });
+                    db.ref('guru').set(obj);
+                }
+            });
+            db.ref('violationTypes').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    VIOLATION_TYPES_INIT.forEach((t) => { obj[genId()] = t; });
+                    db.ref('violationTypes').set(obj);
+                }
+            });
+            db.ref('rewardTypes').once('value', (snap) => {
+                if (!snap.exists()) {
+                    const obj = {};
+                    REWARD_TYPES_INIT.forEach((t) => { obj[genId()] = t; });
+                    db.ref('rewardTypes').set(obj);
+                }
+            });
+            db.ref('moneyRewardRules').once('value', (snap) => {
+                if (!snap.exists()) {
+                    db.ref('moneyRewardRules').set({
+                        '50': 100000,
+                        '80': 20000,
+                        '90': 30000,
+                        '100': 50000
+                    });
+                }
+            });
+            db.ref('chat').once('value', (snap) => {
+                if (!snap.exists()) {
+                    db.ref('chat').set({
+                        'init': {
+                            sender: 'Sistem',
+                            senderId: 'system',
+                            recipientId: 'grup',
+                            message: 'Selamat datang di Chat Guru!',
+                            timestamp: Date.now(),
+                            time: new Date().toLocaleString('id-ID')
+                        }
+                    });
+                }
+            });
+            console.log('🔥 Firebase siap!');
+        }
+        initFirebaseData();
+
         function renderApp() {
             if (!currentUser) return;
             const loginPage = document.getElementById('loginPage');
@@ -2261,11 +2250,10 @@
             setupRealtimeListeners();
             populateSiswaData();
 
-            // Set default date for late form
             const lateDate = document.getElementById('lateDate');
             if (lateDate) lateDate.value = today();
 
-            // Setup autocomplete untuk semua form siswa
+            // Setup autocomplete
             setupAutocomplete('recStudentInput', 'recStudentResults', 'recStudent', 'recClass');
             setupAutocomplete('rewardStudentInput', 'rewardStudentResults', 'rewardStudent', 'rewardClass');
             setupAutocomplete('bkStudentInput', 'bkStudentResults', 'bkStudent', 'bkClass');
@@ -2387,10 +2375,10 @@
         }
 
         // ============================================================
-        // AUTOCOMPLETE SISWA
+        // AUTOCOMPLETE SISWA (DIPERBAIKI)
         // ============================================================
         function populateSiswaData() {
-            // Digunakan oleh autocomplete
+            // Data sudah di cache dari Firebase
         }
 
         function setupAutocomplete(inputId, resultId, selectId, classInputId) {
@@ -2402,6 +2390,19 @@
 
             // Sembunyikan select asli
             select.style.display = 'none';
+
+            function selectStudent(nis) {
+                const s = siswaCache[nis];
+                if (s) {
+                    select.value = nis;
+                    input.value = s.nama;
+                    if (classInput) classInput.value = s.kelas;
+                    result.style.display = 'none';
+                    select.dispatchEvent(new Event('change'));
+                    return true;
+                }
+                return false;
+            }
 
             input.addEventListener('input', function() {
                 const q = this.value.toLowerCase().trim();
@@ -2431,25 +2432,50 @@
                 result.querySelectorAll('.result-item').forEach(el => {
                     el.addEventListener('click', function() {
                         const nis = this.dataset.nis;
-                        const kelas = this.dataset.kelas;
-                        select.value = nis;
-                        input.value = siswaCache[nis] ? siswaCache[nis].nama : '';
-                        if (classInput) classInput.value = kelas || '';
-                        result.style.display = 'none';
-                        // Trigger change event
-                        select.dispatchEvent(new Event('change'));
+                        selectStudent(nis);
                     });
                 });
             });
 
-            input.addEventListener('blur', function() {
-                setTimeout(() => { result.style.display = 'none'; }, 200);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const firstItem = result.querySelector('.result-item');
+                    if (firstItem) {
+                        e.preventDefault();
+                        const nis = firstItem.dataset.nis;
+                        selectStudent(nis);
+                    }
+                }
             });
 
-            input.addEventListener('focus', function() {
-                if (this.value.trim() && result.innerHTML) {
-                    result.style.display = 'block';
+            document.addEventListener('click', function(e) {
+                if (!result.contains(e.target) && e.target !== input) {
+                    result.style.display = 'none';
                 }
+            });
+
+            select.addEventListener('change', function() {
+                const s = siswaCache[this.value];
+                if (s) {
+                    input.value = s.nama;
+                    if (classInput) classInput.value = s.kelas;
+                } else {
+                    if (classInput) classInput.value = '';
+                }
+            });
+
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    const val = this.value.trim();
+                    if (val) {
+                        const match = Object.values(siswaCache).find(s =>
+                            s.nama.toLowerCase() === val.toLowerCase()
+                        );
+                        if (match) {
+                            selectStudent(match.nis);
+                        }
+                    }
+                }, 300);
             });
         }
 
@@ -2633,7 +2659,6 @@
             return { lightMed, severe, rewardPts, effectiveLightMed, totalEffective };
         }
 
-        // DASHBOARD
         function loadDashboard() {
             const violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v }));
             const rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
@@ -3107,7 +3132,7 @@
         });
 
         // ============================================================
-        // BK (Bimbingan Konseling)
+        // BK
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3827,7 +3852,7 @@
         document.getElementById('addUserBtn').addEventListener('click', () => openAddUserModal());
 
         // ============================================================
-        // TAMBAH SISWA BARU
+        // TAMBAH SISWA
         // ============================================================
         document.getElementById('addStudentForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3842,7 +3867,6 @@
             db.ref('siswa/' + nis).set(newStudent).then(() => {
                 showToast(`Siswa ${nama} berhasil ditambahkan!`);
                 this.reset();
-                // Refresh autocomplete data
                 siswaCache[nis] = newStudent;
             }).catch(err => showToast('Gagal menambah: ' + err.message, 'error'));
         });
@@ -3924,7 +3948,7 @@
         });
 
         // ============================================================
-        // RECORD & REWARD FORMS
+        // RECORD & REWARD FORMS (DIPERBAIKI)
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
@@ -3950,15 +3974,29 @@
             document.getElementById('lateClass').value = s ? s.kelas : '';
         });
 
+        // FORM PELANGGARAN
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('recStudent').value;
             const typeId = document.getElementById('recType').value;
             const note = document.getElementById('recNote').value.trim();
-            if (!nis || !typeId) { showToast('Pilih siswa dan jenis pelanggaran!', 'error'); return; }
+
+            if (!nis) {
+                showToast('Pilih siswa terlebih dahulu! Ketik nama lalu pilih dari daftar.', 'error');
+                return;
+            }
+            if (!typeId) {
+                showToast('Pilih jenis pelanggaran!', 'error');
+                return;
+            }
+
             const s = siswaCache[nis];
             const t = violationTypesCache[typeId];
-            if (!s || !t) { showToast('Data tidak valid!', 'error'); return; }
+            if (!s || !t) {
+                showToast('Data tidak valid!', 'error');
+                return;
+            }
+
             const record = {
                 nis,
                 nama: s.nama,
@@ -3987,14 +4025,28 @@
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
+        // FORM REWARD
         document.getElementById('rewardForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('rewardStudent').value;
             const typeId = document.getElementById('rewardType').value;
-            if (!nis || !typeId) { showToast('Pilih siswa dan bentuk kebaikan!', 'error'); return; }
+
+            if (!nis) {
+                showToast('Pilih siswa terlebih dahulu! Ketik nama lalu pilih dari daftar.', 'error');
+                return;
+            }
+            if (!typeId) {
+                showToast('Pilih bentuk kebaikan!', 'error');
+                return;
+            }
+
             const s = siswaCache[nis];
             const t = rewardTypesCache[typeId];
-            if (!s || !t) { showToast('Data tidak valid!', 'error'); return; }
+            if (!s || !t) {
+                showToast('Data tidak valid!', 'error');
+                return;
+            }
+
             const record = {
                 nis,
                 nama: s.nama,
