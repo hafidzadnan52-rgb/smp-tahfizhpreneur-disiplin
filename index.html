@@ -342,7 +342,7 @@
             font-style: italic;
             color: var(--gold-dark);
             padding: 8px 12px;
-            background: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: var(--radius-sm);
             margin-bottom: 20px;
             font-size: 0.9rem;
@@ -896,10 +896,6 @@
         }
         .point-breakdown .severe {
             color: var(--danger);
-            font-weight: 600;
-        }
-        .point-breakdown .reduced {
-            color: var(--success);
             font-weight: 600;
         }
 
@@ -2804,7 +2800,7 @@
         });
 
         // ============================================================
-        // LEADERBOARD (tanpa gender)
+        // LEADERBOARD (PERBAIKAN - Reward tidak ditampilkan di pelanggaran)
         // ============================================================
         function loadLeaderboard(type = 'violation') {
             currentLeaderboardTab = type;
@@ -2817,9 +2813,11 @@
             });
 
             if (type === 'violation') {
+                // ===== PELANGGARAN - Reward tidak ditampilkan =====
                 const statsMap = {};
                 Object.values(siswaCache || {}).forEach(s => {
                     const stats = getStudentStats(s.nis);
+                    // Tampilkan hanya jika ada poin (efektif atau ringan/sedang atau berat)
                     if (stats.totalEffective > 0 || stats.severe > 0 || stats.lightMed > 0) {
                         statsMap[s.nis] = {
                             nis: s.nis,
@@ -2828,8 +2826,7 @@
                             total: stats.totalEffective,
                             lightMed: stats.lightMed,
                             severe: stats.severe,
-                            rewardPts: stats.rewardPts,
-                            effectiveLightMed: stats.effectiveLightMed,
+                            // HAPUS: rewardPts & effectiveLightMed
                             count: Object.values(violationsCache || {}).filter(v => v.nis === s.nis).length
                         };
                     }
@@ -2849,8 +2846,6 @@
                             <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
                             <div class="point-breakdown">
                                 <span>Ringan/Sedang: ${s.lightMed}</span>
-                                <span class="reduced">- Reward: ${s.rewardPts}</span>
-                                <span>Efektif: ${s.effectiveLightMed}</span>
                                 <span class="severe">Berat: ${s.severe}</span>
                                 <span>Total: <strong>${s.total}</strong></span>
                             </div>
@@ -2859,7 +2854,7 @@
                     </div>`;
                 }).join('');
             } else {
-                // Reward Leaderboard
+                // ===== REWARD =====
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
                     if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
@@ -2903,6 +2898,7 @@
                 headers = ['#', 'Tanggal', 'Deskripsi', 'Poin', 'Guru'];
             let rows = [];
             if (type === 'violation') {
+                // ===== PELANGGARAN - tanpa menampilkan Reward =====
                 records = Object.values(violationsCache || {}).filter(v => v.nis === nis);
                 records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 title = `Riwayat Pelanggaran - ${student.nama}`;
@@ -2914,10 +2910,12 @@
                     `<span class="badge badge-danger">${v.poin}</span>`,
                     v.guru || '-'
                 ]);
-                rows.unshift(['', 'INFO EFEKTIF', `Ringan/Sedang: ${stats.lightMed} | Reward: ${stats.rewardPts} | Efektif: ${stats.effectiveLightMed} | Berat: ${stats.severe} | Total: ${stats.totalEffective}`, '',
-                    ''
+                // Header info tanpa Reward
+                rows.unshift(['', 'INFO', `Ringan/Sedang: ${stats.lightMed} | Berat: ${stats.severe} | Total Efektif: ${stats.totalEffective}`,
+                    '', ''
                 ]);
             } else {
+                // ===== REWARD =====
                 records = Object.values(rewardsCache || {}).filter(r => r.nis === nis);
                 records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 title = `Riwayat Kebaikan - ${student.nama}`;
