@@ -97,6 +97,14 @@
             background: #4caf50;
             color: #fff;
         }
+        .badge-banin {
+            background: #2196f3;
+            color: #fff;
+        }
+        .badge-banat {
+            background: #e91e63;
+            color: #fff;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -148,6 +156,13 @@
             background: var(--primary);
             color: #fff;
         }
+        .btn-print {
+            background: #e65100;
+            color: #fff;
+        }
+        .btn-print:hover {
+            background: #bf360c;
+        }
         .btn-rec {
             background: #dc3545;
             color: #fff;
@@ -160,6 +175,187 @@
             0% { opacity: 1; }
             50% { opacity: 0.6; }
             100% { opacity: 1; }
+        }
+
+        /* GENDER FILTER BUTTONS */
+        .gender-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .gender-filter .btn {
+            border-radius: 30px;
+            font-size: 0.8rem;
+            padding: 6px 18px;
+        }
+        .gender-filter .btn.active {
+            background: var(--gold);
+            color: #fff;
+            border-color: var(--gold);
+        }
+        .gender-filter .btn:not(.active) {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .gender-filter .btn-banin:not(.active) {
+            border-color: #2196f3;
+            color: #2196f3;
+        }
+        .gender-filter .btn-banin.active {
+            background: #2196f3;
+            border-color: #2196f3;
+        }
+        .gender-filter .btn-banat:not(.active) {
+            border-color: #e91e63;
+            color: #e91e63;
+        }
+        .gender-filter .btn-banat.active {
+            background: #e91e63;
+            border-color: #e91e63;
+        }
+
+        /* AUTOCOMPLETE (datalist) */
+        input[list] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e4dc;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            transition: 0.3s;
+            background: #faf8f5;
+            font-family: inherit;
+        }
+        input[list]:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            .sidebar,
+            .topbar .menu-toggle,
+            .topbar .user-info .logout-btn,
+            .topbar .notification-bell,
+            .topbar .brand .logo-icon .sub,
+            .filter-bar,
+            .tab-buttons,
+            .gender-filter,
+            .btn-print,
+            .no-print {
+                display: none !important;
+            }
+            .topbar .brand .logo-icon .main {
+                font-size: 1.5rem !important;
+            }
+            .main-content {
+                padding: 20px !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                break-inside: avoid;
+            }
+            .leaderboard-item {
+                break-inside: avoid;
+                border: 1px solid #eee !important;
+            }
+            .stat-cards {
+                display: none !important;
+            }
+            .topbar {
+                position: static !important;
+                box-shadow: none !important;
+                border-bottom: 2px solid #ddd !important;
+            }
+            .topbar .container {
+                justify-content: center !important;
+            }
+            .app-body {
+                display: block !important;
+            }
+            body {
+                background: #fff !important;
+            }
+            #app {
+                display: block !important;
+            }
+            .page-section {
+                display: block !important;
+            }
+            .page-section:not(#page-leaderboard) {
+                display: none !important;
+            }
+            #page-leaderboard {
+                display: block !important;
+            }
+            .leaderboard-item .rank.gold {
+                color: #f57f17 !important;
+            }
+            .leaderboard-item .rank.silver {
+                color: #9e9e9e !important;
+            }
+            .leaderboard-item .rank.bronze {
+                color: #bf8c3b !important;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #1a2a4a;
+                padding-bottom: 15px;
+            }
+            .print-header h2 {
+                font-size: 1.8rem;
+                color: #1a2a4a;
+            }
+            .print-header .sub {
+                color: #5a6a7a;
+                font-size: 0.9rem;
+            }
+            .print-header .date {
+                color: #5a6a7a;
+                font-size: 0.8rem;
+                margin-top: 4px;
+            }
+            .print-header .gender-label {
+                display: inline-block;
+                padding: 2px 16px;
+                border-radius: 20px;
+                font-weight: 600;
+                font-size: 0.8rem;
+                margin-top: 6px;
+            }
+            .print-header .gender-label.banin {
+                background: #2196f3;
+                color: #fff;
+            }
+            .print-header .gender-label.banat {
+                background: #e91e63;
+                color: #fff;
+            }
+            .print-header .gender-label.all {
+                background: #1a2a4a;
+                color: #fff;
+            }
+            .print-footer {
+                text-align: center;
+                font-size: 0.7rem;
+                color: #5a6a7a;
+                margin-top: 20px;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }
+        }
+        .print-header {
+            display: none;
+        }
+        .print-footer {
+            display: none;
         }
 
         /* LOGIN */
@@ -215,7 +411,7 @@
             font-style: italic;
             color: var(--gold-dark);
             padding: 8px 12px;
-            background: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: var(--radius-sm);
             margin-bottom: 20px;
             font-size: 0.9rem;
@@ -1239,13 +1435,15 @@
 
                 <!-- RECORD -->
                 <section class="page-section" id="page-record">
-                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Pilih siswa, jenis pelanggaran, dan konsekuensi otomatis.</p></div>
+                    <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik nama siswa, pilih jenis pelanggaran.</p></div>
                     <div class="card">
                         <form id="recordForm">
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="recStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="recStudentInput" list="siswaDatalist" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <datalist id="siswaDatalist"></datalist>
+                                    <input type="hidden" id="recStudent" />
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1265,13 +1463,14 @@
 
                 <!-- REWARD -->
                 <section class="page-section" id="page-reward">
-                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Pilih siswa dan bentuk kebaikan. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
+                    <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Ketik nama siswa, pilih bentuk kebaikan. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
                     <div class="card">
                         <form id="rewardForm">
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="rewardStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="rewardStudentInput" list="siswaDatalist" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <input type="hidden" id="rewardStudent" />
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1313,14 +1512,25 @@
 
                 <!-- LEADERBOARD -->
                 <section class="page-section" id="page-leaderboard">
-                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2><p>Klik nama siswa untuk melihat riwayat. <span class="badge badge-success">Poin efektif = (Ringan+Sedang - Reward) + Berat</span></p></div>
+                    <div class="page-header"><h2><i class="fas fa-trophy"></i> Papan Peringkat</h2>
+                        <p>Klik nama siswa untuk melihat riwayat. <span class="badge badge-success">Poin efektif = (Ringan+Sedang - Reward) + Berat</span></p>
+                        <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:8px;">
+                            <button class="btn btn-sm btn-print no-print" onclick="window.print()"><i class="fas fa-print"></i> Cetak PDF</button>
+                        </div>
+                    </div>
                     <div class="card">
                         <div class="card-header">
                             <h3><i class="fas fa-trophy"></i> Peringkat</h3>
-                            <div class="tab-buttons">
+                            <div class="tab-buttons no-print">
                                 <button class="btn btn-sm btn-gold active" data-leaderboard-tab="violation">Pelanggaran</button>
                                 <button class="btn btn-sm btn-outline" data-leaderboard-tab="reward">Kebaikan</button>
                             </div>
+                        </div>
+                        <!-- GENDER FILTER -->
+                        <div class="gender-filter no-print">
+                            <button class="btn btn-sm active" data-gender="all" onclick="setGenderFilter('all')">👥 Semua</button>
+                            <button class="btn btn-sm btn-banin" data-gender="banin" onclick="setGenderFilter('banin')">👦 Banin</button>
+                            <button class="btn btn-sm btn-banat" data-gender="banat" onclick="setGenderFilter('banat')">👧 Banat</button>
                         </div>
                         <div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div>
                     </div>
@@ -1334,7 +1544,8 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="lateStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="lateStudentInput" list="siswaDatalist" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <input type="hidden" id="lateStudent" />
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="lateClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1368,7 +1579,8 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
-                                    <select id="bkStudent" required><option value="">— Pilih siswa —</option></select>
+                                    <input type="text" id="bkStudentInput" list="siswaDatalist" placeholder="Ketik nama siswa..." autocomplete="off" />
+                                    <input type="hidden" id="bkStudent" />
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="bkClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
@@ -1529,6 +1741,13 @@
                                             <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
                                         </select>
                                     </div>
+                                    <div class="form-group"><label>Jenis Kelamin <span class="text-muted">*</span></label>
+                                        <select id="newGender" required>
+                                            <option value="">— Pilih —</option>
+                                            <option value="banin">Banin (Laki-laki)</option>
+                                            <option value="banat">Banat (Perempuan)</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
                             </form>
@@ -1621,7 +1840,7 @@
         const db = firebase.database();
 
         // ============================================================
-        // DATA DEFAULT (diringkas)
+        // DATA DEFAULT
         // ============================================================
         const GURU_LIST = [
             "Atikah, S.Pd", "Syifa Deva Hasdifa", "Aulia Nisah Kamilah",
@@ -1631,109 +1850,109 @@
         ];
 
         const SISWA_DATA = [
-            { nis: "262707001", nama: "Abdillah Ammar Al Fauzan", kelas: "7A" },
-            { nis: "262707002", nama: "Ahmad Wildan Rasyid", kelas: "7A" },
-            { nis: "262707003", nama: "Aqila Hamdan Al Fathan", kelas: "7A" },
-            { nis: "262707004", nama: "Aqila Hamdan Al Fatih", kelas: "7A" },
-            { nis: "262707005", nama: "Azlan Arkenzie Adiatmaja", kelas: "7A" },
-            { nis: "262707006", nama: "Chairul Azzam Wijaya", kelas: "7A" },
-            { nis: "262707007", nama: "Muhammad Emran Alafasy", kelas: "7A" },
-            { nis: "262707008", nama: "Muhammad Zahwan Jubaidi", kelas: "7A" },
-            { nis: "262707009", nama: "Raffaza Syaqif Pratama", kelas: "7A" },
-            { nis: "262707010", nama: "Rashka Uno Kamil", kelas: "7A" },
-            { nis: "262707011", nama: "Rayyan Iqra Mahmudy", kelas: "7A" },
-            { nis: "262707012", nama: "Tsaqif Alfaruq Solichin", kelas: "7A" },
-            { nis: "262707013", nama: "Abidah Fidziaritza", kelas: "7B" },
-            { nis: "262707014", nama: "Aisyah Rahma Karenina", kelas: "7B" },
-            { nis: "262707015", nama: "Alya Askana Sakhi", kelas: "7B" },
-            { nis: "262707016", nama: "Annisa Gwen Inara", kelas: "7B" },
-            { nis: "262707017", nama: "Arindi Nada Arcobaleno", kelas: "7B" },
-            { nis: "262707018", nama: "Athiya Ufairah", kelas: "7B" },
-            { nis: "262707019", nama: "Filza Noor Hanifa", kelas: "7B" },
-            { nis: "262707020", nama: "Filza Salsabila Fadhilah", kelas: "7B" },
-            { nis: "262707021", nama: "Haura Nafisah", kelas: "7B" },
-            { nis: "262707022", nama: "Jalilla Dhessafa Alfariji", kelas: "7B" },
-            { nis: "262707023", nama: "Maryam Zahida Aristi", kelas: "7B" },
-            { nis: "262707024", nama: "Nasywa Almeera Khanza", kelas: "7B" },
-            { nis: "262707025", nama: "Quisha Zahidah Rafifa", kelas: "7B" },
-            { nis: "262707026", nama: "Raihana Yasmina Rahman", kelas: "7B" },
-            { nis: "262707027", nama: "Raihanah Hanin", kelas: "7B" },
-            { nis: "262707028", nama: "Raihanna Navy Khafiya", kelas: "7B" },
-            { nis: "262707029", nama: "Rayna Shafiqa Almahyra", kelas: "7B" },
-            { nis: "262707030", nama: "Rayya Viro Azzahra", kelas: "7B" },
-            { nis: "262707031", nama: "Shafina Lucky Adeeba", kelas: "7B" },
-            { nis: "262707032", nama: "Shafiyyah", kelas: "7B" },
-            { nis: "262707033", nama: "Shafiyyah Najib", kelas: "7B" },
-            { nis: "262707034", nama: "Shaqeena Taqiyyah Siregar", kelas: "7B" },
-            { nis: "262707035", nama: "Siti Mutiah Ratu Setiawan", kelas: "7B" },
-            { nis: "252607001", nama: "Abdurrohman", kelas: "8A" },
-            { nis: "252607002", nama: "Agha Sebastian Dhuha", kelas: "8A" },
-            { nis: "252607003", nama: "Alandra Raihan Syazani", kelas: "8A" },
-            { nis: "252607004", nama: "Altadira Mohammed El Fatih", kelas: "8A" },
-            { nis: "252607005", nama: "Arkananta Putra Iriawan", kelas: "8A" },
-            { nis: "252607006", nama: "Arrafi Zaidan Qawiyyu", kelas: "8A" },
-            { nis: "252607007", nama: "Arsya Athalah Haki", kelas: "8A" },
-            { nis: "252607008", nama: "Baihaqi Safaraz", kelas: "8A" },
-            { nis: "252607009", nama: "Fahri Afif Ihsanuddin", kelas: "8A" },
-            { nis: "252607010", nama: "Galang Nareswara Putra G", kelas: "8A" },
-            { nis: "252607011", nama: "Gaza Syauqi Firdaus", kelas: "8A" },
-            { nis: "252607012", nama: "Habibie Alfarizqi", kelas: "8A" },
-            { nis: "252607013", nama: "Hasan Faiq M. Hutasoit", kelas: "8A" },
-            { nis: "252607014", nama: "Hasby Arif Al Ghifari", kelas: "8A" },
-            { nis: "252607015", nama: "Kazhafran Al Fatih Milono", kelas: "8A" },
-            { nis: "252607016", nama: "M.Serhan Ar Rasyid", kelas: "8A" },
-            { nis: "252607017", nama: "Rafaza Aydin Nadivky", kelas: "8A" },
-            { nis: "252607018", nama: "M. Alfath Athaya Riyanto", kelas: "8A" },
-            { nis: "252607019", nama: "M. Andra Romansyah", kelas: "8A" },
-            { nis: "252607020", nama: "M. Khalifah Al Farisi", kelas: "8A" },
-            { nis: "252607021", nama: "M. Naufal Al Fakhri", kelas: "8A" },
-            { nis: "252607022", nama: "Mischa Alvaro Nata Kunthar", kelas: "8A" },
-            { nis: "252607023", nama: "Muhammad El Azzam A", kelas: "8A" },
-            { nis: "252607024", nama: "Naufal Mu'min Billah", kelas: "8A" },
-            { nis: "252607025", nama: "Raindra Alkhalifi Pratama", kelas: "8A" },
-            { nis: "252607026", nama: "Rakargalu Damar Panuluh", kelas: "8A" },
-            { nis: "252607027", nama: "Umar Fatih Abdurrahman", kelas: "8A" },
-            { nis: "252607028", nama: "Zen Firdaus", kelas: "8A" },
-            { nis: "252607030", nama: "Adela Zahra Nugroho", kelas: "8B" },
-            { nis: "252607031", nama: "Afifah Haniyah", kelas: "8B" },
-            { nis: "252607032", nama: "Aisyah Azzaira", kelas: "8B" },
-            { nis: "252607034", nama: "Askana Sakhia", kelas: "8B" },
-            { nis: "252607036", nama: "Azalea Rasyidatu Naja", kelas: "8B" },
-            { nis: "252607039", nama: "Fatimah Azzahra", kelas: "8B" },
-            { nis: "252607040", nama: "Fiorenza Aretha Arcobaleno", kelas: "8B" },
-            { nis: "252607043", nama: "Hana Nafisah", kelas: "8B" },
-            { nis: "252607044", nama: "Hanayumi Nafiiza Aldrin", kelas: "8B" },
-            { nis: "252607045", nama: "Jasmina Jinan Izzati Akmal", kelas: "8B" },
-            { nis: "252607047", nama: "Khanza Humaira Ariyadi", kelas: "8B" },
-            { nis: "252607050", nama: "Matahari Parahita Prameswari", kelas: "8B" },
-            { nis: "252607052", nama: "Naema Fikriyyah Humaira", kelas: "8B" },
-            { nis: "252607058", nama: "Taalea Raisa Eiliyah", kelas: "8B" },
-            { nis: "252607033", nama: "Aqeela Maulidya Arlen", kelas: "8C" },
-            { nis: "252607035", nama: "Audrey Zaneta Aini", kelas: "8C" },
-            { nis: "252607037", nama: "Azka Raihanah", kelas: "8C" },
-            { nis: "252607038", nama: "Fakhirah Shakila Dini H", kelas: "8C" },
-            { nis: "252607041", nama: "Ghassani Atqiya Zalfa A", kelas: "8C" },
-            { nis: "252607042", nama: "Hafidzah Qotrunnada D.K", kelas: "8C" },
-            { nis: "252607046", nama: "Khaeria Namia Zahrana", kelas: "8C" },
-            { nis: "252607048", nama: "Khayyira Naila Aisha", kelas: "8C" },
-            { nis: "252607049", nama: "Levinka Ayla Rahmadita", kelas: "8C" },
-            { nis: "252607051", nama: "Naima Ashadya Zaida", kelas: "8C" },
-            { nis: "252607053", nama: "Nabila Az-Zahra", kelas: "8C" },
-            { nis: "252607055", nama: "Natasha Kirei Samita", kelas: "8C" },
-            { nis: "252607056", nama: "Rania Ranaa Kurniawan", kelas: "8C" },
-            { nis: "252607057", nama: "Syakira Rahmadita Sijabat", kelas: "8C" },
-            { nis: "252607059", nama: "Violetha Ozora Himmatana", kelas: "8C" },
-            { nis: "242507001", nama: "Alika Imtinan Diassyafahya", kelas: "9A" },
-            { nis: "242507011", nama: "Athifah Mumtazah", kelas: "9A" },
-            { nis: "242507002", nama: "Athiyyah Shofi Muthmainnah", kelas: "9A" },
-            { nis: "242507003", nama: "Balqis Zahra Hanifah", kelas: "9A" },
-            { nis: "252607060", nama: "Damia Khairina Alesha", kelas: "9A" },
-            { nis: "252607061", nama: "Delisha Halwa Tabina", kelas: "9A" },
-            { nis: "242501010", nama: "Kamilia Jaudah Tsuraya", kelas: "9A" },
-            { nis: "242507005", nama: "Mahira Anezka Mulyawan", kelas: "9A" },
-            { nis: "242507006", nama: "Maiza Rahma", kelas: "9A" },
-            { nis: "242507007", nama: "Naura Izzatunnisa", kelas: "9A" },
-            { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
+            { nis: "262707001", nama: "Abdillah Ammar Al Fauzan", kelas: "7A", gender: "banin" },
+            { nis: "262707002", nama: "Ahmad Wildan Rasyid", kelas: "7A", gender: "banin" },
+            { nis: "262707003", nama: "Aqila Hamdan Al Fathan", kelas: "7A", gender: "banin" },
+            { nis: "262707004", nama: "Aqila Hamdan Al Fatih", kelas: "7A", gender: "banin" },
+            { nis: "262707005", nama: "Azlan Arkenzie Adiatmaja", kelas: "7A", gender: "banin" },
+            { nis: "262707006", nama: "Chairul Azzam Wijaya", kelas: "7A", gender: "banin" },
+            { nis: "262707007", nama: "Muhammad Emran Alafasy", kelas: "7A", gender: "banin" },
+            { nis: "262707008", nama: "Muhammad Zahwan Jubaidi", kelas: "7A", gender: "banin" },
+            { nis: "262707009", nama: "Raffaza Syaqif Pratama", kelas: "7A", gender: "banin" },
+            { nis: "262707010", nama: "Rashka Uno Kamil", kelas: "7A", gender: "banin" },
+            { nis: "262707011", nama: "Rayyan Iqra Mahmudy", kelas: "7A", gender: "banin" },
+            { nis: "262707012", nama: "Tsaqif Alfaruq Solichin", kelas: "7A", gender: "banin" },
+            { nis: "262707013", nama: "Abidah Fidziaritza", kelas: "7B", gender: "banat" },
+            { nis: "262707014", nama: "Aisyah Rahma Karenina", kelas: "7B", gender: "banat" },
+            { nis: "262707015", nama: "Alya Askana Sakhi", kelas: "7B", gender: "banat" },
+            { nis: "262707016", nama: "Annisa Gwen Inara", kelas: "7B", gender: "banat" },
+            { nis: "262707017", nama: "Arindi Nada Arcobaleno", kelas: "7B", gender: "banat" },
+            { nis: "262707018", nama: "Athiya Ufairah", kelas: "7B", gender: "banat" },
+            { nis: "262707019", nama: "Filza Noor Hanifa", kelas: "7B", gender: "banat" },
+            { nis: "262707020", nama: "Filza Salsabila Fadhilah", kelas: "7B", gender: "banat" },
+            { nis: "262707021", nama: "Haura Nafisah", kelas: "7B", gender: "banat" },
+            { nis: "262707022", nama: "Jalilla Dhessafa Alfariji", kelas: "7B", gender: "banat" },
+            { nis: "262707023", nama: "Maryam Zahida Aristi", kelas: "7B", gender: "banat" },
+            { nis: "262707024", nama: "Nasywa Almeera Khanza", kelas: "7B", gender: "banat" },
+            { nis: "262707025", nama: "Quisha Zahidah Rafifa", kelas: "7B", gender: "banat" },
+            { nis: "262707026", nama: "Raihana Yasmina Rahman", kelas: "7B", gender: "banat" },
+            { nis: "262707027", nama: "Raihanah Hanin", kelas: "7B", gender: "banat" },
+            { nis: "262707028", nama: "Raihanna Navy Khafiya", kelas: "7B", gender: "banat" },
+            { nis: "262707029", nama: "Rayna Shafiqa Almahyra", kelas: "7B", gender: "banat" },
+            { nis: "262707030", nama: "Rayya Viro Azzahra", kelas: "7B", gender: "banat" },
+            { nis: "262707031", nama: "Shafina Lucky Adeeba", kelas: "7B", gender: "banat" },
+            { nis: "262707032", nama: "Shafiyyah", kelas: "7B", gender: "banat" },
+            { nis: "262707033", nama: "Shafiyyah Najib", kelas: "7B", gender: "banat" },
+            { nis: "262707034", nama: "Shaqeena Taqiyyah Siregar", kelas: "7B", gender: "banat" },
+            { nis: "262707035", nama: "Siti Mutiah Ratu Setiawan", kelas: "7B", gender: "banat" },
+            { nis: "252607001", nama: "Abdurrohman", kelas: "8A", gender: "banin" },
+            { nis: "252607002", nama: "Agha Sebastian Dhuha", kelas: "8A", gender: "banin" },
+            { nis: "252607003", nama: "Alandra Raihan Syazani", kelas: "8A", gender: "banin" },
+            { nis: "252607004", nama: "Altadira Mohammed El Fatih", kelas: "8A", gender: "banin" },
+            { nis: "252607005", nama: "Arkananta Putra Iriawan", kelas: "8A", gender: "banin" },
+            { nis: "252607006", nama: "Arrafi Zaidan Qawiyyu", kelas: "8A", gender: "banin" },
+            { nis: "252607007", nama: "Arsya Athalah Haki", kelas: "8A", gender: "banin" },
+            { nis: "252607008", nama: "Baihaqi Safaraz", kelas: "8A", gender: "banin" },
+            { nis: "252607009", nama: "Fahri Afif Ihsanuddin", kelas: "8A", gender: "banin" },
+            { nis: "252607010", nama: "Galang Nareswara Putra G", kelas: "8A", gender: "banin" },
+            { nis: "252607011", nama: "Gaza Syauqi Firdaus", kelas: "8A", gender: "banin" },
+            { nis: "252607012", nama: "Habibie Alfarizqi", kelas: "8A", gender: "banin" },
+            { nis: "252607013", nama: "Hasan Faiq M. Hutasoit", kelas: "8A", gender: "banin" },
+            { nis: "252607014", nama: "Hasby Arif Al Ghifari", kelas: "8A", gender: "banin" },
+            { nis: "252607015", nama: "Kazhafran Al Fatih Milono", kelas: "8A", gender: "banin" },
+            { nis: "252607016", nama: "M.Serhan Ar Rasyid", kelas: "8A", gender: "banin" },
+            { nis: "252607017", nama: "Rafaza Aydin Nadivky", kelas: "8A", gender: "banin" },
+            { nis: "252607018", nama: "M. Alfath Athaya Riyanto", kelas: "8A", gender: "banin" },
+            { nis: "252607019", nama: "M. Andra Romansyah", kelas: "8A", gender: "banin" },
+            { nis: "252607020", nama: "M. Khalifah Al Farisi", kelas: "8A", gender: "banin" },
+            { nis: "252607021", nama: "M. Naufal Al Fakhri", kelas: "8A", gender: "banin" },
+            { nis: "252607022", nama: "Mischa Alvaro Nata Kunthar", kelas: "8A", gender: "banin" },
+            { nis: "252607023", nama: "Muhammad El Azzam A", kelas: "8A", gender: "banin" },
+            { nis: "252607024", nama: "Naufal Mu'min Billah", kelas: "8A", gender: "banin" },
+            { nis: "252607025", nama: "Raindra Alkhalifi Pratama", kelas: "8A", gender: "banin" },
+            { nis: "252607026", nama: "Rakargalu Damar Panuluh", kelas: "8A", gender: "banin" },
+            { nis: "252607027", nama: "Umar Fatih Abdurrahman", kelas: "8A", gender: "banin" },
+            { nis: "252607028", nama: "Zen Firdaus", kelas: "8A", gender: "banin" },
+            { nis: "252607030", nama: "Adela Zahra Nugroho", kelas: "8B", gender: "banat" },
+            { nis: "252607031", nama: "Afifah Haniyah", kelas: "8B", gender: "banat" },
+            { nis: "252607032", nama: "Aisyah Azzaira", kelas: "8B", gender: "banat" },
+            { nis: "252607034", nama: "Askana Sakhia", kelas: "8B", gender: "banat" },
+            { nis: "252607036", nama: "Azalea Rasyidatu Naja", kelas: "8B", gender: "banat" },
+            { nis: "252607039", nama: "Fatimah Azzahra", kelas: "8B", gender: "banat" },
+            { nis: "252607040", nama: "Fiorenza Aretha Arcobaleno", kelas: "8B", gender: "banat" },
+            { nis: "252607043", nama: "Hana Nafisah", kelas: "8B", gender: "banat" },
+            { nis: "252607044", nama: "Hanayumi Nafiiza Aldrin", kelas: "8B", gender: "banat" },
+            { nis: "252607045", nama: "Jasmina Jinan Izzati Akmal", kelas: "8B", gender: "banat" },
+            { nis: "252607047", nama: "Khanza Humaira Ariyadi", kelas: "8B", gender: "banat" },
+            { nis: "252607050", nama: "Matahari Parahita Prameswari", kelas: "8B", gender: "banat" },
+            { nis: "252607052", nama: "Naema Fikriyyah Humaira", kelas: "8B", gender: "banat" },
+            { nis: "252607058", nama: "Taalea Raisa Eiliyah", kelas: "8B", gender: "banat" },
+            { nis: "252607033", nama: "Aqeela Maulidya Arlen", kelas: "8C", gender: "banat" },
+            { nis: "252607035", nama: "Audrey Zaneta Aini", kelas: "8C", gender: "banat" },
+            { nis: "252607037", nama: "Azka Raihanah", kelas: "8C", gender: "banat" },
+            { nis: "252607038", nama: "Fakhirah Shakila Dini H", kelas: "8C", gender: "banat" },
+            { nis: "252607041", nama: "Ghassani Atqiya Zalfa A", kelas: "8C", gender: "banat" },
+            { nis: "252607042", nama: "Hafidzah Qotrunnada D.K", kelas: "8C", gender: "banat" },
+            { nis: "252607046", nama: "Khaeria Namia Zahrana", kelas: "8C", gender: "banat" },
+            { nis: "252607048", nama: "Khayyira Naila Aisha", kelas: "8C", gender: "banat" },
+            { nis: "252607049", nama: "Levinka Ayla Rahmadita", kelas: "8C", gender: "banat" },
+            { nis: "252607051", nama: "Naima Ashadya Zaida", kelas: "8C", gender: "banat" },
+            { nis: "252607053", nama: "Nabila Az-Zahra", kelas: "8C", gender: "banat" },
+            { nis: "252607055", nama: "Natasha Kirei Samita", kelas: "8C", gender: "banat" },
+            { nis: "252607056", nama: "Rania Ranaa Kurniawan", kelas: "8C", gender: "banat" },
+            { nis: "252607057", nama: "Syakira Rahmadita Sijabat", kelas: "8C", gender: "banat" },
+            { nis: "252607059", nama: "Violetha Ozora Himmatana", kelas: "8C", gender: "banat" },
+            { nis: "242507001", nama: "Alika Imtinan Diassyafahya", kelas: "9A", gender: "banat" },
+            { nis: "242507011", nama: "Athifah Mumtazah", kelas: "9A", gender: "banat" },
+            { nis: "242507002", nama: "Athiyyah Shofi Muthmainnah", kelas: "9A", gender: "banat" },
+            { nis: "242507003", nama: "Balqis Zahra Hanifah", kelas: "9A", gender: "banat" },
+            { nis: "252607060", nama: "Damia Khairina Alesha", kelas: "9A", gender: "banat" },
+            { nis: "252607061", nama: "Delisha Halwa Tabina", kelas: "9A", gender: "banat" },
+            { nis: "242501010", nama: "Kamilia Jaudah Tsuraya", kelas: "9A", gender: "banat" },
+            { nis: "242507005", nama: "Mahira Anezka Mulyawan", kelas: "9A", gender: "banat" },
+            { nis: "242507006", nama: "Maiza Rahma", kelas: "9A", gender: "banat" },
+            { nis: "242507007", nama: "Naura Izzatunnisa", kelas: "9A", gender: "banat" },
+            { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A", gender: "banat" }
         ];
 
         const VIOLATION_TYPES_INIT = [
@@ -1810,6 +2029,7 @@
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
+        let currentGenderFilter = 'all';
 
         let recognition = null;
         let isRecording = false;
@@ -2092,7 +2312,7 @@
             if (adminNav) adminNav.style.display = isAdmin() ? 'flex' : 'none';
 
             setupRealtimeListeners();
-            populateSiswaSelects();
+            populateSiswaDatalist();
 
             const lateDate = document.getElementById('lateDate');
             if (lateDate) lateDate.value = today();
@@ -2110,6 +2330,12 @@
 
             loadSchoolLogo();
             requestNotificationPermission();
+
+            // Event listener untuk autocomplete select siswa
+            setupStudentAutocomplete('recStudentInput', 'recStudent', 'recClass');
+            setupStudentAutocomplete('rewardStudentInput', 'rewardStudent', 'rewardClass');
+            setupStudentAutocomplete('bkStudentInput', 'bkStudent', 'bkClass');
+            setupStudentAutocomplete('lateStudentInput', 'lateStudent', 'lateClass');
         }
 
         function loadUserPhoto(userId, element) {
@@ -2131,7 +2357,7 @@
         function refreshActivePage() {
             if (isPageActive('dashboard')) loadDashboard();
             if (isPageActive('violations')) loadViolations();
-            if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
+            if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab, currentGenderFilter);
             if (isPageActive('reward')) loadRewardsList();
             if (isPageActive('admin')) loadFeedbackList();
             if (isPageActive('bk')) loadBkList();
@@ -2153,7 +2379,7 @@
                     SISWA_DATA.forEach(s => { obj[s.nis] = s; });
                     db.ref('siswa').set(obj); return; }
                 siswaCache = data;
-                populateSiswaSelects();
+                populateSiswaDatalist();
                 refreshActivePage();
             });
             db.ref('violationTypes').on('value', (snap) => {
@@ -2200,45 +2426,85 @@
         }
 
         // ============================================================
-        // POPULATE SISWA SELECT
+        // AUTOCOMPLETE / DATALIST SISWA
         // ============================================================
-        function populateSiswaSelects() {
+        function populateSiswaDatalist() {
+            const datalist = document.getElementById('siswaDatalist');
+            if (!datalist) return;
             const siswaList = Object.values(siswaCache);
             siswaList.sort((a, b) => a.nama.localeCompare(b.nama));
-
-            ['recStudent', 'rewardStudent', 'bkStudent', 'lateStudent'].forEach(id => {
-                const sel = document.getElementById(id);
-                if (!sel) return;
-                const val = sel.value;
-                sel.innerHTML = '<option value="">— Pilih siswa —</option>';
-                siswaList.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.nis;
-                    opt.textContent = `${s.nama} (${s.kelas})`;
-                    sel.appendChild(opt);
-                });
-                if (val && siswaCache[val]) sel.value = val;
-            });
-
-            // Update kelas saat select berubah
-            document.getElementById('recStudent').addEventListener('change', function() {
-                const s = siswaCache[this.value];
-                document.getElementById('recClass').value = s ? s.kelas : '';
-            });
-            document.getElementById('rewardStudent').addEventListener('change', function() {
-                const s = siswaCache[this.value];
-                document.getElementById('rewardClass').value = s ? s.kelas : '';
-            });
-            document.getElementById('bkStudent').addEventListener('change', function() {
-                const s = siswaCache[this.value];
-                document.getElementById('bkClass').value = s ? s.kelas : '';
-            });
-            document.getElementById('lateStudent').addEventListener('change', function() {
-                const s = siswaCache[this.value];
-                document.getElementById('lateClass').value = s ? s.kelas : '';
-            });
-
+            datalist.innerHTML = siswaList.map(s =>
+                `<option value="${escapeHtml(s.nama)}" data-nis="${s.nis}" data-kelas="${s.kelas}" data-gender="${s.gender}">`
+            ).join('');
             setText('statAllStudents', siswaList.length);
+        }
+
+        function setupStudentAutocomplete(inputId, hiddenId, classInputId) {
+            const input = document.getElementById(inputId);
+            const hidden = document.getElementById(hiddenId);
+            const classInput = document.getElementById(classInputId);
+            if (!input || !hidden) return;
+
+            // Saat input berubah, cari data siswa yang cocok
+            input.addEventListener('input', function() {
+                const val = this.value.trim();
+                // Cari siswa dengan nama yang persis sama
+                const match = Object.values(siswaCache).find(s => s.nama.toLowerCase() === val.toLowerCase());
+                if (match) {
+                    hidden.value = match.nis;
+                    if (classInput) classInput.value = match.kelas;
+                } else {
+                    // Jika tidak cocok persis, coba dari datalist pilihan
+                    const option = document.querySelector(`#siswaDatalist option[value="${escapeHtml(val)}"]`);
+                    if (option) {
+                        const nis = option.dataset.nis;
+                        const s = siswaCache[nis];
+                        if (s) {
+                            hidden.value = nis;
+                            if (classInput) classInput.value = s.kelas;
+                        }
+                    } else {
+                        // Kosongkan jika tidak ada yang cocok
+                        hidden.value = '';
+                        if (classInput) classInput.value = '';
+                    }
+                }
+            });
+
+            // Saat input kehilangan fokus, cari yang paling cocok
+            input.addEventListener('blur', function() {
+                const val = this.value.trim();
+                if (val) {
+                    const match = Object.values(siswaCache).find(s => s.nama.toLowerCase() === val.toLowerCase());
+                    if (match) {
+                        this.value = match.nama;
+                        hidden.value = match.nis;
+                        if (classInput) classInput.value = match.kelas;
+                    } else {
+                        // Cari yang mengandung
+                        const partial = Object.values(siswaCache).find(s =>
+                            s.nama.toLowerCase().includes(val.toLowerCase())
+                        );
+                        if (partial) {
+                            this.value = partial.nama;
+                            hidden.value = partial.nis;
+                            if (classInput) classInput.value = partial.kelas;
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // GENDER FILTER
+        // ============================================================
+        function setGenderFilter(gender) {
+            currentGenderFilter = gender;
+            document.querySelectorAll('.gender-filter .btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.gender === gender) btn.classList.add('active');
+            });
+            loadLeaderboard(currentLeaderboardTab, gender);
         }
 
         // ============================================================
@@ -2351,7 +2617,7 @@
 
             if (page === 'dashboard') loadDashboard();
             if (page === 'violations') loadViolations();
-            if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
+            if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab, currentGenderFilter);
             if (page === 'admin') { loadAdminPanel();
                 loadFeedbackList(); }
             if (page === 'profile') loadProfile();
@@ -2639,9 +2905,12 @@
             loadRewardsList();
         });
 
-        // LEADERBOARD
-        function loadLeaderboard(type = 'violation') {
+        // ============================================================
+        // LEADERBOARD (dengan filter gender)
+        // ============================================================
+        function loadLeaderboard(type = 'violation', gender = 'all') {
             currentLeaderboardTab = type;
+            currentGenderFilter = gender;
             const el = document.getElementById('leaderboardList');
             if (!el) return;
 
@@ -2650,9 +2919,15 @@
                 if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
             });
 
+            // Filter siswa berdasarkan gender
+            let siswaList = Object.values(siswaCache || {});
+            if (gender !== 'all') {
+                siswaList = siswaList.filter(s => s.gender === gender);
+            }
+            const siswaNis = new Set(siswaList.map(s => s.nis));
+
             if (type === 'violation') {
                 const statsMap = {};
-                const siswaList = Object.values(siswaCache || {});
                 siswaList.forEach(s => {
                     const stats = getStudentStats(s.nis);
                     if (stats.totalEffective > 0 || stats.severe > 0 || stats.lightMed > 0) {
@@ -2660,6 +2935,7 @@
                             nis: s.nis,
                             nama: s.nama,
                             kelas: s.kelas,
+                            gender: s.gender,
                             total: stats.totalEffective,
                             lightMed: stats.lightMed,
                             severe: stats.severe,
@@ -2671,17 +2947,22 @@
                 });
                 const list = Object.values(statsMap).sort((a, b) => b.total - a.total);
                 if (!list.length) {
+                    const genderLabel = gender === 'banin' ? 'Banin' : gender === 'banat' ? 'Banat' : 'Semua';
                     el.innerHTML =
-                    '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data pelanggaran.</p></div>';
+                        `<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data pelanggaran untuk ${genderLabel}.</p></div>`;
                     return;
                 }
                 el.innerHTML = list.map((s, i) => {
                     const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    const genderIcon = s.gender === 'banin' ? '👦' : s.gender === 'banat' ? '👧' : '';
+                    const genderBadge = s.gender === 'banin' ?
+                        '<span class="badge badge-banin">Banin</span>' :
+                        s.gender === 'banat' ? '<span class="badge badge-banat">Banat</span>' : '';
                     return `
                     <div class="leaderboard-item" data-nis="${s.nis}" data-type="violation">
                         <div class="rank ${rankClass}">#${i + 1}</div>
                         <div class="info">
-                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
+                            <div class="name">${escapeHtml(s.nama)} ${genderIcon} <span class="badge">${escapeHtml(s.kelas || '')}</span> ${genderBadge}</div>
                             <div class="point-breakdown">
                                 <span>Ringan/Sedang: ${s.lightMed}</span>
                                 <span class="reduced">- Reward: ${s.rewardPts}</span>
@@ -2694,25 +2975,34 @@
                     </div>`;
                 }).join('');
             } else {
+                // Reward Leaderboard
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
-                    if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
-                    map[r.nis].total += (r.poin || 0);
-                    map[r.nis].count += 1;
+                    if (siswaNis.has(r.nis)) {
+                        if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, gender: siswaCache[
+                                r.nis]?.gender, total: 0, count: 0 };
+                        map[r.nis].total += (r.poin || 0);
+                        map[r.nis].count += 1;
+                    }
                 });
                 const list = Object.values(map).sort((a, b) => b.total - a.total);
                 if (!list.length) {
+                    const genderLabel = gender === 'banin' ? 'Banin' : gender === 'banat' ? 'Banat' : 'Semua';
                     el.innerHTML =
-                    '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data kebaikan.</p></div>';
+                        `<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data kebaikan untuk ${genderLabel}.</p></div>`;
                     return;
                 }
                 el.innerHTML = list.map((s, i) => {
                     const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    const genderIcon = s.gender === 'banin' ? '👦' : s.gender === 'banat' ? '👧' : '';
+                    const genderBadge = s.gender === 'banin' ?
+                        '<span class="badge badge-banin">Banin</span>' :
+                        s.gender === 'banat' ? '<span class="badge badge-banat">Banat</span>' : '';
                     return `
                     <div class="leaderboard-item" data-nis="${s.nis}" data-type="reward">
                         <div class="rank ${rankClass}">#${i + 1}</div>
                         <div class="info">
-                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
+                            <div class="name">${escapeHtml(s.nama)} ${genderIcon} <span class="badge">${escapeHtml(s.kelas || '')}</span> ${genderBadge}</div>
                             <div class="detail">${s.count} kali kebaikan</div>
                         </div>
                         <div class="points reward-points">${s.total} ⭐</div>
@@ -2768,7 +3058,7 @@
                 return;
             }
             let tableHtml = `
-                <div style="margin-bottom:12px;"><strong>Kelas:</strong> ${student.kelas} | <strong>Total:</strong> ${rows.length} catatan</div>
+                <div style="margin-bottom:12px;"><strong>Kelas:</strong> ${student.kelas} | <strong>Jenis Kelamin:</strong> ${student.gender === 'banin' ? 'Banin (Laki-laki)' : student.gender === 'banat' ? 'Banat (Perempuan)' : '-'} | <strong>Total:</strong> ${rows.length} catatan</div>
                 <div class="table-wrap">
                     <table>
                         <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
@@ -2784,7 +3074,7 @@
         document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const type = this.dataset.leaderboardTab;
-                if (type) loadLeaderboard(type);
+                if (type) loadLeaderboard(type, currentGenderFilter);
             });
         });
 
@@ -2891,7 +3181,7 @@
         });
 
         // ============================================================
-        // BK
+        // BK (disingkat)
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3020,6 +3310,7 @@
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
                 document.getElementById('bkStudent').value = '';
+                document.getElementById('bkStudentInput').value = '';
                 document.getElementById('bkClass').value = '';
                 document.getElementById('bkNote').value = '';
                 document.getElementById('bkTranscript').textContent = 'Klik tombol rekam untuk mulai...';
@@ -3508,16 +3799,18 @@
             const nis = document.getElementById('newNis').value.trim();
             const nama = document.getElementById('newNama').value.trim();
             const kelas = document.getElementById('newKelas').value;
+            const gender = document.getElementById('newGender').value;
 
-            if (!nis || !nama || !kelas) { showToast('Lengkapi semua data siswa!', 'error'); return; }
+            if (!nis || !nama || !kelas || !gender) { showToast('Lengkapi semua data siswa!', 'error'); return; }
             if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
 
-            const newStudent = { nis, nama, kelas };
+            const newStudent = { nis, nama, kelas, gender };
             db.ref('siswa/' + nis).set(newStudent).then(() => {
                 showToast(`Siswa ${nama} berhasil ditambahkan!`);
                 this.reset();
                 siswaCache[nis] = newStudent;
-                populateSiswaSelects();
+                populateSiswaDatalist();
+                loadLeaderboard(currentLeaderboardTab, currentGenderFilter);
             }).catch(err => showToast('Gagal menambah: ' + err.message, 'error'));
         });
 
@@ -3598,7 +3891,7 @@
         });
 
         // ============================================================
-        // RECORD & REWARD FORMS (DIPERBAIKI)
+        // RECORD & REWARD FORMS
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
@@ -3606,33 +3899,24 @@
         document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
         document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
 
-        // FORM PELANGGARAN
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('recStudent').value;
             const typeId = document.getElementById('recType').value;
             const note = document.getElementById('recNote').value.trim();
 
-            if (!nis) {
-                showToast('Pilih siswa terlebih dahulu!', 'error');
-                return;
-            }
-            if (!typeId) {
-                showToast('Pilih jenis pelanggaran!', 'error');
-                return;
-            }
+            if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
+            if (!typeId) { showToast('Pilih jenis pelanggaran!', 'error'); return; }
 
             const s = siswaCache[nis];
             const t = violationTypesCache[typeId];
-            if (!s || !t) {
-                showToast('Data tidak valid!', 'error');
-                return;
-            }
+            if (!s || !t) { showToast('Data tidak valid!', 'error'); return; }
 
             const record = {
                 nis,
                 nama: s.nama,
                 kelas: s.kelas,
+                gender: s.gender,
                 typeId,
                 pelanggaran: t.nama,
                 kategori: t.kategori,
@@ -3651,38 +3935,30 @@
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
+                document.getElementById('recStudentInput').value = '';
                 document.getElementById('recStudent').value = '';
                 document.getElementById('recClass').value = '';
                 loadViolations();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
 
-        // FORM REWARD
         document.getElementById('rewardForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('rewardStudent').value;
             const typeId = document.getElementById('rewardType').value;
 
-            if (!nis) {
-                showToast('Pilih siswa terlebih dahulu!', 'error');
-                return;
-            }
-            if (!typeId) {
-                showToast('Pilih bentuk kebaikan!', 'error');
-                return;
-            }
+            if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
+            if (!typeId) { showToast('Pilih bentuk kebaikan!', 'error'); return; }
 
             const s = siswaCache[nis];
             const t = rewardTypesCache[typeId];
-            if (!s || !t) {
-                showToast('Data tidak valid!', 'error');
-                return;
-            }
+            if (!s || !t) { showToast('Data tidak valid!', 'error'); return; }
 
             const record = {
                 nis,
                 nama: s.nama,
                 kelas: s.kelas,
+                gender: s.gender,
                 typeId,
                 bentuk: t.nama,
                 kategori: t.kategori,
@@ -3704,6 +3980,7 @@
                 this.reset();
                 document.getElementById('rewardCategory').value = 'kecil';
                 renderRewardTypeOptions();
+                document.getElementById('rewardStudentInput').value = '';
                 document.getElementById('rewardStudent').value = '';
                 document.getElementById('rewardClass').value = '';
                 setTimeout(loadRewardsList, 500);
