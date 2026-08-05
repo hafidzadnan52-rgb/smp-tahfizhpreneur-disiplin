@@ -177,7 +177,7 @@
             100% { opacity: 1; }
         }
 
-        /* GENDER FILTER BUTTONS */
+        /* GENDER FILTER */
         .gender-filter {
             display: flex;
             gap: 8px;
@@ -216,7 +216,6 @@
             border-color: #e91e63;
         }
 
-        /* AUTOCOMPLETE (datalist) */
         input[list] {
             width: 100%;
             padding: 12px 16px;
@@ -233,7 +232,7 @@
             box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
         }
 
-        /* PRINT STYLES */
+        /* PRINT */
         @media print {
             .sidebar,
             .topbar .menu-toggle,
@@ -411,7 +410,7 @@
             font-style: italic;
             color: var(--gold-dark);
             padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255,255,255,0.5);
             border-radius: var(--radius-sm);
             margin-bottom: 20px;
             font-size: 0.9rem;
@@ -1891,7 +1890,7 @@
             { nis: "252607004", nama: "Altadira Mohammed El Fatih", kelas: "8A", gender: "banin" },
             { nis: "252607005", nama: "Arkananta Putra Iriawan", kelas: "8A", gender: "banin" },
             { nis: "252607006", nama: "Arrafi Zaidan Qawiyyu", kelas: "8A", gender: "banin" },
-            { nis: "252607007", nama: "Arsya Athalah Haki", kelas: "8A", gender: "banin" },
+            { nis: "252607007", nama: "Arsya Athalah Hakim", kelas: "8A", gender: "banin" },
             { nis: "252607008", nama: "Baihaqi Safaraz", kelas: "8A", gender: "banin" },
             { nis: "252607009", nama: "Fahri Afif Ihsanuddin", kelas: "8A", gender: "banin" },
             { nis: "252607010", nama: "Galang Nareswara Putra G", kelas: "8A", gender: "banin" },
@@ -2331,7 +2330,6 @@
             loadSchoolLogo();
             requestNotificationPermission();
 
-            // Event listener untuk autocomplete select siswa
             setupStudentAutocomplete('recStudentInput', 'recStudent', 'recClass');
             setupStudentAutocomplete('rewardStudentInput', 'rewardStudent', 'rewardClass');
             setupStudentAutocomplete('bkStudentInput', 'bkStudent', 'bkClass');
@@ -2445,16 +2443,13 @@
             const classInput = document.getElementById(classInputId);
             if (!input || !hidden) return;
 
-            // Saat input berubah, cari data siswa yang cocok
             input.addEventListener('input', function() {
                 const val = this.value.trim();
-                // Cari siswa dengan nama yang persis sama
                 const match = Object.values(siswaCache).find(s => s.nama.toLowerCase() === val.toLowerCase());
                 if (match) {
                     hidden.value = match.nis;
                     if (classInput) classInput.value = match.kelas;
                 } else {
-                    // Jika tidak cocok persis, coba dari datalist pilihan
                     const option = document.querySelector(`#siswaDatalist option[value="${escapeHtml(val)}"]`);
                     if (option) {
                         const nis = option.dataset.nis;
@@ -2464,14 +2459,12 @@
                             if (classInput) classInput.value = s.kelas;
                         }
                     } else {
-                        // Kosongkan jika tidak ada yang cocok
                         hidden.value = '';
                         if (classInput) classInput.value = '';
                     }
                 }
             });
 
-            // Saat input kehilangan fokus, cari yang paling cocok
             input.addEventListener('blur', function() {
                 const val = this.value.trim();
                 if (val) {
@@ -2481,7 +2474,6 @@
                         hidden.value = match.nis;
                         if (classInput) classInput.value = match.kelas;
                     } else {
-                        // Cari yang mengandung
                         const partial = Object.values(siswaCache).find(s =>
                             s.nama.toLowerCase().includes(val.toLowerCase())
                         );
@@ -2906,7 +2898,7 @@
         });
 
         // ============================================================
-        // LEADERBOARD (dengan filter gender)
+        // LEADERBOARD (dengan filter gender - PERBAIKAN untuk Reward)
         // ============================================================
         function loadLeaderboard(type = 'violation', gender = 'all') {
             currentLeaderboardTab = type;
@@ -2919,12 +2911,15 @@
                 if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
             });
 
-            // Filter siswa berdasarkan gender
+            // Filter siswa berdasarkan gender untuk lookup
             let siswaList = Object.values(siswaCache || {});
+            let filteredNis = new Set();
             if (gender !== 'all') {
                 siswaList = siswaList.filter(s => s.gender === gender);
+                filteredNis = new Set(siswaList.map(s => s.nis));
+            } else {
+                filteredNis = new Set(siswaList.map(s => s.nis));
             }
-            const siswaNis = new Set(siswaList.map(s => s.nis));
 
             if (type === 'violation') {
                 const statsMap = {};
@@ -2975,12 +2970,23 @@
                     </div>`;
                 }).join('');
             } else {
-                // Reward Leaderboard
+                // REWARD LEADERBOARD - PERBAIKAN: gunakan gender dari siswaCache
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
-                    if (siswaNis.has(r.nis)) {
-                        if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, gender: siswaCache[
-                                r.nis]?.gender, total: 0, count: 0 };
+                    // Cari siswa berdasarkan nis dari reward
+                    const student = siswaCache[r.nis];
+                    // Jika siswa ditemukan dan sesuai dengan filter gender
+                    if (student && (gender === 'all' || student.gender === gender)) {
+                        if (!map[r.nis]) {
+                            map[r.nis] = {
+                                nis: r.nis,
+                                nama: student.nama,
+                                kelas: student.kelas,
+                                gender: student.gender,
+                                total: 0,
+                                count: 0
+                            };
+                        }
                         map[r.nis].total += (r.poin || 0);
                         map[r.nis].count += 1;
                     }
@@ -3079,7 +3085,7 @@
         });
 
         // ============================================================
-        // LATE (Keterlambatan)
+        // LATE
         // ============================================================
         document.getElementById('lateForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3181,7 +3187,7 @@
         });
 
         // ============================================================
-        // BK (disingkat)
+        // BK
         // ============================================================
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
