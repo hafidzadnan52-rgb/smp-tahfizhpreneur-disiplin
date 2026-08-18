@@ -1335,6 +1335,7 @@
                 <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
                 <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
+                <a class="nav-item" data-page="rekap"><i class="fas fa-file-download"></i> Rekap Siswa</a>
                 <a class="nav-item" data-page="late"><i class="fas fa-clock"></i> Keterlambatan</a>
                 <a class="nav-item" data-page="bk"><i class="fas fa-hand-holding-heart"></i> BK (Konseling)</a>
                 <a class="nav-item" data-page="feedback"><i class="fas fa-comment"></i> Kirim Saran</a>
@@ -1454,6 +1455,41 @@
                             </div>
                         </div>
                         <div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div>
+                    </div>
+                </section>
+
+                <!-- REKAP SISWA -->
+                <section class="page-section" id="page-rekap">
+                    <div class="page-header"><h2><i class="fas fa-file-download"></i> Rekap Siswa</h2>
+                        <p>Rekap total poin pelanggaran dan poin reward per siswa. <span class="badge badge-success">Poin efektif = (Ringan+Sedang - Reward) + Berat</span></p>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-table"></i> Daftar Rekap</h3></div>
+                        <div class="filter-bar">
+                            <input type="text" id="rekapFilterStudent" placeholder="Cari nama siswa..." />
+                            <select id="rekapFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <button class="btn btn-sm btn-outline" id="clearRekapFilters"><i class="fas fa-undo"></i> Reset</button>
+                            <button class="btn btn-sm export-btn" id="exportRekapBtn"><i class="fas fa-file-excel"></i> Download Rekap</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>NIS</th>
+                                        <th>Nama</th>
+                                        <th>Kelas</th>
+                                        <th>Poin Pelanggaran</th>
+                                        <th>Jml Pelanggaran</th>
+                                        <th>Poin Reward</th>
+                                        <th>Jml Reward</th>
+                                        <th>Poin Efektif</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rekapTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="rekapEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data siswa.</p></div>
                     </div>
                 </section>
 
@@ -2274,6 +2310,7 @@
             if (isPageActive('admin')) loadFeedbackList();
             if (isPageActive('bk')) loadBkList();
             if (isPageActive('late')) loadLateList();
+            if (isPageActive('rekap')) loadRekapSiswa();
         }
 
         function setupRealtimeListeners() {
@@ -2518,6 +2555,7 @@
             if (page === 'reward') loadRewardsList();
             if (page === 'bk') loadBkList();
             if (page === 'late') loadLateList();
+            if (page === 'rekap') loadRekapSiswa();
         }
 
         document.querySelector('.sidebar').addEventListener('click', function(e) {
@@ -2889,6 +2927,93 @@
                 });
             });
         }
+
+        // ============================================================
+        // REKAP SISWA (Pelanggaran + Reward per siswa)
+        // ============================================================
+        function getRekapData() {
+            const filterStudent = (document.getElementById('rekapFilterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('rekapFilterClass').value;
+
+            let list = Object.values(siswaCache || {}).map(s => {
+                const stats = getStudentStats(s.nis);
+                const jmlPelanggaran = Object.values(violationsCache || {}).filter(v => v.nis === s.nis).length;
+                const jmlReward = Object.values(rewardsCache || {}).filter(r => r.nis === s.nis).length;
+                return {
+                    nis: s.nis,
+                    nama: s.nama,
+                    kelas: s.kelas,
+                    poinPelanggaran: stats.lightMed + stats.severe,
+                    jmlPelanggaran,
+                    poinReward: stats.rewardPts,
+                    jmlReward,
+                    poinEfektif: stats.totalEffective
+                };
+            });
+
+            list = list.filter(s =>
+                (!filterStudent || (s.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || s.kelas === filterClass)
+            );
+
+            list.sort((a, b) => (a.kelas || '').localeCompare(b.kelas || '') || (a.nama || '').localeCompare(b.nama || ''));
+            return list;
+        }
+
+        function loadRekapSiswa() {
+            const tbody = document.getElementById('rekapTableBody');
+            const emptyEl = document.getElementById('rekapEmpty');
+            if (!tbody) return;
+
+            const list = getRekapData();
+            window.__rekapSiswa = list;
+
+            emptyEl.classList.toggle('hidden', list.length > 0);
+
+            tbody.innerHTML = list.map((s, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(s.nis)}</td>
+                    <td>${escapeHtml(s.nama)}</td>
+                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><span class="badge badge-danger">${s.poinPelanggaran}</span></td>
+                    <td>${s.jmlPelanggaran}</td>
+                    <td><span class="badge badge-success">${s.poinReward}</span></td>
+                    <td>${s.jmlReward}</td>
+                    <td><strong>${s.poinEfektif}</strong></td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('rekapFilterStudent').addEventListener('input', loadRekapSiswa);
+        document.getElementById('rekapFilterClass').addEventListener('change', loadRekapSiswa);
+        document.getElementById('clearRekapFilters').addEventListener('click', () => {
+            document.getElementById('rekapFilterStudent').value = '';
+            document.getElementById('rekapFilterClass').value = '';
+            loadRekapSiswa();
+        });
+        document.getElementById('exportRekapBtn').addEventListener('click', function() {
+            const data = window.__rekapSiswa || getRekapData();
+            if (!data.length) { showToast('Tidak ada data untuk diekspor.', 'error'); return; }
+            const headers = ['No', 'NIS', 'Nama', 'Kelas', 'Poin Pelanggaran', 'Jumlah Pelanggaran', 'Poin Reward',
+                'Jumlah Reward', 'Poin Efektif'
+            ];
+            const rows = data.map((s, i) => [i + 1, s.nis, s.nama, s.kelas || '-', s.poinPelanggaran, s.jmlPelanggaran,
+                s.poinReward, s.jmlReward, s.poinEfektif
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            '\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rekap-siswa-${today()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Rekap siswa berhasil diunduh!');
+        });
 
         function showStudentDetail(nis, type) {
             const student = siswaCache[nis];
