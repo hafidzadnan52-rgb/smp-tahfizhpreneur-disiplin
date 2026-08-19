@@ -1454,6 +1454,11 @@
                                 <button class="btn btn-sm btn-outline" data-leaderboard-tab="reward">Kebaikan</button>
                             </div>
                         </div>
+                        <div class="tab-buttons no-print" style="padding:0 16px 12px;">
+                            <button class="btn btn-sm btn-outline active" data-leaderboard-gender="all">Semua Siswa</button>
+                            <button class="btn btn-sm btn-outline" data-leaderboard-gender="L">Banin (Putra)</button>
+                            <button class="btn btn-sm btn-outline" data-leaderboard-gender="P">Banat (Putri)</button>
+                        </div>
                         <div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div>
                     </div>
                 </section>
@@ -1703,6 +1708,28 @@
                             </form>
                         </div>
                     </div>
+
+                    <!-- Kelola Jenis Kelamin Siswa -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accGenderSiswa">
+                            <span><i class="fas fa-venus-mars" style="color:var(--gold);"></i> Kelola Jenis Kelamin Siswa (Banin/Banat)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accGenderSiswa">
+                            <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Jenis kelamin dideteksi otomatis dari nama siswa. Jika ada yang salah tebak, koreksi manual di bawah ini — hasil koreksi akan tersimpan permanen.</p>
+                            <div class="filter-bar">
+                                <input type="text" id="genderFilterStudent" placeholder="Cari nama siswa..." />
+                                <select id="genderFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                                <select id="genderFilterStatus"><option value="">Semua</option><option value="unknown">Belum Terdeteksi</option><option value="manual">Sudah Dikoreksi Manual</option></select>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Jenis Kelamin</th></tr></thead>
+                                    <tbody id="genderSiswaTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- PROFILE -->
@@ -1905,6 +1932,64 @@
             { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
         ];
 
+        // ============================================================
+        // DETEKSI JENIS KELAMIN (BANIN/BANAT) DARI NAMA
+        // Heuristik berbasis nama depan. Bisa dikoreksi manual di
+        // Panel Admin -> Kelola Jenis Kelamin Siswa (tersimpan di siswa/{nis}/jenisKelamin)
+        // ============================================================
+        const FEMALE_NAME_TOKENS = new Set([
+            'aisyah','aisya','aishah','khadijah','khadija','fatimah','fatima','zahra','zahrah','azzahra',
+            'nurul','nuraini','nurhaliza','putri','putry','aulia','nisa','nissa','annisa','anisa','anisah',
+            'salsabila','salsabilla','salsabil','humaira','humairah','hafizah','hafiza','ayu','cantika','dewi',
+            'sari','rahma','rahmah','amira','amirah','alya','alyaa','alia','kayla','naila','nayla','qonita',
+            'qonitah','qanita','sabrina','yasmin','yasmine','zulfa','khalisa','aqilah','balqis','farah','hanan',
+            'hanin','zaskia','fadhilah','kamilah','kamilia','nabila','alifah','syifa','hasna','hasanah','ainun',
+            'aini','mutia','mutiara','keysha','kirana','larasati','maharani','safira','shafira','bilqis','atikah',
+            'marwah','hawwa','maryam','malika','khansa','khanza','zahira','aleeya','alea','jasmine','jihan',
+            'laila','layla','dinda','indira','cinta','bunga','melati','wulan','citra','intan','permata','ratih',
+            'salma','salwa','sania','syahira','zafira','zannuba','zulaikha','kamila','kayana','kanaya','keisha',
+            'khalila','nadhira','najwa','naura','nasywa','nasya','nasyifa','nazwa','qiara','raisa','rania',
+            'ratna','rifqah','rihana','rima','sabina','sausan','silvi','syakira','wardah','yumna','yusra',
+            'zeinab','zeina','zhafira','abidah','fidziaritza','damia','khairina','alesha','delisha','halwa',
+            'tabina','anezka','maiza','izzatunnisa','raihana','tsuraya','jaudah','shakira','shakila','shafiyya',
+            'shafiyyah','qurrota','qurrotul','aqeela','hanifah','tazkiyah','tsabita','arini','arinal','husna',
+            'gadis','ayudia','safiya','safiyah','fauziyah','fauziah'
+        ]);
+        const MALE_NAME_TOKENS = new Set([
+            'muhammad','ahmad','abdillah','abdul','abdurrahman','abdullah','abdurahman','wildan','aqil','azzam',
+            'chairul','emran','zahwan','raffaza','rashka','rayyan','tsaqif','fathan','fatih','arkenzie','azlan',
+            'ilham','faiz','fajar','hafiz','hilmi','ihsan','irfan','rafi','rafif','raihan','ridho','rizky',
+            'rizki','satria','taufik','umar','yusuf','zaki','zidan','zidane','dzaki','fauzan','fauzi','gibran',
+            'hadi','haidar','hakim','ibrahim','idris','ikhsan','ismail','kemal','khalid','luthfi','malik',
+            'naufal','rafa','rahman','ramadhan','ridwan','salman','sultan','wafiq','zain','zayn','danish',
+            'dani','daffa','dafa','arya','bagas','bayu','bima','dimas','eka','farhan','febrian','gading',
+            'galang','harits','iqbal','jibril','kevin','panji','prasetyo','rangga','reza','surya','teguh',
+            'wahyu','yoga','aditya','agung','akbar','alif','aryo','bintang','dava','davin','dzikri','fikri',
+            'galih','ghifari','habib','hasan','kholiq','luqman','mikail','nabil','naswan','rasyid','ammar',
+            'wijaya','pratama','uno','iqra','alfaruq','solichin','adiatmaja'
+        ]);
+        function guessGenderFromName(nama) {
+            if (!nama) return null;
+            const tokens = String(nama).toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean);
+            for (const t of tokens) {
+                if (FEMALE_NAME_TOKENS.has(t)) return 'P';
+            }
+            for (const t of tokens) {
+                if (MALE_NAME_TOKENS.has(t)) return 'L';
+            }
+            return null;
+        }
+        function getStudentGender(s) {
+            if (!s) return null;
+            if (s.jenisKelamin === 'L' || s.jenisKelamin === 'P') return s.jenisKelamin;
+            return guessGenderFromName(s.nama);
+        }
+        function setStudentGender(nis, gender) {
+            return db.ref('siswa/' + nis + '/jenisKelamin').set(gender).then(() => {
+                if (siswaCache[nis]) siswaCache[nis].jenisKelamin = gender;
+            });
+        }
+
         const VIOLATION_TYPES_INIT = [
             { nama: "Terlambat lebih dari 15 menit", kategori: "ringan", poin: 5,
             konsekuensi: "Memungut sampah 15 menit + istighfar 3x" },
@@ -1979,6 +2064,7 @@
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
+        let currentLeaderboardGender = 'all';
 
         let recognition = null;
         let isRecording = false;
@@ -2845,15 +2931,21 @@
             const el = document.getElementById('leaderboardList');
             if (!el) return;
 
-            document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
+            document.querySelectorAll('.tab-buttons .btn[data-leaderboard-tab]').forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
             });
+
+            const genderMatches = (nis) => {
+                if (currentLeaderboardGender === 'all') return true;
+                return getStudentGender(siswaCache[nis]) === currentLeaderboardGender;
+            };
 
             if (type === 'violation') {
                 // ===== PELANGGARAN - Reward tidak ditampilkan =====
                 const statsMap = {};
                 Object.values(siswaCache || {}).forEach(s => {
+                    if (!genderMatches(s.nis)) return;
                     const stats = getStudentStats(s.nis);
                     // Tampilkan hanya jika ada poin (efektif atau ringan/sedang atau berat)
                     if (stats.totalEffective > 0 || stats.severe > 0 || stats.lightMed > 0) {
@@ -2895,6 +2987,7 @@
                 // ===== REWARD =====
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
+                    if (!genderMatches(r.nis)) return;
                     if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
                     map[r.nis].total += (r.poin || 0);
                     map[r.nis].count += 1;
@@ -3070,10 +3163,21 @@
             openModal(title, tableHtml);
         }
 
-        document.querySelectorAll('.tab-buttons .btn').forEach(btn => {
+        document.querySelectorAll('.tab-buttons .btn[data-leaderboard-tab]').forEach(btn => {
             btn.addEventListener('click', function() {
                 const type = this.dataset.leaderboardTab;
                 if (type) loadLeaderboard(type);
+            });
+        });
+        document.querySelectorAll('.tab-buttons .btn[data-leaderboard-gender]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const gender = this.dataset.leaderboardGender;
+                if (!gender) return;
+                currentLeaderboardGender = gender;
+                document.querySelectorAll('.tab-buttons .btn[data-leaderboard-gender]').forEach(b =>
+                    b.classList.remove('active'));
+                this.classList.add('active');
+                loadLeaderboard(currentLeaderboardTab);
             });
         });
 
@@ -3508,6 +3612,7 @@
             renderRewardTypesTable();
             renderUsersTable();
             renderGuruTable();
+            renderGenderSiswaTable();
             loadFeedbackList();
         }
 
@@ -3668,6 +3773,63 @@
                 </tr>`;
             }).join('');
         }
+
+        function renderGenderSiswaTable() {
+            const tbody = document.getElementById('genderSiswaTableBody');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('genderFilterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('genderFilterClass').value;
+            const filterStatus = document.getElementById('genderFilterStatus').value;
+
+            let list = Object.values(siswaCache || {}).map(s => {
+                const isManual = (s.jenisKelamin === 'L' || s.jenisKelamin === 'P');
+                const gender = getStudentGender(s);
+                return { nis: s.nis, nama: s.nama, kelas: s.kelas, gender, isManual };
+            });
+
+            list = list.filter(s =>
+                (!filterStudent || (s.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || s.kelas === filterClass) &&
+                (!filterStatus || (filterStatus === 'unknown' && !s.gender) || (filterStatus === 'manual' && s.isManual))
+            );
+            list.sort((a, b) => (a.kelas || '').localeCompare(b.kelas || '') || (a.nama || '').localeCompare(b.nama || ''));
+
+            if (!list.length) { tbody.innerHTML =
+                '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Tidak ada data siswa.</td></tr>';
+                return; }
+
+            tbody.innerHTML = list.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.nis)}</td>
+                    <td>${escapeHtml(s.nama)}</td>
+                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td>
+                        <select data-gender-nis="${s.nis}" style="width:auto;display:inline-block;">
+                            <option value="" ${!s.gender ? 'selected' : ''}>— Belum diketahui —</option>
+                            <option value="L" ${s.gender === 'L' ? 'selected' : ''}>Banin (Putra)</option>
+                            <option value="P" ${s.gender === 'P' ? 'selected' : ''}>Banat (Putri)</option>
+                        </select>
+                        ${s.isManual ? '<span class="badge badge-success" style="margin-left:6px;">Manual</span>' : (s.gender ? '<span class="badge" style="margin-left:6px;">Otomatis</span>' : '')}
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-gender-nis]').forEach(sel => {
+                sel.addEventListener('change', function() {
+                    const nis = this.getAttribute('data-gender-nis');
+                    const val = this.value;
+                    if (!val) { showToast('Pilih Banin atau Banat untuk menyimpan.', 'error'); return; }
+                    setStudentGender(nis, val).then(() => {
+                        showToast('Jenis kelamin siswa diperbarui.');
+                        renderGenderSiswaTable();
+                    });
+                });
+            });
+        }
+
+        document.getElementById('genderFilterStudent').addEventListener('input', renderGenderSiswaTable);
+        document.getElementById('genderFilterClass').addEventListener('change', renderGenderSiswaTable);
+        document.getElementById('genderFilterStatus').addEventListener('change', renderGenderSiswaTable);
 
         // ============================================================
         // MODALS
