@@ -11,6 +11,7 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         /* ===== RESET & VARIABEL ===== */
         * {
@@ -1336,6 +1337,9 @@
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
                 <a class="nav-item" data-page="leaderboard"><i class="fas fa-trophy"></i> Papan Peringkat</a>
                 <a class="nav-item" data-page="rekap"><i class="fas fa-file-download"></i> Rekap Siswa</a>
+                <a class="nav-item" data-page="student-profile"><i class="fas fa-id-card"></i> Profil Siswa</a>
+                <a class="nav-item" data-page="analytics"><i class="fas fa-chart-line"></i> Analitik</a>
+                <a class="nav-item" data-page="sp-letter"><i class="fas fa-file-signature"></i> Surat Peringatan</a>
                 <a class="nav-item" data-page="late"><i class="fas fa-clock"></i> Keterlambatan</a>
                 <a class="nav-item" data-page="bk"><i class="fas fa-hand-holding-heart"></i> BK (Konseling)</a>
                 <a class="nav-item" data-page="feedback"><i class="fas fa-comment"></i> Kirim Saran</a>
@@ -1459,6 +1463,11 @@
                             <button class="btn btn-sm btn-outline" data-leaderboard-gender="L">Banin (Putra)</button>
                             <button class="btn btn-sm btn-outline" data-leaderboard-gender="P">Banat (Putri)</button>
                         </div>
+                        <div class="filter-bar no-print" style="padding:0 16px 12px;align-items:center;">
+                            <label style="font-size:0.85rem;color:var(--text-light);white-space:nowrap;"><i class="fas fa-calendar-alt"></i> Periode:</label>
+                            <select id="leaderboardMonthFilter"></select>
+                            <span id="leaderboardMonthLabel" class="badge badge-success" style="margin-left:auto;"></span>
+                        </div>
                         <div id="leaderboardList"><div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada data.</p></div></div>
                     </div>
                 </section>
@@ -1473,6 +1482,7 @@
                         <div class="filter-bar">
                             <input type="text" id="rekapFilterStudent" placeholder="Cari nama siswa..." />
                             <select id="rekapFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <select id="rekapFilterMonth"></select>
                             <button class="btn btn-sm btn-outline" id="clearRekapFilters"><i class="fas fa-undo"></i> Reset</button>
                             <button class="btn btn-sm export-btn" id="exportRekapBtn"><i class="fas fa-file-excel"></i> Download Rekap</button>
                         </div>
@@ -1495,6 +1505,92 @@
                             </table>
                         </div>
                         <div id="rekapEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data siswa.</p></div>
+                    </div>
+                </section>
+
+                <!-- PROFIL & RIWAYAT SISWA -->
+                <section class="page-section" id="page-student-profile">
+                    <div class="page-header"><h2><i class="fas fa-id-card"></i> Profil Siswa</h2>
+                        <p>Cari siswa untuk melihat profil lengkap: statistik poin, tren bulanan, dan riwayat semua catatan.</p>
+                    </div>
+                    <div class="card" id="studentProfileListCard">
+                        <div class="card-header"><h3><i class="fas fa-search"></i> Cari Siswa</h3></div>
+                        <div class="filter-bar">
+                            <input type="text" id="spListFilterStudent" placeholder="Cari nama siswa..." />
+                            <select id="spListFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Poin Efektif</th><th></th></tr></thead>
+                                <tbody id="spListTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card hidden" id="studentProfileDetailCard">
+                        <div class="card-header">
+                            <h3><i class="fas fa-user"></i> <span id="spDetailName"></span></h3>
+                            <div class="tab-buttons no-print">
+                                <button class="btn btn-sm btn-outline" id="spBackBtn"><i class="fas fa-arrow-left"></i> Kembali</button>
+                                <button class="btn btn-sm btn-print no-print" onclick="window.print()"><i class="fas fa-print"></i> Cetak</button>
+                            </div>
+                        </div>
+                        <div id="spDetailContent"></div>
+                    </div>
+                </section>
+
+                <!-- ANALITIK -->
+                <section class="page-section" id="page-analytics">
+                    <div class="page-header"><h2><i class="fas fa-chart-line"></i> Analitik &amp; Tren</h2>
+                        <p>Grafik tren pelanggaran dan reward untuk membantu identifikasi pola dan pengambilan keputusan.</p>
+                    </div>
+                    <div class="filter-bar no-print">
+                        <select id="analyticsMonthRange">
+                            <option value="3">3 Bulan Terakhir</option>
+                            <option value="6" selected>6 Bulan Terakhir</option>
+                            <option value="12">12 Bulan Terakhir</option>
+                        </select>
+                        <select id="analyticsGenderFilter">
+                            <option value="all">Semua Siswa</option>
+                            <option value="L">Banin (Putra)</option>
+                            <option value="P">Banat (Putri)</option>
+                        </select>
+                    </div>
+                    <div class="card"><div class="card-header"><h3>Tren Pelanggaran vs Reward per Bulan</h3></div>
+                        <canvas id="chartTrendMonthly" height="110"></canvas></div>
+                    <div class="card"><div class="card-header"><h3>Jenis Pelanggaran Terbanyak</h3></div>
+                        <canvas id="chartViolationTypes" height="110"></canvas></div>
+                    <div class="card"><div class="card-header"><h3>Poin Pelanggaran per Kelas</h3></div>
+                        <canvas id="chartByClass" height="110"></canvas></div>
+                    <div class="card"><div class="card-header"><h3>Pola Hari Terjadinya Pelanggaran</h3></div>
+                        <canvas id="chartByDay" height="110"></canvas></div>
+                </section>
+
+                <!-- SURAT PERINGATAN OTOMATIS -->
+                <section class="page-section" id="page-sp-letter">
+                    <div class="page-header"><h2><i class="fas fa-file-signature"></i> Surat Peringatan Otomatis</h2>
+                        <p>Daftar siswa yang poin pelanggarannya sudah mencapai ambang batas Surat Peringatan.</p>
+                    </div>
+                    <div class="card no-print">
+                        <div class="card-header"><h3><i class="fas fa-sliders-h"></i> Ambang Batas Poin (Poin Efektif)</h3></div>
+                        <div class="filter-bar">
+                            <div class="form-group"><label>SP 1</label><input type="number" id="spThreshold1" min="1" style="width:90px;" /></div>
+                            <div class="form-group"><label>SP 2</label><input type="number" id="spThreshold2" min="1" style="width:90px;" /></div>
+                            <div class="form-group"><label>SP 3</label><input type="number" id="spThreshold3" min="1" style="width:90px;" /></div>
+                            <button class="btn btn-sm btn-success" id="saveSpThresholdBtn" style="align-self:flex-end;"><i class="fas fa-save"></i> Simpan</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-list"></i> Siswa Perlu Surat Peringatan</h3></div>
+                        <div class="filter-bar no-print">
+                            <select id="spFilterMonth"></select>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Nama</th><th>Kelas</th><th>Poin Efektif</th><th>Level SP</th><th class="no-print">Aksi</th></tr></thead>
+                                <tbody id="spEligibleTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="spEligibleEmpty" class="empty-state hidden"><i class="fas fa-check-circle"></i><p>Tidak ada siswa yang melewati ambang batas.</p></div>
                     </div>
                 </section>
 
@@ -1728,6 +1824,27 @@
                                     <tbody id="genderSiswaTableBody"></tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Kenaikan Kelas / Tahun Ajaran Baru -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accKenaikanKelas">
+                            <span><i class="fas fa-graduation-cap" style="color:var(--gold);"></i> Kenaikan Kelas / Tahun Ajaran Baru</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accKenaikanKelas">
+                            <div style="background:#fff3cd;border:1px solid #ffe08a;border-radius:8px;padding:12px;margin-bottom:14px;font-size:0.85rem;">
+                                <i class="fas fa-triangle-exclamation" style="color:#b8860b;"></i>
+                                <strong>Perhatian:</strong> proses ini akan mengubah data kelas seluruh siswa secara massal. Riwayat pelanggaran/reward/BK/keterlambatan <u>tidak dihapus</u> (tetap tersimpan untuk arsip), hanya field kelas siswa yang diperbarui. Siswa yang dipetakan ke "LULUS" akan ditandai lulus. Tindakan ini tidak bisa dibatalkan otomatis — pastikan sudah yakin.
+                            </div>
+                            <div class="form-group">
+                                <label>Label Tahun Ajaran (untuk arsip)</label>
+                                <input type="text" id="kkTahunAjaran" placeholder="Contoh: 2025/2026 → 2026/2027" />
+                            </div>
+                            <div id="kkMappingContainer" style="margin:14px 0;"></div>
+                            <button class="btn btn-outline btn-sm" id="kkRefreshBtn" type="button"><i class="fas fa-rotate"></i> Muat Ulang Daftar Kelas</button>
+                            <button class="btn btn-danger btn-sm" id="kkProcessBtn" type="button" style="margin-left:8px;"><i class="fas fa-graduation-cap"></i> Proses Kenaikan Kelas</button>
                         </div>
                     </div>
                 </section>
@@ -2061,10 +2178,12 @@
         let latesCache = {};
         let moneyRewardRules = {};
         let userProfilesCache = {};
+        let spThresholdsCache = { sp1: 15, sp2: 25, sp3: 40 };
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
         let currentLeaderboardGender = 'all';
+        let currentLeaderboardMonth = currentMonthKey();
 
         let recognition = null;
         let isRecording = false;
@@ -2397,6 +2516,9 @@
             if (isPageActive('bk')) loadBkList();
             if (isPageActive('late')) loadLateList();
             if (isPageActive('rekap')) loadRekapSiswa();
+            if (isPageActive('student-profile')) loadStudentProfileList();
+            if (isPageActive('analytics')) loadAnalytics();
+            if (isPageActive('sp-letter')) loadSpLetterList();
         }
 
         function setupRealtimeListeners() {
@@ -2451,12 +2573,16 @@
             });
             db.ref('lates').on('value', (snap) => { latesCache = snap.val() || {};
                 if (isPageActive('late')) loadLateList(); });
+            db.ref('settings/spThresholds').on('value', (snap) => {
+                spThresholdsCache = snap.val() || { sp1: 15, sp2: 25, sp3: 40 };
+                if (isPageActive('sp-letter')) loadSpLetterList();
+            });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
-                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates'
+                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates', 'settings/spThresholds'
             ].forEach(r => db.ref(r).off());
         }
 
@@ -2642,6 +2768,9 @@
             if (page === 'bk') loadBkList();
             if (page === 'late') loadLateList();
             if (page === 'rekap') loadRekapSiswa();
+            if (page === 'student-profile') loadStudentProfileList();
+            if (page === 'analytics') loadAnalytics();
+            if (page === 'sp-letter') loadSpLetterList();
         }
 
         document.querySelector('.sidebar').addEventListener('click', function(e) {
@@ -2684,22 +2813,40 @@
         // ============================================================
         // CORE FUNCTIONS
         // ============================================================
-        function getStudentStats(nis) {
+        function getStudentStats(nis, monthKey) {
             let lightMed = 0,
                 severe = 0,
                 rewardPts = 0;
             const violations = Object.values(violationsCache || {});
             const rewards = Object.values(rewardsCache || {});
+            const inMonth = (tgl) => !monthKey || (tgl && tgl.slice(0, 7) === monthKey);
             violations.forEach(v => {
-                if (v.nis === nis) {
+                if (v.nis === nis && inMonth(v.tanggal)) {
                     if (v.kategori === 'ringan' || v.kategori === 'sedang') lightMed += (v.poin || 0);
                     else if (v.kategori === 'berat') severe += (v.poin || 0);
                 }
             });
-            rewards.forEach(r => { if (r.nis === nis) rewardPts += (r.poin || 0); });
+            rewards.forEach(r => { if (r.nis === nis && inMonth(r.tanggal)) rewardPts += (r.poin || 0); });
             const effectiveLightMed = Math.max(0, lightMed - rewardPts);
             const totalEffective = effectiveLightMed + severe;
             return { lightMed, severe, rewardPts, effectiveLightMed, totalEffective };
+        }
+
+        function currentMonthKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+        function monthKeyLabel(monthKey) {
+            if (!monthKey) return 'Semua Waktu';
+            const bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const [y, m] = monthKey.split('-');
+            return `${bulanNama[parseInt(m, 10) - 1]} ${y}`;
+        }
+
+        function getAvailableMonthKeys() {
+            const set = new Set();
+            set.add(currentMonthKey());
+            Object.values(violationsCache || {}).forEach(v => { if (v.tanggal) set.add(v.tanggal.slice(0, 7)); });
+            Object.values(rewardsCache || {}).forEach(r => { if (r.tanggal) set.add(r.tanggal.slice(0, 7)); });
+            return Array.from(set).sort().reverse();
         }
 
         function loadDashboard() {
@@ -2936,6 +3083,11 @@
                 if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
             });
 
+            populateLeaderboardMonthFilter();
+            const monthKey = currentLeaderboardMonth || null;
+            const monthLabelEl = document.getElementById('leaderboardMonthLabel');
+            if (monthLabelEl) monthLabelEl.textContent = monthKeyLabel(monthKey);
+
             const genderMatches = (nis) => {
                 if (currentLeaderboardGender === 'all') return true;
                 return getStudentGender(siswaCache[nis]) === currentLeaderboardGender;
@@ -2946,7 +3098,7 @@
                 const statsMap = {};
                 Object.values(siswaCache || {}).forEach(s => {
                     if (!genderMatches(s.nis)) return;
-                    const stats = getStudentStats(s.nis);
+                    const stats = getStudentStats(s.nis, monthKey);
                     // Tampilkan hanya jika ada poin (efektif atau ringan/sedang atau berat)
                     if (stats.totalEffective > 0 || stats.severe > 0 || stats.lightMed > 0) {
                         statsMap[s.nis] = {
@@ -2957,7 +3109,7 @@
                             lightMed: stats.lightMed,
                             severe: stats.severe,
                             // HAPUS: rewardPts & effectiveLightMed
-                            count: Object.values(violationsCache || {}).filter(v => v.nis === s.nis).length
+                            count: Object.values(violationsCache || {}).filter(v => v.nis === s.nis && (!monthKey || (v.tanggal && v.tanggal.slice(0, 7) === monthKey))).length
                         };
                     }
                 });
@@ -2988,6 +3140,7 @@
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
                     if (!genderMatches(r.nis)) return;
+                    if (monthKey && (!r.tanggal || r.tanggal.slice(0, 7) !== monthKey)) return;
                     if (!map[r.nis]) map[r.nis] = { nis: r.nis, nama: r.nama, kelas: r.kelas, total: 0, count: 0 };
                     map[r.nis].total += (r.poin || 0);
                     map[r.nis].count += 1;
@@ -3027,11 +3180,14 @@
         function getRekapData() {
             const filterStudent = (document.getElementById('rekapFilterStudent').value || '').toLowerCase().trim();
             const filterClass = document.getElementById('rekapFilterClass').value;
+            const monthSel = document.getElementById('rekapFilterMonth');
+            const monthKey = monthSel ? (monthSel.value || null) : null;
 
             let list = Object.values(siswaCache || {}).map(s => {
-                const stats = getStudentStats(s.nis);
-                const jmlPelanggaran = Object.values(violationsCache || {}).filter(v => v.nis === s.nis).length;
-                const jmlReward = Object.values(rewardsCache || {}).filter(r => r.nis === s.nis).length;
+                const stats = getStudentStats(s.nis, monthKey);
+                const inMonth = (tgl) => !monthKey || (tgl && tgl.slice(0, 7) === monthKey);
+                const jmlPelanggaran = Object.values(violationsCache || {}).filter(v => v.nis === s.nis && inMonth(v.tanggal)).length;
+                const jmlReward = Object.values(rewardsCache || {}).filter(r => r.nis === s.nis && inMonth(r.tanggal)).length;
                 return {
                     nis: s.nis,
                     nama: s.nama,
@@ -3053,11 +3209,23 @@
             return list;
         }
 
+        function populateRekapMonthFilter() {
+            const sel = document.getElementById('rekapFilterMonth');
+            if (!sel) return;
+            const prevValue = sel.value;
+            const months = getAvailableMonthKeys();
+            let html = '<option value="">Semua Waktu</option>';
+            html += months.map(mk => `<option value="${mk}">${monthKeyLabel(mk)}${mk === currentMonthKey() ? ' (Bulan Ini)' : ''}</option>`).join('');
+            sel.innerHTML = html;
+            sel.value = months.includes(prevValue) ? prevValue : '';
+        }
+
         function loadRekapSiswa() {
             const tbody = document.getElementById('rekapTableBody');
             const emptyEl = document.getElementById('rekapEmpty');
             if (!tbody) return;
 
+            populateRekapMonthFilter();
             const list = getRekapData();
             window.__rekapSiswa = list;
 
@@ -3080,33 +3248,413 @@
 
         document.getElementById('rekapFilterStudent').addEventListener('input', loadRekapSiswa);
         document.getElementById('rekapFilterClass').addEventListener('change', loadRekapSiswa);
+        document.getElementById('rekapFilterMonth').addEventListener('change', loadRekapSiswa);
         document.getElementById('clearRekapFilters').addEventListener('click', () => {
             document.getElementById('rekapFilterStudent').value = '';
             document.getElementById('rekapFilterClass').value = '';
+            document.getElementById('rekapFilterMonth').value = '';
             loadRekapSiswa();
         });
         document.getElementById('exportRekapBtn').addEventListener('click', function() {
             const data = window.__rekapSiswa || getRekapData();
             if (!data.length) { showToast('Tidak ada data untuk diekspor.', 'error'); return; }
+            const monthSel = document.getElementById('rekapFilterMonth');
+            const monthKey = monthSel ? monthSel.value : '';
+            const periodeLabel = monthKeyLabel(monthKey || null);
             const headers = ['No', 'NIS', 'Nama', 'Kelas', 'Poin Pelanggaran', 'Jumlah Pelanggaran', 'Poin Reward',
                 'Jumlah Reward', 'Poin Efektif'
             ];
             const rows = data.map((s, i) => [i + 1, s.nis, s.nama, s.kelas || '-', s.poinPelanggaran, s.jmlPelanggaran,
                 s.poinReward, s.jmlReward, s.poinEfektif
             ]);
-            const csv = [headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
+            const csv = [[`Rekap Siswa - ${periodeLabel}`], headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
             '\r\n');
             const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `rekap-siswa-${today()}.csv`;
+            a.download = `rekap-siswa-${monthKey || 'semua-waktu'}.csv`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             showToast('Rekap siswa berhasil diunduh!');
         });
+
+        // ============================================================
+        // SURAT PERINGATAN OTOMATIS (SP1/SP2/SP3)
+        // ============================================================
+        function loadSpLetterList() {
+            document.getElementById('spThreshold1').value = spThresholdsCache.sp1;
+            document.getElementById('spThreshold2').value = spThresholdsCache.sp2;
+            document.getElementById('spThreshold3').value = spThresholdsCache.sp3;
+
+            const monthSel = document.getElementById('spFilterMonth');
+            if (monthSel && !monthSel.dataset.populated) {
+                const months = getAvailableMonthKeys();
+                monthSel.innerHTML = '<option value="">Semua Waktu (Akumulatif)</option>' +
+                    months.map(mk => `<option value="${mk}" ${mk === currentMonthKey() ? 'selected' : ''}>${monthKeyLabel(mk)}</option>`).join('');
+                monthSel.dataset.populated = '1';
+                monthSel.addEventListener('change', loadSpLetterList);
+            }
+            const monthKey = monthSel ? (monthSel.value || null) : null;
+
+            const tbody = document.getElementById('spEligibleTableBody');
+            const emptyEl = document.getElementById('spEligibleEmpty');
+            const { sp1, sp2, sp3 } = spThresholdsCache;
+
+            let list = Object.values(siswaCache || {}).map(s => {
+                const poin = getStudentStats(s.nis, monthKey).totalEffective;
+                let level = null;
+                if (poin >= sp3) level = 3; else if (poin >= sp2) level = 2; else if (poin >= sp1) level = 1;
+                return { nis: s.nis, nama: s.nama, kelas: s.kelas, poin, level };
+            }).filter(s => s.level);
+            list.sort((a, b) => b.poin - a.poin);
+
+            window.__spEligibleList = list;
+            emptyEl.classList.toggle('hidden', list.length > 0);
+
+            tbody.innerHTML = list.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.nama)}</td>
+                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><strong>${s.poin}</strong></td>
+                    <td><span class="badge badge-danger">SP ${s.level}</span></td>
+                    <td class="no-print"><button class="btn btn-sm btn-print" data-gen-sp="${s.nis}" data-sp-level="${s.level}"><i class="fas fa-file-signature"></i> Buat Surat</button></td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-gen-sp]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    generateSpLetter(this.getAttribute('data-gen-sp'), parseInt(this.getAttribute('data-sp-level'), 10), monthKey);
+                });
+            });
+        }
+
+        document.getElementById('saveSpThresholdBtn').addEventListener('click', function() {
+            const sp1 = parseInt(document.getElementById('spThreshold1').value, 10) || 0;
+            const sp2 = parseInt(document.getElementById('spThreshold2').value, 10) || 0;
+            const sp3 = parseInt(document.getElementById('spThreshold3').value, 10) || 0;
+            if (!(sp1 > 0 && sp2 > sp1 && sp3 > sp2)) {
+                showToast('Ambang batas harus urut: SP1 < SP2 < SP3, dan lebih dari 0.', 'error');
+                return;
+            }
+            db.ref('settings/spThresholds').set({ sp1, sp2, sp3 }).then(() => {
+                showToast('Ambang batas Surat Peringatan disimpan.');
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        function generateSpLetter(nis, level, monthKey) {
+            const s = siswaCache[nis];
+            if (!s) return;
+            const stats = getStudentStats(nis, monthKey);
+            const violations = Object.values(violationsCache || {})
+                .filter(v => v.nis === nis && (!monthKey || (v.tanggal && v.tanggal.slice(0, 7) === monthKey)))
+                .sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || ''));
+
+            const rowsHtml = violations.length ? violations.map((v, i) => `
+                <tr>
+                    <td style="padding:4px 8px;border:1px solid #999;">${i + 1}</td>
+                    <td style="padding:4px 8px;border:1px solid #999;">${formatDate(v.tanggal)}</td>
+                    <td style="padding:4px 8px;border:1px solid #999;">${escapeHtml(v.pelanggaran || '-')}</td>
+                    <td style="padding:4px 8px;border:1px solid #999;text-align:center;">${v.poin}</td>
+                </tr>`).join('') :
+                '<tr><td colspan="4" style="padding:8px;border:1px solid #999;text-align:center;">Tidak ada catatan pada periode ini.</td></tr>';
+
+            const periodeLabel = monthKeyLabel(monthKey);
+            const todayLabel = formatDate(today());
+            const romawi = level === 1 ? 'I' : level === 2 ? 'II' : 'III';
+
+            const letterHtml = `
+                <html><head><title>Surat Peringatan ${romawi} - ${s.nama}</title>
+                <style>
+                    body { font-family: 'Times New Roman', serif; padding: 40px; color:#111; line-height:1.6; }
+                    h2, h3 { text-align:center; margin:2px 0; }
+                    .kop { text-align:center; border-bottom:3px double #000; padding-bottom:10px; margin-bottom:24px; }
+                    table { border-collapse: collapse; width:100%; margin:16px 0; }
+                    .ttd { display:flex; justify-content:space-between; margin-top:60px; }
+                    .ttd div { text-align:center; width:250px; }
+                    .signspace { height:70px; }
+                </style></head>
+                <body onload="window.print()">
+                    <div class="kop">
+                        <h2>SMP TAHFIZH PRENEUR CAHAYA QURAN</h2>
+                        <div>Formulir Pembinaan Kesiswaan</div>
+                    </div>
+                    <h3 style="text-decoration:underline;">SURAT PERINGATAN ${romawi} (SP-${level})</h3>
+                    <p>Nomor: ..... /SP-${level}/${new Date().getFullYear()}</p>
+                    <p>Yang bertanda tangan di bawah ini, pihak Kesiswaan SMP Tahfizh Preneur menyatakan bahwa siswa berikut telah mencapai akumulasi poin pelanggaran yang memerlukan pembinaan lebih lanjut:</p>
+                    <table style="width:auto;">
+                        <tr><td style="padding:2px 12px 2px 0;">Nama</td><td>: <strong>${escapeHtml(s.nama)}</strong></td></tr>
+                        <tr><td style="padding:2px 12px 2px 0;">NIS</td><td>: ${escapeHtml(s.nis)}</td></tr>
+                        <tr><td style="padding:2px 12px 2px 0;">Kelas</td><td>: ${escapeHtml(s.kelas || '-')}</td></tr>
+                        <tr><td style="padding:2px 12px 2px 0;">Periode</td><td>: ${periodeLabel}</td></tr>
+                        <tr><td style="padding:2px 12px 2px 0;">Total Poin Efektif</td><td>: <strong>${stats.totalEffective}</strong></td></tr>
+                    </table>
+                    <p>Berikut adalah rincian pelanggaran pada periode terkait:</p>
+                    <table>
+                        <thead><tr>
+                            <th style="padding:4px 8px;border:1px solid #999;">No</th>
+                            <th style="padding:4px 8px;border:1px solid #999;">Tanggal</th>
+                            <th style="padding:4px 8px;border:1px solid #999;">Jenis Pelanggaran</th>
+                            <th style="padding:4px 8px;border:1px solid #999;">Poin</th>
+                        </tr></thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                    <p>Surat peringatan ini diterbitkan sebagai bentuk pembinaan agar siswa yang bersangkutan dapat memperbaiki sikap dan perilakunya. Mohon kerja sama orang tua/wali untuk turut membimbing putra/putrinya.</p>
+                    <div class="ttd">
+                        <div><div class="signspace"></div>Orang Tua/Wali Siswa<br>____________________</div>
+                        <div>Depok, ${todayLabel}<div class="signspace"></div>Kabid Kesiswaan<br>____________________</div>
+                    </div>
+                </body></html>`;
+
+            const win = window.open('', '_blank');
+            if (!win) { showToast('Popup diblokir browser. Izinkan popup untuk mencetak surat.', 'error'); return; }
+            win.document.write(letterHtml);
+            win.document.close();
+        }
+
+        // ============================================================
+        // ANALITIK & GRAFIK TREN
+        // ============================================================
+        let analyticsCharts = {};
+        function destroyAnalyticsChart(key) {
+            if (analyticsCharts[key]) { analyticsCharts[key].destroy(); delete analyticsCharts[key]; }
+        }
+        function loadAnalytics() {
+            if (!window.Chart) return;
+            const rangeSel = document.getElementById('analyticsMonthRange');
+            const genderSel = document.getElementById('analyticsGenderFilter');
+            const nMonths = parseInt((rangeSel && rangeSel.value) || '6', 10);
+            const genderFilter = (genderSel && genderSel.value) || 'all';
+
+            const genderMatches = (nis) => {
+                if (genderFilter === 'all') return true;
+                return getStudentGender(siswaCache[nis]) === genderFilter;
+            };
+
+            const months = [];
+            const d = new Date();
+            for (let i = nMonths - 1; i >= 0; i--) {
+                const dd = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                months.push(`${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`);
+            }
+
+            const violations = Object.values(violationsCache || {}).filter(v => genderMatches(v.nis));
+            const rewards = Object.values(rewardsCache || {}).filter(r => genderMatches(r.nis));
+
+            // 1. Tren bulanan: total poin pelanggaran (ringan+sedang+berat, raw) vs total poin reward
+            const monthlyViolationPts = months.map(mk =>
+                violations.filter(v => v.tanggal && v.tanggal.slice(0, 7) === mk).reduce((sum, v) => sum + (v.poin || 0), 0));
+            const monthlyRewardPts = months.map(mk =>
+                rewards.filter(r => r.tanggal && r.tanggal.slice(0, 7) === mk).reduce((sum, r) => sum + (r.poin || 0), 0));
+
+            destroyAnalyticsChart('trend');
+            const ctxTrend = document.getElementById('chartTrendMonthly');
+            if (ctxTrend) {
+                analyticsCharts.trend = new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: months.map(mk => monthKeyLabel(mk)),
+                        datasets: [
+                            { label: 'Poin Pelanggaran', data: monthlyViolationPts, borderColor: '#e05c5c', backgroundColor: 'rgba(224,92,92,0.15)', tension: 0.3, fill: true },
+                            { label: 'Poin Reward', data: monthlyRewardPts, borderColor: '#4caf7d', backgroundColor: 'rgba(76,175,125,0.15)', tension: 0.3, fill: true }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            // 2. Jenis pelanggaran terbanyak (dalam rentang bulan terpilih)
+            const monthSet = new Set(months);
+            const typeCounts = {};
+            violations.forEach(v => {
+                if (!v.tanggal || !monthSet.has(v.tanggal.slice(0, 7))) return;
+                const key = v.pelanggaran || 'Lainnya';
+                typeCounts[key] = (typeCounts[key] || 0) + 1;
+            });
+            const topTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+            destroyAnalyticsChart('types');
+            const ctxTypes = document.getElementById('chartViolationTypes');
+            if (ctxTypes) {
+                analyticsCharts.types = new Chart(ctxTypes, {
+                    type: 'bar',
+                    data: { labels: topTypes.map(t => t[0]), datasets: [{ label: 'Jumlah Kejadian', data: topTypes.map(t => t[1]), backgroundColor: '#c9a84c' }] },
+                    options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+                });
+            }
+
+            // 3. Poin pelanggaran per kelas
+            const classPts = {};
+            violations.forEach(v => {
+                if (!v.tanggal || !monthSet.has(v.tanggal.slice(0, 7))) return;
+                const key = v.kelas || '-';
+                classPts[key] = (classPts[key] || 0) + (v.poin || 0);
+            });
+            const classEntries = Object.entries(classPts).sort((a, b) => a[0].localeCompare(b[0]));
+
+            destroyAnalyticsChart('byClass');
+            const ctxClass = document.getElementById('chartByClass');
+            if (ctxClass) {
+                analyticsCharts.byClass = new Chart(ctxClass, {
+                    type: 'bar',
+                    data: { labels: classEntries.map(c => c[0]), datasets: [{ label: 'Poin Pelanggaran', data: classEntries.map(c => c[1]), backgroundColor: '#7a8fd6' }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            // 4. Pola hari (Senin-Minggu)
+            const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu'];
+            const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+            violations.forEach(v => {
+                if (!v.tanggal || !monthSet.has(v.tanggal.slice(0, 7))) return;
+                const dt = new Date(v.tanggal + 'T00:00:00');
+                if (!isNaN(dt)) dayCounts[dt.getDay()]++;
+            });
+            const orderedIdx = [1, 2, 3, 4, 5, 6, 0]; // Senin...Minggu
+
+            destroyAnalyticsChart('byDay');
+            const ctxDay = document.getElementById('chartByDay');
+            if (ctxDay) {
+                analyticsCharts.byDay = new Chart(ctxDay, {
+                    type: 'bar',
+                    data: { labels: orderedIdx.map(i => dayNames[i]), datasets: [{ label: 'Jumlah Pelanggaran', data: orderedIdx.map(i => dayCounts[i]), backgroundColor: '#e0995c' }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+                });
+            }
+        }
+        document.getElementById('analyticsMonthRange').addEventListener('change', loadAnalytics);
+        document.getElementById('analyticsGenderFilter').addEventListener('change', loadAnalytics);
+
+        // ============================================================
+        // PROFIL & RIWAYAT LENGKAP SISWA
+        // ============================================================
+        function loadStudentProfileList() {
+            const tbody = document.getElementById('spListTableBody');
+            if (!tbody) return;
+            const filterStudent = (document.getElementById('spListFilterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('spListFilterClass').value;
+
+            let list = Object.values(siswaCache || {}).map(s => ({
+                nis: s.nis, nama: s.nama, kelas: s.kelas,
+                poinEfektif: getStudentStats(s.nis, null).totalEffective
+            }));
+            list = list.filter(s =>
+                (!filterStudent || (s.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || s.kelas === filterClass)
+            );
+            list.sort((a, b) => (a.kelas || '').localeCompare(b.kelas || '') || (a.nama || '').localeCompare(b.nama || ''));
+
+            if (!list.length) { tbody.innerHTML =
+                '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Siswa tidak ditemukan.</td></tr>';
+                return; }
+
+            tbody.innerHTML = list.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.nis)}</td>
+                    <td>${escapeHtml(s.nama)}</td>
+                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><strong>${s.poinEfektif}</strong></td>
+                    <td><button class="btn btn-sm btn-outline" data-view-profile="${s.nis}"><i class="fas fa-eye"></i> Detail</button></td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-view-profile]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showStudentProfileDetail(this.getAttribute('data-view-profile'));
+                });
+            });
+        }
+        document.getElementById('spListFilterStudent').addEventListener('input', loadStudentProfileList);
+        document.getElementById('spListFilterClass').addEventListener('change', loadStudentProfileList);
+        document.getElementById('spBackBtn').addEventListener('click', () => {
+            document.getElementById('studentProfileDetailCard').classList.add('hidden');
+            document.getElementById('studentProfileListCard').classList.remove('hidden');
+        });
+
+        let spTrendChartInstance = null;
+        function showStudentProfileDetail(nis) {
+            const s = siswaCache[nis];
+            if (!s) { showToast('Data siswa tidak ditemukan.', 'error'); return; }
+
+            document.getElementById('studentProfileListCard').classList.add('hidden');
+            document.getElementById('studentProfileDetailCard').classList.remove('hidden');
+            document.getElementById('spDetailName').textContent = `${s.nama} — ${s.kelas || '-'}`;
+
+            const stats = getStudentStats(nis, null);
+            const statsThisMonth = getStudentStats(nis, currentMonthKey());
+            const gender = getStudentGender(s);
+            const genderLabel = gender === 'L' ? 'Banin (Putra)' : gender === 'P' ? 'Banat (Putri)' : 'Belum diketahui';
+
+            const violations = Object.entries(violationsCache || {}).filter(([id, v]) => v.nis === nis).map(([id, v]) => ({ id, tipe: 'pelanggaran', ...v }));
+            const rewards = Object.entries(rewardsCache || {}).filter(([id, r]) => r.nis === nis).map(([id, r]) => ({ id, tipe: 'reward', ...r }));
+            const lates = Object.entries(latesCache || {}).filter(([id, l]) => l.nis === nis).map(([id, l]) => ({ id, tipe: 'terlambat', ...l }));
+            const bks = Object.entries(bkCache || {}).filter(([id, b]) => b.nis === nis).map(([id, b]) => ({ id, tipe: 'bk', ...b }));
+
+            const timeline = [...violations, ...rewards, ...lates, ...bks].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            // 6 bulan terakhir untuk grafik tren
+            const months = [];
+            const d = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const dd = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                months.push(`${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`);
+            }
+            const monthlyPelanggaran = months.map(mk => getStudentStats(nis, mk).lightMed + getStudentStats(nis, mk).severe);
+            const monthlyReward = months.map(mk => getStudentStats(nis, mk).rewardPts);
+
+            const timelineHtml = timeline.length ? timeline.map(item => {
+                let icon = 'fa-circle', color = 'var(--text-light)', title = '', desc = '';
+                if (item.tipe === 'pelanggaran') { icon = 'fa-triangle-exclamation'; color = 'var(--danger)';
+                    title = `${escapeHtml(item.pelanggaran || '')} (${item.poin} poin)`; desc = item.catatan || ''; }
+                else if (item.tipe === 'reward') { icon = 'fa-star'; color = 'var(--success)';
+                    title = `${escapeHtml(item.bentuk || '')} (+${item.poin} poin)`; desc = ''; }
+                else if (item.tipe === 'terlambat') { icon = 'fa-clock'; color = '#f0ad4e';
+                    title = `Terlambat pukul ${escapeHtml(item.waktu || '-')}`; desc = item.catatan || ''; }
+                else if (item.tipe === 'bk') { icon = 'fa-hand-holding-heart'; color = 'var(--gold)';
+                    title = `Konseling BK`; desc = item.ringkasan || item.catatan || ''; }
+                return `
+                <div class="timeline-item" style="border-left:3px solid ${color};padding:8px 0 8px 14px;margin-bottom:6px;">
+                    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                        <div><i class="fas ${icon}" style="color:${color};margin-right:6px;"></i><strong>${title}</strong></div>
+                        <div style="color:var(--text-light);font-size:0.85rem;">${formatDate(item.tanggal)} · ${escapeHtml(item.guru || '-')}</div>
+                    </div>
+                    ${desc ? `<div style="color:var(--text-light);font-size:0.9rem;margin-top:2px;">${escapeHtml(desc)}</div>` : ''}
+                </div>`;
+            }).join('') : '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada riwayat catatan.</p></div>';
+
+            document.getElementById('spDetailContent').innerHTML = `
+                <div class="stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">NIS</div><div><strong>${escapeHtml(s.nis)}</strong></div></div>
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">Jenis Kelamin</div><div><strong>${genderLabel}</strong></div></div>
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">Poin Efektif (Total)</div><div><strong>${stats.totalEffective}</strong></div></div>
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">Poin Efektif (Bulan Ini)</div><div><strong>${statsThisMonth.totalEffective}</strong></div></div>
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">Poin Reward (Total)</div><div><strong>${stats.rewardPts}</strong></div></div>
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">Jml Terlambat</div><div><strong>${lates.length}</strong></div></div>
+                    <div class="card" style="padding:12px;text-align:center;"><div style="font-size:0.8rem;color:var(--text-light);">Jml Konseling BK</div><div><strong>${bks.length}</strong></div></div>
+                </div>
+                <div class="card" style="padding:12px;margin-bottom:16px;"><canvas id="spTrendChart" height="90"></canvas></div>
+                <h4 style="margin-bottom:8px;"><i class="fas fa-timeline"></i> Riwayat Lengkap</h4>
+                <div id="spTimelineList">${timelineHtml}</div>
+            `;
+
+            const ctx = document.getElementById('spTrendChart');
+            if (spTrendChartInstance) spTrendChartInstance.destroy();
+            if (ctx && window.Chart) {
+                spTrendChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: months.map(mk => monthKeyLabel(mk)),
+                        datasets: [
+                            { label: 'Poin Pelanggaran', data: monthlyPelanggaran, backgroundColor: '#e05c5c' },
+                            { label: 'Poin Reward', data: monthlyReward, backgroundColor: '#4caf7d' }
+                        ]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
 
         function showStudentDetail(nis, type) {
             const student = siswaCache[nis];
@@ -3179,6 +3727,22 @@
                 this.classList.add('active');
                 loadLeaderboard(currentLeaderboardTab);
             });
+        });
+
+        function populateLeaderboardMonthFilter() {
+            const sel = document.getElementById('leaderboardMonthFilter');
+            if (!sel) return;
+            const prevValue = sel.value || currentLeaderboardMonth;
+            const months = getAvailableMonthKeys();
+            let html = '<option value="">Semua Waktu</option>';
+            html += months.map(mk => `<option value="${mk}">${monthKeyLabel(mk)}${mk === currentMonthKey() ? ' (Bulan Ini)' : ''}</option>`).join('');
+            sel.innerHTML = html;
+            sel.value = months.includes(prevValue) || prevValue === '' ? prevValue : currentMonthKey();
+            currentLeaderboardMonth = sel.value;
+        }
+        document.getElementById('leaderboardMonthFilter').addEventListener('change', function() {
+            currentLeaderboardMonth = this.value;
+            loadLeaderboard(currentLeaderboardTab);
         });
 
         // ============================================================
@@ -3613,6 +4177,7 @@
             renderUsersTable();
             renderGuruTable();
             renderGenderSiswaTable();
+            renderKkMapping();
             loadFeedbackList();
         }
 
@@ -3830,6 +4395,125 @@
         document.getElementById('genderFilterStudent').addEventListener('input', renderGenderSiswaTable);
         document.getElementById('genderFilterClass').addEventListener('change', renderGenderSiswaTable);
         document.getElementById('genderFilterStatus').addEventListener('change', renderGenderSiswaTable);
+
+        // ============================================================
+        // KENAIKAN KELAS / TAHUN AJARAN BARU
+        // ============================================================
+        function suggestNextClass(kelas) {
+            if (!kelas) return kelas;
+            const m = String(kelas).match(/^(\d+)([A-Za-z]*)$/);
+            if (!m) return kelas;
+            const grade = parseInt(m[1], 10);
+            const suffix = m[2] || '';
+            if (grade === 9) return 'LULUS';
+            return `${grade + 1}${suffix}`;
+        }
+
+        function renderKkMapping() {
+            const container = document.getElementById('kkMappingContainer');
+            if (!container) return;
+            const classCounts = {};
+            Object.values(siswaCache || {}).forEach(s => {
+                const k = s.kelas || '(Tanpa Kelas)';
+                classCounts[k] = (classCounts[k] || 0) + 1;
+            });
+            const classes = Object.keys(classCounts).sort();
+            if (!classes.length) { container.innerHTML = '<p class="text-muted">Belum ada data siswa.</p>'; return; }
+
+            const allTargetOptions = classes.concat(['LULUS']).filter((v, i, a) => a.indexOf(v) === i);
+
+            container.innerHTML = `
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Kelas Saat Ini</th><th>Jumlah Siswa</th><th>Naik Menjadi</th></tr></thead>
+                        <tbody>
+                            ${classes.map(k => `
+                                <tr>
+                                    <td><span class="badge">${escapeHtml(k)}</span></td>
+                                    <td>${classCounts[k]}</td>
+                                    <td>
+                                        <select data-kk-from="${escapeHtml(k)}">
+                                            <option value="__TETAP__">Tetap (tidak naik)</option>
+                                            ${allTargetOptions.map(opt => `<option value="${escapeHtml(opt)}" ${opt === suggestNextClass(k) ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+                                            <option value="__CUSTOM__">Kelas baru (ketik manual)...</option>
+                                        </select>
+                                        <input type="text" data-kk-custom="${escapeHtml(k)}" placeholder="Nama kelas baru" style="display:none;width:120px;margin-top:4px;" />
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.querySelectorAll('select[data-kk-from]').forEach(sel => {
+                sel.addEventListener('change', function() {
+                    const from = this.getAttribute('data-kk-from');
+                    const customInput = container.querySelector(`input[data-kk-custom="${CSS.escape(from)}"]`);
+                    if (customInput) customInput.style.display = this.value === '__CUSTOM__' ? 'block' : 'none';
+                });
+            });
+        }
+        document.getElementById('kkRefreshBtn').addEventListener('click', renderKkMapping);
+
+        document.getElementById('kkProcessBtn').addEventListener('click', function() {
+            const tahunAjaran = (document.getElementById('kkTahunAjaran').value || '').trim();
+            if (!tahunAjaran) { showToast('Isi label tahun ajaran terlebih dahulu.', 'error'); return; }
+
+            const container = document.getElementById('kkMappingContainer');
+            const mapping = {};
+            container.querySelectorAll('select[data-kk-from]').forEach(sel => {
+                const from = sel.getAttribute('data-kk-from');
+                let to = sel.value;
+                if (to === '__TETAP__') return; // tidak berubah
+                if (to === '__CUSTOM__') {
+                    const customInput = container.querySelector(`input[data-kk-custom="${CSS.escape(from)}"]`);
+                    to = customInput ? customInput.value.trim() : '';
+                    if (!to) return;
+                }
+                mapping[from] = to;
+            });
+
+            const affectedList = Object.values(siswaCache || {}).filter(s => mapping[s.kelas || '(Tanpa Kelas)']);
+            if (!affectedList.length) { showToast('Tidak ada perubahan kelas yang diatur.', 'error'); return; }
+
+            const preview = Object.entries(mapping).map(([from, to]) => `${from} → ${to}`).join('\n');
+            const confirmMsg = `Anda akan memproses kenaikan kelas untuk ${affectedList.length} siswa dengan pemetaan:\n\n${preview}\n\nTahun Ajaran: ${tahunAjaran}\n\nKetik "NAIK KELAS" (huruf besar) untuk konfirmasi.`;
+            const confirmText = prompt(confirmMsg);
+            if (confirmText !== 'NAIK KELAS') {
+                showToast('Proses kenaikan kelas dibatalkan.', 'error');
+                return;
+            }
+
+            // 1. Simpan catatan arsip untuk audit
+            const archiveId = genId();
+            const archiveRecord = {
+                tahunAjaran,
+                tanggalProses: today(),
+                oleh: currentUser.name,
+                jumlahSiswa: affectedList.length,
+                mapping,
+                daftarSiswa: affectedList.map(s => ({ nis: s.nis, nama: s.nama, kelasLama: s.kelas, kelasBaru: mapping[s.kelas] }))
+            };
+
+            // 2. Update kelas siswa secara massal (multi-path update)
+            const updates = {};
+            affectedList.forEach(s => {
+                const kelasBaru = mapping[s.kelas];
+                updates['siswa/' + s.nis + '/kelas'] = kelasBaru;
+                if (kelasBaru === 'LULUS') {
+                    updates['siswa/' + s.nis + '/status'] = 'lulus';
+                }
+            });
+
+            db.ref('arsipKenaikanKelas/' + archiveId).set(archiveRecord)
+                .then(() => db.ref().update(updates))
+                .then(() => {
+                    showToast(`Kenaikan kelas berhasil diproses untuk ${affectedList.length} siswa!`);
+                    document.getElementById('kkTahunAjaran').value = '';
+                    renderKkMapping();
+                })
+                .catch(err => showToast('Gagal memproses: ' + err.message, 'error'));
+        });
 
         // ============================================================
         // MODALS
