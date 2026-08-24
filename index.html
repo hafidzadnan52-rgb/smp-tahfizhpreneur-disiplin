@@ -37,7 +37,57 @@
             --success: #2a9d8f;
             --warning: #e9b741;
             --sidebar-width: 260px;
+            --border-color: #e5e0d5;
         }
+        [data-theme="dark"] {
+            --bg: #14161c;
+            --card: #1e212b;
+            --text: #e7e9ee;
+            --text-light: #9aa2b1;
+            --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+            --border-color: #2f3341;
+            --primary: #17233d;
+            --primary-light: #24365c;
+            --primary-dark: #0c1424;
+        }
+        [data-theme="dark"] body { background: var(--bg); }
+        [data-theme="dark"] input,
+        [data-theme="dark"] select,
+        [data-theme="dark"] textarea {
+            background: #262a36 !important;
+            color: var(--text) !important;
+            border-color: var(--border-color) !important;
+        }
+        [data-theme="dark"] table thead { background: #262a36 !important; }
+        [data-theme="dark"] table tbody tr:hover { background: #262a36 !important; }
+        [data-theme="dark"] .modal,
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .sidebar {
+            background: var(--card);
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] ::placeholder { color: #6b7280 !important; }
+        [data-theme="dark"] .leaderboard-item { background: #262a36; }
+        [data-theme="dark"] .sidebar .nav-item:hover { background: #262a36; }
+        [data-theme="dark"] .badge:not(.badge-success):not(.badge-danger) { background: #2f3341; color: var(--text); }
+        [data-theme="dark"] .empty-state { color: var(--text-light); }
+        [data-theme="dark"] hr { border-color: var(--border-color) !important; }
+        .theme-toggle-btn {
+            background: rgba(255,255,255,0.12);
+            border: none;
+            color: #fff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .theme-toggle-btn:hover { background: rgba(255,255,255,0.22); }
         body {
             font-family: "Inter", sans-serif;
             background: var(--bg);
@@ -1312,6 +1362,9 @@
                     </div>
                 </div>
                 <div class="user-info">
+                    <button class="theme-toggle-btn" id="themeToggleBtn" title="Ganti Mode Gelap/Terang">
+                        <i class="fas fa-moon" id="themeToggleIcon"></i>
+                    </button>
                     <button class="notification-bell" id="notifBell">
                         <i class="fas fa-bell"></i>
                         <span class="badge-count" id="notifCount">0</span>
@@ -1352,6 +1405,11 @@
                 <!-- DASHBOARD -->
                 <section class="page-section active" id="page-dashboard">
                     <div class="page-header"><h2><i class="fas fa-chart-pie"></i> Dashboard</h2><p>Ringkasan data pelanggaran dan reward siswa. <span class="badge badge-success">Reward mengurangi poin ringan/sedang</span></p></div>
+                    <div class="filter-bar no-print" style="align-items:center;margin-bottom:4px;">
+                        <label style="font-size:0.85rem;color:var(--text-light);white-space:nowrap;"><i class="fas fa-calendar-alt"></i> Periode:</label>
+                        <select id="dashboardMonthFilter"></select>
+                        <span id="dashboardMonthLabel" class="badge badge-success" style="margin-left:auto;"></span>
+                    </div>
                     <div class="stat-cards" id="dashStats">
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Pelanggaran Efektif</div></div><i class="fas fa-clipboard-list" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
                         <div class="stat-card"><div class="flex-between"><div><div class="stat-number" id="statStudents">0</div><div class="stat-label">Siswa Tercatat</div></div><i class="fas fa-user-graduate" style="font-size:1.6rem;color:var(--gold);opacity:0.6;"></i></div></div>
@@ -1845,6 +1903,36 @@
                             <div id="kkMappingContainer" style="margin:14px 0;"></div>
                             <button class="btn btn-outline btn-sm" id="kkRefreshBtn" type="button"><i class="fas fa-rotate"></i> Muat Ulang Daftar Kelas</button>
                             <button class="btn btn-danger btn-sm" id="kkProcessBtn" type="button" style="margin-left:8px;"><i class="fas fa-graduation-cap"></i> Proses Kenaikan Kelas</button>
+                        </div>
+                    </div>
+
+                    <!-- Import Massal Jenis Pelanggaran/Reward -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accImportMassal">
+                            <span><i class="fas fa-file-import" style="color:var(--gold);"></i> Import Massal Jenis Pelanggaran/Reward</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accImportMassal">
+                            <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Tambahkan banyak jenis pelanggaran/reward sekaligus tanpa input satu-satu. Satu baris = satu jenis. Data yang namanya sudah ada di daftar otomatis dilewati (tidak dobel).</p>
+
+                            <h4 style="margin:14px 0 6px;"><i class="fas fa-star" style="color:var(--success);"></i> Import Jenis Reward</h4>
+                            <p class="text-muted" style="font-size:0.8rem;">Format per baris: <code>Nama Kegiatan | kategori (kecil/sedang/besar) | poin</code></p>
+                            <textarea id="importRewardTextarea" rows="8" style="width:100%;font-family:monospace;font-size:0.82rem;" placeholder="Contoh: Memungut sampah di lingkungan sekolah | kecil | 6"></textarea>
+                            <div style="margin-top:8px;">
+                                <button class="btn btn-sm btn-outline" id="importRewardPrefillBtn" type="button"><i class="fas fa-wand-magic-sparkles"></i> Isi Data Update Terbaru (76 item)</button>
+                                <button class="btn btn-sm btn-success" id="importRewardBtn" type="button"><i class="fas fa-upload"></i> Import ke Database</button>
+                            </div>
+                            <div id="importRewardResult" style="margin-top:8px;font-size:0.85rem;"></div>
+
+                            <hr style="margin:20px 0;border-color:#eee;" />
+
+                            <h4 style="margin:14px 0 6px;"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i> Import Jenis Pelanggaran</h4>
+                            <p class="text-muted" style="font-size:0.8rem;">Format per baris: <code>Nama Pelanggaran | kategori (ringan/sedang/berat) | poin | konsekuensi (opsional)</code></p>
+                            <textarea id="importViolationTextarea" rows="6" style="width:100%;font-family:monospace;font-size:0.82rem;" placeholder="Contoh: Terlambat lebih dari 15 menit | ringan | 5 | Memungut sampah 15 menit"></textarea>
+                            <div style="margin-top:8px;">
+                                <button class="btn btn-sm btn-success" id="importViolationBtn" type="button"><i class="fas fa-upload"></i> Import ke Database</button>
+                            </div>
+                            <div id="importViolationResult" style="margin-top:8px;font-size:0.85rem;"></div>
                         </div>
                     </div>
                 </section>
@@ -2849,19 +2937,37 @@
             return Array.from(set).sort().reverse();
         }
 
+        let currentDashboardMonth = currentMonthKey();
+        function populateDashboardMonthFilter() {
+            const sel = document.getElementById('dashboardMonthFilter');
+            if (!sel) return;
+            const prevValue = sel.value || currentDashboardMonth;
+            const months = getAvailableMonthKeys();
+            let html = '<option value="">Semua Waktu</option>';
+            html += months.map(mk => `<option value="${mk}">${monthKeyLabel(mk)}${mk === currentMonthKey() ? ' (Bulan Ini)' : ''}</option>`).join('');
+            sel.innerHTML = html;
+            sel.value = months.includes(prevValue) || prevValue === '' ? prevValue : currentMonthKey();
+            currentDashboardMonth = sel.value;
+        }
         function loadDashboard() {
-            const violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v }));
-            const rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r }));
+            populateDashboardMonthFilter();
+            const monthKey = currentDashboardMonth || null;
+            const monthLabelEl = document.getElementById('dashboardMonthLabel');
+            if (monthLabelEl) monthLabelEl.textContent = monthKeyLabel(monthKey);
+
+            const inPeriod = (tgl) => !monthKey || (tgl && tgl.slice(0, 7) === monthKey);
+            const violations = Object.entries(violationsCache || {}).map(([id, v]) => ({ id, ...v })).filter(v => inPeriod(v.tanggal));
+            const rewards = Object.entries(rewardsCache || {}).map(([id, r]) => ({ id, ...r })).filter(r => inPeriod(r.tanggal));
             const studentSet = new Set(violations.map(v => v.nis));
             const todayStr = today();
             const totalEffectivePts = {};
             violations.forEach(v => {
-                const stats = getStudentStats(v.nis);
+                const stats = getStudentStats(v.nis, monthKey);
                 totalEffectivePts[v.nis] = stats.totalEffective;
             });
             const highest = Object.values(totalEffectivePts).length ? Math.max(...Object.values(totalEffectivePts)) : 0;
             const totalRewardPoints = rewards.reduce((sum, r) => sum + (r.poin || 0), 0);
-            const todayCount = violations.filter(v => v.tanggal === todayStr).length;
+            const todayCount = Object.values(violationsCache || {}).filter(v => v.tanggal === todayStr).length;
             let moneyTotal = 0;
             rewards.forEach(r => { if (r.moneyAwarded) moneyTotal += r.moneyAwarded; });
 
@@ -2896,6 +3002,10 @@
                 </div>
             `, 'Belum ada reward.');
         }
+        document.getElementById('dashboardMonthFilter').addEventListener('change', function() {
+            currentDashboardMonth = this.value;
+            loadDashboard();
+        });
 
         function renderRecentList(containerId, items, templateFn, emptyMsg) {
             const el = document.getElementById(containerId);
@@ -3378,7 +3488,7 @@
                 </style></head>
                 <body onload="window.print()">
                     <div class="kop">
-                        <h2>SMP TAHFIZH PRENEUR CAHAYA QURAN</h2>
+                        <h2>SMP TAHFIZH PRENEUR</h2>
                         <div>Formulir Pembinaan Kesiswaan</div>
                     </div>
                     <h3 style="text-decoration:underline;">SURAT PERINGATAN ${romawi} (SP-${level})</h3>
@@ -3404,7 +3514,7 @@
                     <p>Surat peringatan ini diterbitkan sebagai bentuk pembinaan agar siswa yang bersangkutan dapat memperbaiki sikap dan perilakunya. Mohon kerja sama orang tua/wali untuk turut membimbing putra/putrinya.</p>
                     <div class="ttd">
                         <div><div class="signspace"></div>Orang Tua/Wali Siswa<br>____________________</div>
-                        <div>Depok, ${todayLabel}<div class="signspace"></div>Kabid Kesiswaan<br>____________________</div>
+                        <div>Cibinong, ${todayLabel}<div class="signspace"></div>Kabid Kesiswaan<br>____________________</div>
                     </div>
                 </body></html>`;
 
@@ -4516,6 +4626,175 @@
         });
 
         // ============================================================
+        // IMPORT MASSAL JENIS PELANGGARAN/REWARD
+        // ============================================================
+        const REWARD_IMPORT_PREFILL_DATA = [
+            // KECIL
+            ['Memungut sampah di lingkungan sekolah', 'kecil', 6],
+            ['Membuang sampah pada tempatnya', 'kecil', 6],
+            ['Mengembalikan barang teman yang terjatuh', 'kecil', 6],
+            ['Mengucapkan salam terlebih dahulu kepada guru/teman', 'kecil', 6],
+            ['Membuka pintu untuk guru/teman', 'kecil', 6],
+            ['Merapikan sepatu/sandal di rak', 'kecil', 6],
+            ['Membersihkan papan tulis', 'kecil', 6],
+            ['Merapikan meja dan kursi setelah belajar', 'kecil', 6],
+            ['Mengingatkan teman untuk shalat', 'kecil', 6],
+            ['Menertibkan teman yang ribut di kelas', 'kecil', 6],
+            ['Meminjamkan alat tulis kepada teman', 'kecil', 6],
+            ['Menawarkan bantuan kepada teman yang kesulitan', 'kecil', 6],
+            ['Membantu guru membawa buku/bahan ajar', 'kecil', 6],
+            ['Menyapa guru dengan senyum', 'kecil', 6],
+            ['Tidak berbicara kasar/kotor', 'kecil', 6],
+            ['Menjaga kebersihan kelas', 'kecil', 6],
+            ['Merapikan rak buku di kelas', 'kecil', 6],
+            ['Mengembalikan buku ke perpustakaan tepat waktu', 'kecil', 6],
+            ['Memakai seragam dengan lengkap dan rapi', 'kecil', 6],
+            ['Mengembalikan barang temuan ke pemiliknya', 'kecil', 7],
+            ['Membersihkan area mushola/masjid', 'kecil', 7],
+            ["Merapikan rak mushaf Al-Qur'an", 'kecil', 7],
+            ['Membantu teman yang jatuh', 'kecil', 7],
+            ['Berbagi makanan dengan teman', 'kecil', 6],
+            ['Menjaga kebersihan toilet/kamar mandi', 'kecil', 7],
+            ['Mengucapkan terima kasih kepada guru', 'kecil', 6],
+            ['Membaca doa sebelum dan sesudah belajar', 'kecil', 6],
+            ['Menjaga adab saat di mushola', 'kecil', 6],
+            ['Memakai peci/ciput dengan benar', 'kecil', 6],
+            ['Menjaga kerapihan rambut', 'kecil', 6],
+            // SEDANG
+            ['Membantu guru/ustadz membawa barang berat', 'sedang', 11],
+            ['Menjadi imam shalat berjamaah', 'sedang', 11],
+            ['Memimpin doa di kelas', 'sedang', 11],
+            ['Mengajar teman yang kesulitan belajar (tutor sebaya)', 'sedang', 11],
+            ['Mengingatkan teman yang akan berbuat salah', 'sedang', 11],
+            ['Memberikan nasihat positif kepada teman', 'sedang', 11],
+            ['Mengajak teman ke mushola/masjid', 'sedang', 11],
+            ['Menjadi ketua kelas yang bertanggung jawab', 'sedang', 26],
+            ['Menjadi koordinator kebersihan kelas', 'sedang', 26],
+            ['Menjadi tutor sebaya secara rutin', 'sedang', 26],
+            ['Membantu guru mengkondisikan kelas', 'sedang', 26],
+            ['Menjadi perantara damai antar teman yang bertengkar', 'sedang', 26],
+            ['Menjadi pengurus perpustakaan aktif', 'sedang', 26],
+            ['Menjadi pengurus mushola aktif', 'sedang', 26],
+            ['Menjadi contoh disiplin bagi teman-temannya', 'sedang', 26],
+            ['Membantu teman yang terkena musibah', 'sedang', 26],
+            ['Menjadi panitia kegiatan sekolah', 'sedang', 26],
+            ['Membantu guru dalam mengelola kegiatan sekolah', 'sedang', 26],
+            ['Menjadi ketua kelompok belajar', 'sedang', 26],
+            ['Membantu teman yang tertinggal pelajaran', 'sedang', 11],
+            ['Mengajak teman untuk menjaga kebersihan', 'sedang', 26],
+            // BESAR
+            ['Memisahkan teman yang bertengkar', 'besar', 50],
+            ['Menjadi juara lomba tingkat sekolah', 'besar', 50],
+            ['Menjadi juara lomba tingkat kecamatan/kabupaten', 'besar', 50],
+            ['Menjadi juara lomba tingkat kota', 'besar', 50],
+            ['Menjadi juara lomba tingkat provinsi', 'besar', 50],
+            ['Menjadi juara lomba tingkat nasional', 'besar', 50],
+            ['Melaporkan tindakan bullying yang terjadi', 'besar', 50],
+            ['Membela teman yang teraniaya', 'besar', 50],
+            ['Menyelesaikan masalah teman dengan bijak', 'besar', 50],
+            ['Menjadi duta sekolah dengan baik', 'besar', 50],
+            ['Menjadi pembina dalam kegiatan sekolah', 'besar', 50],
+            ['Menginisiasi kegiatan positif untuk sekolah', 'besar', 50],
+            ['Menjadi siswa teladan (Student of the Month)', 'besar', 50],
+            ['Menghafal Al-Qur\'an mencapai target di atas rata-rata', 'besar', 50],
+            ['Menjadi pembawa acara (MC) kegiatan sekolah', 'besar', 50],
+            ['Menemukan dan mengembalikan barang berharga', 'besar', 50],
+            ['Mewakili sekolah dalam ajang kompetisi', 'besar', 50],
+            ['Memberikan ide/inovasi untuk program sekolah', 'besar', 50],
+            ['Menjadi panitia kegiatan sekolah yang sukses', 'besar', 50],
+            ['Menjadi ketua OSIS/ketua kelas yang berprestasi', 'besar', 50],
+            ['Mengikuti lomba dan meraih prestasi', 'besar', 50],
+            ['Menjadi pemimpin kegiatan keagamaan di sekolah', 'besar', 50],
+            ['Berhasil mendamaikan dua teman yang bermusuhan', 'besar', 50],
+            ['Menjadi duta anti-bullying sekolah', 'besar', 50],
+            ['Berhasil mengajak teman untuk berubah menjadi lebih baik', 'besar', 50]
+        ];
+
+        document.getElementById('importRewardPrefillBtn').addEventListener('click', function() {
+            const lines = REWARD_IMPORT_PREFILL_DATA.map(([nama, kategori, poin]) => `${nama} | ${kategori} | ${poin}`);
+            document.getElementById('importRewardTextarea').value = lines.join('\n');
+            showToast(`${lines.length} baris data reward siap diimpor. Klik "Import ke Database".`);
+        });
+
+        function parseImportLines(raw, expectedParts) {
+            return raw.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+                const parts = line.split('|').map(p => p.trim());
+                return parts;
+            }).filter(parts => parts.length >= expectedParts && parts[0]);
+        }
+
+        document.getElementById('importRewardBtn').addEventListener('click', function() {
+            const raw = document.getElementById('importRewardTextarea').value || '';
+            const rows = parseImportLines(raw, 3);
+            const resultEl = document.getElementById('importRewardResult');
+            if (!rows.length) { resultEl.innerHTML = '<span style="color:var(--danger);">Tidak ada baris valid untuk diimpor.</span>'; return; }
+
+            const existingNames = new Set(Object.values(rewardTypesCache || {}).map(r => (r.nama || '').toLowerCase().trim()));
+            const updates = {};
+            let added = 0, skipped = 0, invalid = 0;
+            const kategoriValid = ['kecil', 'sedang', 'besar'];
+
+            rows.forEach(parts => {
+                const nama = parts[0];
+                const kategori = (parts[1] || '').toLowerCase();
+                const poin = parseInt(parts[2], 10);
+                if (!nama || !kategoriValid.includes(kategori) || isNaN(poin) || poin <= 0) { invalid++; return; }
+                if (existingNames.has(nama.toLowerCase())) { skipped++; return; }
+                const id = genId();
+                updates['rewardTypes/' + id] = { nama, kategori, poin };
+                existingNames.add(nama.toLowerCase());
+                added++;
+            });
+
+            if (!added) {
+                resultEl.innerHTML = `<span style="color:var(--danger);">Tidak ada data baru ditambahkan. (${skipped} duplikat, ${invalid} baris tidak valid)</span>`;
+                return;
+            }
+            db.ref().update(updates).then(() => {
+                resultEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> Berhasil menambahkan ${added} jenis reward baru. (${skipped} dilewati karena sudah ada, ${invalid} baris tidak valid)</span>`;
+                showToast(`${added} jenis reward berhasil diimpor!`);
+            }).catch(err => {
+                resultEl.innerHTML = `<span style="color:var(--danger);">Gagal: ${escapeHtml(err.message)}</span>`;
+            });
+        });
+
+        document.getElementById('importViolationBtn').addEventListener('click', function() {
+            const raw = document.getElementById('importViolationTextarea').value || '';
+            const rows = parseImportLines(raw, 3);
+            const resultEl = document.getElementById('importViolationResult');
+            if (!rows.length) { resultEl.innerHTML = '<span style="color:var(--danger);">Tidak ada baris valid untuk diimpor.</span>'; return; }
+
+            const existingNames = new Set(Object.values(violationTypesCache || {}).map(v => (v.nama || '').toLowerCase().trim()));
+            const updates = {};
+            let added = 0, skipped = 0, invalid = 0;
+            const kategoriValid = ['ringan', 'sedang', 'berat'];
+
+            rows.forEach(parts => {
+                const nama = parts[0];
+                const kategori = (parts[1] || '').toLowerCase();
+                const poin = parseInt(parts[2], 10);
+                const konsekuensi = parts[3] || '';
+                if (!nama || !kategoriValid.includes(kategori) || isNaN(poin) || poin <= 0) { invalid++; return; }
+                if (existingNames.has(nama.toLowerCase())) { skipped++; return; }
+                const id = genId();
+                updates['violationTypes/' + id] = { nama, kategori, poin, konsekuensi };
+                existingNames.add(nama.toLowerCase());
+                added++;
+            });
+
+            if (!added) {
+                resultEl.innerHTML = `<span style="color:var(--danger);">Tidak ada data baru ditambahkan. (${skipped} duplikat, ${invalid} baris tidak valid)</span>`;
+                return;
+            }
+            db.ref().update(updates).then(() => {
+                resultEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> Berhasil menambahkan ${added} jenis pelanggaran baru. (${skipped} dilewati karena sudah ada, ${invalid} baris tidak valid)</span>`;
+                showToast(`${added} jenis pelanggaran berhasil diimpor!`);
+            }).catch(err => {
+                resultEl.innerHTML = `<span style="color:var(--danger);">Gagal: ${escapeHtml(err.message)}</span>`;
+            });
+        });
+
+        // ============================================================
         // MODALS
         // ============================================================
         function openViolationTypeModal(id, existing) {
@@ -4661,6 +4940,25 @@
         // ============================================================
         // LOGO SEKOLAH
         // ============================================================
+        // ============================================================
+        // MODE GELAP / TERANG
+        // ============================================================
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const icon = document.getElementById('themeToggleIcon');
+            if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('appTheme', theme);
+        }
+        (function initTheme() {
+            const saved = localStorage.getItem('appTheme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+        })();
+        document.getElementById('themeToggleBtn').addEventListener('click', function() {
+            const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
         function loadSchoolLogo() {
             const savedLogo = localStorage.getItem('schoolLogo');
             if (savedLogo) {
