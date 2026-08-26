@@ -879,6 +879,72 @@
             background: #145a24;
         }
 
+        /* ===== ABSENSI ===== */
+        .att-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 4px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .att-row:last-child { border-bottom: none; }
+        .att-name { font-weight: 600; }
+        .att-name .att-nis { display: block; font-weight: 400; font-size: 0.75rem; color: var(--text-light); }
+        .att-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        .att-btn {
+            border: 2px solid #e8e4dc;
+            background: #faf8f5;
+            color: var(--text-light);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        [data-theme="dark"] .att-btn { background: #262a36; border-color: var(--border-color); color: var(--text); }
+        .att-btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+        .att-btn.active[data-status="hadir"] { background: var(--success); border-color: var(--success); color: #fff; }
+        .att-btn.active[data-status="sakit"] { background: #7b61ff; border-color: #7b61ff; color: #fff; }
+        .att-btn.active[data-status="izin"] { background: var(--gold); border-color: var(--gold); color: #fff; }
+        .att-btn.active[data-status="telat"] { background: var(--warning); border-color: var(--warning); color: #3a2a00; }
+        .att-btn.active[data-status="alfa"] { background: var(--danger); border-color: var(--danger); color: #fff; }
+        .att-summary-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .att-summary-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: #faf8f5;
+            border: 2px solid #e8e4dc;
+        }
+        [data-theme="dark"] .att-summary-chip { background: #262a36; border-color: var(--border-color); }
+        .rekap-att-cell { font-weight: 700; text-align: center; }
+        .rekap-att-hadir { color: var(--success); }
+        .rekap-att-sakit { color: #7b61ff; }
+        .rekap-att-izin { color: var(--gold-dark); }
+        .rekap-att-telat { color: #b8860b; }
+        .rekap-att-alfa { color: var(--danger); }
+        .rekap-day-cell { text-align: center; font-weight: 700; padding: 8px 6px; min-width: 30px; }
+        .rekap-day-cell.libur { color: var(--text-light); background: #f4f1ea; font-weight: 400; }
+        [data-theme="dark"] .rekap-day-cell.libur { background: #1c1f29; }
+        .rekap-day-cell.H { color: var(--success); }
+        .rekap-day-cell.T { color: #b8860b; }
+        .rekap-day-cell.I { color: var(--gold-dark); }
+        .rekap-day-cell.S { color: #7b61ff; }
+        .rekap-day-cell.A { color: #fff; background: var(--danger); }
+        #rekapAbsensiTable th, #rekapAbsensiTable td { white-space: nowrap; }
+
         .leaderboard-item {
             display: flex;
             align-items: center;
@@ -1385,6 +1451,7 @@
                     <div class="brand-sub">✦ SMP CAHAYA QURAN ✦</div>
                 </div>
                 <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
+                <a class="nav-item" data-page="absensi"><i class="fas fa-calendar-check"></i> Absensi</a>
                 <a class="nav-item" data-page="record"><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</a>
                 <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
@@ -1421,6 +1488,56 @@
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
+                </section>
+
+                <!-- ABSENSI -->
+                <section class="page-section" id="page-absensi">
+                    <div class="page-header"><h2><i class="fas fa-calendar-check"></i> Absensi Siswa</h2><p>Pilih kelas dan tanggal, lalu klik status kehadiran tiap siswa.</p></div>
+                    <div class="card">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Kelas <span class="text-muted">*</span></label>
+                                <select id="absensiKelas">
+                                    <option value="">— Pilih kelas —</option>
+                                    <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
+                                    <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
+                                    <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Tanggal</label><input type="date" id="absensiTanggal" /></div>
+                        </div>
+                        <div class="filter-bar no-print" style="margin-bottom:8px;">
+                            <button type="button" class="btn btn-sm btn-outline" id="absensiSetAllHadir"><i class="fas fa-check-double"></i> Tandai Semua Hadir</button>
+                            <span id="absensiKelasInfo" class="badge" style="margin-left:auto;"></span>
+                        </div>
+                        <div id="absensiList"></div>
+                        <div id="absensiEmpty" class="empty-state"><i class="fas fa-users"></i><p>Pilih kelas terlebih dahulu untuk menampilkan daftar siswa.</p></div>
+                        <button type="button" class="btn btn-gold" id="absensiSaveBtn" style="margin-top:16px;"><i class="fas fa-save"></i> Simpan Absensi</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-file-alt"></i> Rekap Bulanan Absensi</h3>
+                            <button class="btn btn-sm export-btn" id="exportAbsensiExcelBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                        </div>
+                        <div class="filter-bar">
+                            <select id="rekapAbsensiKelas">
+                                <option value="">Semua Kelas</option>
+                                <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
+                                <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
+                                <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                            </select>
+                            <select id="rekapAbsensiBulan"></select>
+                        </div>
+                        <div class="att-summary-bar" id="rekapAbsensiSummary"></div>
+                        <div class="table-wrap">
+                            <table id="rekapAbsensiTable">
+                                <thead id="rekapAbsensiThead"></thead>
+                                <tbody id="rekapAbsensiTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="rekapAbsensiEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Belum ada data absensi untuk periode ini.</p></div>
+                        <p class="text-muted" style="font-size:0.78rem;margin-top:10px;">Keterangan: <b>H</b>=Hadir, <b>T</b>=Terlambat, <b>I</b>=Izin, <b>S</b>=Sakit, <b>A</b>=Tanpa Keterangan/Alfa, <b>L</b>=Libur (Sabtu/Minggu), kolom kosong = belum diinput.</p>
+                    </div>
                 </section>
 
                 <!-- RECORD -->
@@ -2264,6 +2381,7 @@
         let feedbackCache = {};
         let bkCache = {};
         let latesCache = {};
+        let absensiCache = {};
         let moneyRewardRules = {};
         let userProfilesCache = {};
         let spThresholdsCache = { sp1: 15, sp2: 25, sp3: 40 };
@@ -2278,6 +2396,18 @@
         let transcriptText = '';
 
         function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+
+        // ============================================================
+        // ABSENSI - KONSTANTA
+        // ============================================================
+        const STATUS_ABSENSI = [
+            { key: 'hadir', label: 'Hadir', icon: 'fa-check' },
+            { key: 'sakit', label: 'Sakit', icon: 'fa-briefcase-medical' },
+            { key: 'izin', label: 'Izin', icon: 'fa-file-lines' },
+            { key: 'telat', label: 'Telat', icon: 'fa-clock' },
+            { key: 'alfa', label: 'Alfa', icon: 'fa-xmark' }
+        ];
+        function absensiKey(tanggal, nis) { return `${String(tanggal).replace(/-/g, '')}_${nis}`; }
 
         // ============================================================
         // TOAST & MODAL
@@ -2607,6 +2737,8 @@
             if (isPageActive('student-profile')) loadStudentProfileList();
             if (isPageActive('analytics')) loadAnalytics();
             if (isPageActive('sp-letter')) loadSpLetterList();
+            if (isPageActive('absensi')) { renderAbsensiForm();
+                loadAbsensiRekap(); }
         }
 
         function setupRealtimeListeners() {
@@ -2661,6 +2793,9 @@
             });
             db.ref('lates').on('value', (snap) => { latesCache = snap.val() || {};
                 if (isPageActive('late')) loadLateList(); });
+            db.ref('absensi').on('value', (snap) => { absensiCache = snap.val() || {};
+                if (isPageActive('absensi')) { renderAbsensiForm();
+                    loadAbsensiRekap(); } });
             db.ref('settings/spThresholds').on('value', (snap) => {
                 spThresholdsCache = snap.val() || { sp1: 15, sp2: 25, sp3: 40 };
                 if (isPageActive('sp-letter')) loadSpLetterList();
@@ -2847,6 +2982,7 @@
             }
 
             if (page === 'dashboard') loadDashboard();
+            if (page === 'absensi') initAbsensiPage();
             if (page === 'violations') loadViolations();
             if (page === 'leaderboard') loadLeaderboard(currentLeaderboardTab);
             if (page === 'admin') { loadAdminPanel();
@@ -5127,6 +5263,270 @@
                 document.getElementById('rewardClass').value = '';
                 setTimeout(loadRewardsList, 500);
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
+        // ============================================================
+        // ABSENSI
+        // ============================================================
+        function getStudentsByClass(kelas) {
+            return Object.entries(siswaCache || {})
+                .map(([nis, s]) => ({ nis: s.nis || nis, nama: s.nama, kelas: s.kelas }))
+                .filter(s => s.kelas === kelas)
+                .sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+        }
+
+        function initAbsensiPage() {
+            const tglInput = document.getElementById('absensiTanggal');
+            if (tglInput && !tglInput.value) tglInput.value = today();
+            renderAbsensiForm();
+            loadAbsensiRekap();
+        }
+
+        function renderAbsensiForm() {
+            const kelas = document.getElementById('absensiKelas').value;
+            const tanggal = document.getElementById('absensiTanggal').value || today();
+            const listEl = document.getElementById('absensiList');
+            const emptyEl = document.getElementById('absensiEmpty');
+            const infoEl = document.getElementById('absensiKelasInfo');
+            if (!listEl || !emptyEl) return;
+
+            if (!kelas) {
+                listEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                if (infoEl) infoEl.textContent = '';
+                return;
+            }
+
+            const students = getStudentsByClass(kelas);
+            if (!students.length) {
+                listEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                emptyEl.innerHTML = '<i class="fas fa-users"></i><p>Belum ada siswa terdaftar di kelas ini.</p>';
+                if (infoEl) infoEl.textContent = '';
+                return;
+            }
+            emptyEl.classList.add('hidden');
+            if (infoEl) infoEl.textContent = `${students.length} siswa • ${formatDate(tanggal)}`;
+
+            listEl.innerHTML = students.map(s => {
+                const existing = (absensiCache || {})[absensiKey(tanggal, s.nis)];
+                const currentStatus = existing ? existing.status : '';
+                const btns = STATUS_ABSENSI.map(st => `
+                    <button type="button" class="att-btn ${currentStatus === st.key ? 'active' : ''}" data-status="${st.key}" data-nis="${escapeHtml(s.nis)}">
+                        <i class="fas ${st.icon}"></i> ${st.label}
+                    </button>
+                `).join('');
+                return `
+                    <div class="att-row" data-nis="${escapeHtml(s.nis)}">
+                        <div class="att-name">${escapeHtml(s.nama)}<span class="att-nis">${escapeHtml(s.nis)} • ${escapeHtml(s.kelas)}</span></div>
+                        <div class="att-btns">${btns}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('absensiKelas').addEventListener('change', renderAbsensiForm);
+        document.getElementById('absensiTanggal').addEventListener('change', renderAbsensiForm);
+
+        document.getElementById('absensiList').addEventListener('click', function(e) {
+            const btn = e.target.closest('.att-btn');
+            if (!btn) return;
+            const row = btn.closest('.att-row');
+            if (!row) return;
+            row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+
+        document.getElementById('absensiSetAllHadir').addEventListener('click', function() {
+            document.querySelectorAll('#absensiList .att-row').forEach(row => {
+                row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('active'));
+                const hadirBtn = row.querySelector('.att-btn[data-status="hadir"]');
+                if (hadirBtn) hadirBtn.classList.add('active');
+            });
+            showToast('Semua siswa ditandai Hadir. Jangan lupa klik Simpan!');
+        });
+
+        document.getElementById('absensiSaveBtn').addEventListener('click', function() {
+            const kelas = document.getElementById('absensiKelas').value;
+            const tanggal = document.getElementById('absensiTanggal').value;
+            if (!kelas) { showToast('Pilih kelas terlebih dahulu!', 'error'); return; }
+            if (!tanggal) { showToast('Pilih tanggal terlebih dahulu!', 'error'); return; }
+
+            const rows = document.querySelectorAll('#absensiList .att-row');
+            if (!rows.length) { showToast('Tidak ada siswa untuk disimpan!', 'error'); return; }
+
+            const updates = {};
+            let filled = 0;
+            rows.forEach(row => {
+                const nis = row.dataset.nis;
+                const activeBtn = row.querySelector('.att-btn.active');
+                if (!activeBtn) return;
+                const s = siswaCache[nis];
+                if (!s) return;
+                filled++;
+                const status = activeBtn.dataset.status;
+                updates['absensi/' + absensiKey(tanggal, nis)] = {
+                    nis,
+                    nama: s.nama,
+                    kelas: s.kelas,
+                    tanggal,
+                    status,
+                    guru: currentUser.name,
+                    createdAt: Date.now()
+                };
+            });
+
+            if (!filled) { showToast('Tandai status kehadiran minimal 1 siswa!', 'error'); return; }
+
+            db.ref().update(updates).then(() => {
+                showToast(`Absensi tersimpan untuk ${filled} dari ${rows.length} siswa!`);
+                if (filled < rows.length) showToast(`${rows.length - filled} siswa belum ditandai statusnya.`, 'error');
+            }).catch(err => showToast('Gagal menyimpan absensi: ' + err.message, 'error'));
+        });
+
+        function getAvailableAbsensiMonthKeys() {
+            const set = new Set();
+            set.add(currentMonthKey());
+            Object.values(absensiCache || {}).forEach(a => { if (a.tanggal) set.add(a.tanggal.slice(0, 7)); });
+            return Array.from(set).sort().reverse();
+        }
+
+        let currentAbsensiRekapMonth = currentMonthKey();
+        function populateAbsensiMonthFilter() {
+            const sel = document.getElementById('rekapAbsensiBulan');
+            if (!sel) return;
+            const prevValue = sel.value || currentAbsensiRekapMonth;
+            const months = getAvailableAbsensiMonthKeys();
+            sel.innerHTML = months.map(mk => `<option value="${mk}">${monthKeyLabel(mk)}${mk === currentMonthKey() ? ' (Bulan Ini)' : ''}</option>`).join('');
+            sel.value = months.includes(prevValue) ? prevValue : currentMonthKey();
+            currentAbsensiRekapMonth = sel.value;
+        }
+
+        const STATUS_CODE_MAP = { hadir: 'H', telat: 'T', izin: 'I', sakit: 'S', alfa: 'A' };
+        function daysInMonth(monthKey) {
+            const [y, m] = monthKey.split('-').map(Number);
+            return new Date(y, m, 0).getDate();
+        }
+        function isWeekend(monthKey, day) {
+            const [y, m] = monthKey.split('-').map(Number);
+            const dow = new Date(y, m - 1, day).getDay();
+            return dow === 0 || dow === 6;
+        }
+        function buildAbsensiMatrixRows(kelasFilter, monthKey) {
+            const totalDays = daysInMonth(monthKey);
+            const students = kelasFilter ? getStudentsByClass(kelasFilter) : Object.keys(siswaCache || {}).map(nis => {
+                const s = siswaCache[nis]; return { nis: s.nis || nis, nama: s.nama, kelas: s.kelas };
+            });
+            const hasAnyRecord = Object.values(absensiCache || {}).some(a => a.tanggal && a.tanggal.slice(0, 7) === monthKey && (!kelasFilter || a.kelas === kelasFilter));
+
+            const rows = students
+                .filter(s => s.nama)
+                .sort((a, b) => (a.nama || '').localeCompare(b.nama || ''))
+                .map(s => {
+                    const days = [];
+                    const counts = { hadir: 0, telat: 0, izin: 0, sakit: 0, alfa: 0 };
+                    let hariEfektif = 0;
+                    for (let d = 1; d <= totalDays; d++) {
+                        const tanggal = `${monthKey}-${String(d).padStart(2, '0')}`;
+                        if (isWeekend(monthKey, d)) { days.push({ code: 'L', libur: true }); continue; }
+                        hariEfektif++;
+                        const rec = absensiCache[absensiKey(tanggal, s.nis)];
+                        if (rec && rec.status) {
+                            counts[rec.status] = (counts[rec.status] || 0) + 1;
+                            days.push({ code: STATUS_CODE_MAP[rec.status] || '', libur: false });
+                        } else {
+                            days.push({ code: '', libur: false });
+                        }
+                    }
+                    return { nis: s.nis, nama: s.nama, kelas: s.kelas, hariEfektif, counts, days };
+                });
+            return { rows, totalDays, hasAnyRecord };
+        }
+
+        function loadAbsensiRekap() {
+            populateAbsensiMonthFilter();
+            const kelasFilter = document.getElementById('rekapAbsensiKelas').value;
+            const monthKey = currentAbsensiRekapMonth;
+            const { rows, totalDays, hasAnyRecord } = buildAbsensiMatrixRows(kelasFilter, monthKey);
+
+            const totals = { hadir: 0, sakit: 0, izin: 0, telat: 0, alfa: 0 };
+            rows.forEach(r => { Object.keys(totals).forEach(k => totals[k] += r.counts[k] || 0); });
+            const summaryEl = document.getElementById('rekapAbsensiSummary');
+            if (summaryEl) {
+                summaryEl.innerHTML = STATUS_ABSENSI.map(st => `<span class="att-summary-chip">${st.label}: ${totals[st.key]}</span>`).join('');
+            }
+
+            const thead = document.getElementById('rekapAbsensiThead');
+            const tbody = document.getElementById('rekapAbsensiTableBody');
+            const emptyEl = document.getElementById('rekapAbsensiEmpty');
+
+            let dayHeaders = '';
+            for (let d = 1; d <= totalDays; d++) dayHeaders += `<th>${d}</th>`;
+            thead.innerHTML = `<tr>
+                <th>#</th><th>Nama Santri</th><th>Kelas</th><th>Hari Efektif</th><th>Hadir</th><th>Terlambat</th><th>Izin</th><th>Sakit</th><th>Tanpa Ket.</th>${dayHeaders}
+            </tr>`;
+
+            if (!rows.length || !hasAnyRecord) {
+                tbody.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+            tbody.innerHTML = rows.map((r, i) => {
+                const dayCells = r.days.map(d => `<td class="rekap-day-cell ${d.libur ? 'libur' : d.code}">${d.code}</td>`).join('');
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${escapeHtml(r.nama)}</td>
+                        <td>${escapeHtml(r.kelas)}</td>
+                        <td>${r.hariEfektif}</td>
+                        <td class="rekap-att-cell rekap-att-hadir">${r.counts.hadir}</td>
+                        <td class="rekap-att-cell rekap-att-telat">${r.counts.telat}</td>
+                        <td class="rekap-att-cell rekap-att-izin">${r.counts.izin}</td>
+                        <td class="rekap-att-cell rekap-att-sakit">${r.counts.sakit}</td>
+                        <td class="rekap-att-cell rekap-att-alfa">${r.counts.alfa}</td>
+                        ${dayCells}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('rekapAbsensiKelas').addEventListener('change', loadAbsensiRekap);
+        document.getElementById('rekapAbsensiBulan').addEventListener('change', function() {
+            currentAbsensiRekapMonth = this.value;
+            loadAbsensiRekap();
+        });
+
+        document.getElementById('exportAbsensiExcelBtn').addEventListener('click', function() {
+            const kelasFilter = document.getElementById('rekapAbsensiKelas').value;
+            const monthKey = currentAbsensiRekapMonth || document.getElementById('rekapAbsensiBulan').value;
+            const { rows, totalDays } = buildAbsensiMatrixRows(kelasFilter, monthKey);
+            if (!rows.length) { showToast('Tidak ada data absensi untuk diekspor.', 'error'); return; }
+
+            const dayHeaders = [];
+            for (let d = 1; d <= totalDays; d++) dayHeaders.push(d);
+            const headers = ['No', 'Nama Santri', 'Kelas', 'Hari Efektif', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Tanpa Keterangan', ...dayHeaders];
+            const csvRows = rows.map((r, i) => [
+                i + 1, r.nama, r.kelas, r.hariEfektif, r.counts.hadir, r.counts.telat, r.counts.izin, r.counts.sakit, r.counts.alfa,
+                ...r.days.map(d => d.libur ? 'L' : d.code)
+            ]);
+            const titleRows = [
+                ['RAKAP DATA PRESENSI SANTRI'],
+                [`Kelas: ${kelasFilter || 'Semua Kelas'}`],
+                [`Bulan: ${monthKeyLabel(monthKey)}`],
+                []
+            ];
+            const csv = [...titleRows, headers, ...csvRows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rekap-absensi-${monthKey || 'semua'}${kelasFilter ? '-' + kelasFilter : ''}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Rekap absensi berhasil diekspor!');
         });
 
         // ============================================================
