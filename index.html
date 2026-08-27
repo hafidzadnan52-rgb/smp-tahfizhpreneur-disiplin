@@ -1015,6 +1015,21 @@
             color: var(--danger);
             font-weight: 600;
         }
+        .kb-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #fff;
+            margin-left: 6px;
+        }
+        .kb-badge.kb-belum { background: #b0aca2; }
+        .kb-badge.kb-tumbuh { background: #6c9bd1; }
+        .kb-badge.kb-meningkat { background: #d19a3a; }
+        .kb-badge.kb-terbiasa { background: #5aa66b; }
+        .kb-badge.kb-teladan { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); }
+        .kb-best { font-size: 0.7rem; color: var(--text-light); display: block; margin-top: 2px; }
 
         .tab-buttons {
             display: flex;
@@ -1499,9 +1514,9 @@
                                 <label>Kelas <span class="text-muted">*</span></label>
                                 <select id="absensiKelas">
                                     <option value="">— Pilih kelas —</option>
-                                    <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
-                                    <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
-                                    <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                    <option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option>
+                                    <option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option>
+                                    <option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option>
                                 </select>
                             </div>
                             <div class="form-group"><label>Tanggal</label><input type="date" id="absensiTanggal" /></div>
@@ -1522,9 +1537,9 @@
                         <div class="filter-bar">
                             <select id="rekapAbsensiKelas">
                                 <option value="">Semua Kelas</option>
-                                <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
-                                <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
-                                <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                <option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option>
+                                <option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option>
+                                <option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option>
                             </select>
                             <select id="rekapAbsensiBulan"></select>
                         </div>
@@ -1536,7 +1551,7 @@
                             </table>
                         </div>
                         <div id="rekapAbsensiEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Belum ada data absensi untuk periode ini.</p></div>
-                        <p class="text-muted" style="font-size:0.78rem;margin-top:10px;">Keterangan: <b>H</b>=Hadir, <b>T</b>=Terlambat, <b>I</b>=Izin, <b>S</b>=Sakit, <b>A</b>=Tanpa Keterangan/Alfa, <b>L</b>=Libur (Sabtu/Minggu), kolom kosong = belum diinput.</p>
+                        <p class="text-muted" style="font-size:0.78rem;margin-top:10px;">Keterangan: <b>H</b>=Hadir, <b>T</b>=Terlambat, <b>I</b>=Izin, <b>S</b>=Sakit, <b>A</b>=Tanpa Keterangan/Alfa, <b>L</b>=Libur (Sabtu/Minggu & tanggal merah nasional — arahkan kursor ke sel L untuk lihat nama harinya), kolom kosong = belum diinput.</p>
                     </div>
                 </section>
 
@@ -1593,7 +1608,7 @@
                         <div class="card-header"><h3><i class="fas fa-list"></i> Riwayat Reward</h3></div>
                         <div class="filter-bar">
                             <input type="text" id="rewardFilterStudent" placeholder="Cari nama siswa..." />
-                            <select id="rewardFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <select id="rewardFilterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
                             <button class="btn btn-sm btn-outline" id="clearRewardFilters"><i class="fas fa-undo"></i> Reset</button>
                         </div>
                         <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Bentuk Kebaikan</th><th>Poin</th><th>Guru</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="rewardsTableBody"></tbody></table></div>
@@ -1607,7 +1622,7 @@
                     <div class="card">
                         <div class="filter-bar">
                             <input type="text" id="filterStudent" placeholder="Cari nama siswa..." />
-                            <select id="filterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <select id="filterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
                             <select id="filterType"><option value="">Semua Jenis</option></select>
                             <button class="btn btn-sm btn-outline" id="clearFilters"><i class="fas fa-undo"></i> Reset</button>
                             <button class="btn btn-sm export-btn" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
@@ -1638,6 +1653,13 @@
                             <button class="btn btn-sm btn-outline" data-leaderboard-gender="L">Banin (Putra)</button>
                             <button class="btn btn-sm btn-outline" data-leaderboard-gender="P">Banat (Putri)</button>
                         </div>
+                        <div class="filter-bar no-print" id="kebaikanThresholdBar" style="padding:0 16px 12px;flex-wrap:wrap;display:none;">
+                            <div class="form-group"><label>Tumbuh</label><input type="number" id="kbThreshold1" min="1" style="width:80px;" /></div>
+                            <div class="form-group"><label>Meningkat</label><input type="number" id="kbThreshold2" min="1" style="width:80px;" /></div>
+                            <div class="form-group"><label>Terbiasa</label><input type="number" id="kbThreshold3" min="1" style="width:80px;" /></div>
+                            <div class="form-group"><label>Teladan</label><input type="number" id="kbThreshold4" min="1" style="width:80px;" /></div>
+                            <button class="btn btn-sm btn-success" id="saveKebaikanThresholdBtn" style="align-self:flex-end;"><i class="fas fa-save"></i> Simpan Ambang Batas</button>
+                        </div>
                         <div class="filter-bar no-print" style="padding:0 16px 12px;align-items:center;">
                             <label style="font-size:0.85rem;color:var(--text-light);white-space:nowrap;"><i class="fas fa-calendar-alt"></i> Periode:</label>
                             <select id="leaderboardMonthFilter"></select>
@@ -1656,7 +1678,7 @@
                         <div class="card-header"><h3><i class="fas fa-table"></i> Daftar Rekap</h3></div>
                         <div class="filter-bar">
                             <input type="text" id="rekapFilterStudent" placeholder="Cari nama siswa..." />
-                            <select id="rekapFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <select id="rekapFilterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
                             <select id="rekapFilterMonth"></select>
                             <button class="btn btn-sm btn-outline" id="clearRekapFilters"><i class="fas fa-undo"></i> Reset</button>
                             <button class="btn btn-sm export-btn" id="exportRekapBtn"><i class="fas fa-file-excel"></i> Download Rekap</button>
@@ -1692,7 +1714,7 @@
                         <div class="card-header"><h3><i class="fas fa-search"></i> Cari Siswa</h3></div>
                         <div class="filter-bar">
                             <input type="text" id="spListFilterStudent" placeholder="Cari nama siswa..." />
-                            <select id="spListFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                            <select id="spListFilterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
                         </div>
                         <div class="table-wrap">
                             <table>
@@ -1969,9 +1991,9 @@
                                     <div class="form-group"><label>Kelas <span class="text-muted">*</span></label>
                                         <select id="newKelas" required>
                                             <option value="">— Pilih Kelas —</option>
-                                            <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
-                                            <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
-                                            <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                                            <option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option>
+                                            <option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option>
+                                            <option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1990,7 +2012,7 @@
                             <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Jenis kelamin dideteksi otomatis dari nama siswa. Jika ada yang salah tebak, koreksi manual di bawah ini — hasil koreksi akan tersimpan permanen.</p>
                             <div class="filter-bar">
                                 <input type="text" id="genderFilterStudent" placeholder="Cari nama siswa..." />
-                                <select id="genderFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select>
+                                <select id="genderFilterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
                                 <select id="genderFilterStatus"><option value="">Semua</option><option value="unknown">Belum Terdeteksi</option><option value="manual">Sudah Dikoreksi Manual</option></select>
                             </div>
                             <div class="table-wrap">
@@ -2149,109 +2171,109 @@
         ];
 
         const SISWA_DATA = [
-            { nis: "262707001", nama: "Abdillah Ammar Al Fauzan", kelas: "7A" },
-            { nis: "262707002", nama: "Ahmad Wildan Rasyid", kelas: "7A" },
-            { nis: "262707003", nama: "Aqila Hamdan Al Fathan", kelas: "7A" },
-            { nis: "262707004", nama: "Aqila Hamdan Al Fatih", kelas: "7A" },
-            { nis: "262707005", nama: "Azlan Arkenzie Adiatmaja", kelas: "7A" },
-            { nis: "262707006", nama: "Chairul Azzam Wijaya", kelas: "7A" },
-            { nis: "262707007", nama: "Muhammad Emran Alafasy", kelas: "7A" },
-            { nis: "262707008", nama: "Muhammad Zahwan Jubaidi", kelas: "7A" },
-            { nis: "262707009", nama: "Raffaza Syaqif Pratama", kelas: "7A" },
-            { nis: "262707010", nama: "Rashka Uno Kamil", kelas: "7A" },
-            { nis: "262707011", nama: "Rayyan Iqra Mahmudy", kelas: "7A" },
-            { nis: "262707012", nama: "Tsaqif Alfaruq Solichin", kelas: "7A" },
-            { nis: "262707013", nama: "Abidah Fidziaritza", kelas: "7B" },
-            { nis: "262707014", nama: "Aisyah Rahma Karenina", kelas: "7B" },
-            { nis: "262707015", nama: "Alya Askana Sakhi", kelas: "7B" },
-            { nis: "262707016", nama: "Annisa Gwen Inara", kelas: "7B" },
-            { nis: "262707017", nama: "Arindi Nada Arcobaleno", kelas: "7B" },
-            { nis: "262707018", nama: "Athiya Ufairah", kelas: "7B" },
-            { nis: "262707019", nama: "Filza Noor Hanifa", kelas: "7B" },
-            { nis: "262707020", nama: "Filza Salsabila Fadhilah", kelas: "7B" },
-            { nis: "262707021", nama: "Haura Nafisah", kelas: "7B" },
-            { nis: "262707022", nama: "Jalilla Dhessafa Alfariji", kelas: "7B" },
-            { nis: "262707023", nama: "Maryam Zahida Aristi", kelas: "7B" },
-            { nis: "262707024", nama: "Nasywa Almeera Khanza", kelas: "7B" },
-            { nis: "262707025", nama: "Quisha Zahidah Rafifa", kelas: "7B" },
-            { nis: "262707026", nama: "Raihana Yasmina Rahman", kelas: "7B" },
-            { nis: "262707027", nama: "Raihanah Hanin", kelas: "7B" },
-            { nis: "262707028", nama: "Raihanna Navy Khafiya", kelas: "7B" },
-            { nis: "262707029", nama: "Rayna Shafiqa Almahyra", kelas: "7B" },
-            { nis: "262707030", nama: "Rayya Viro Azzahra", kelas: "7B" },
-            { nis: "262707031", nama: "Shafina Lucky Adeeba", kelas: "7B" },
-            { nis: "262707032", nama: "Shafiyyah", kelas: "7B" },
-            { nis: "262707033", nama: "Shafiyyah Najib", kelas: "7B" },
-            { nis: "262707034", nama: "Shaqeena Taqiyyah Siregar", kelas: "7B" },
-            { nis: "262707035", nama: "Siti Mutiah Ratu Setiawan", kelas: "7B" },
-            { nis: "252607001", nama: "Abdurrohman", kelas: "8A" },
-            { nis: "252607002", nama: "Agha Sebastian Dhuha", kelas: "8A" },
-            { nis: "252607003", nama: "Alandra Raihan Syazani", kelas: "8A" },
-            { nis: "252607004", nama: "Altadira Mohammed El Fatih", kelas: "8A" },
-            { nis: "252607005", nama: "Arkananta Putra Iriawan", kelas: "8A" },
-            { nis: "252607006", nama: "Arrafi Zaidan Qawiyyu", kelas: "8A" },
-            { nis: "252607007", nama: "Arsya Athalah Haki", kelas: "8A" },
-            { nis: "252607008", nama: "Baihaqi Safaraz", kelas: "8A" },
-            { nis: "252607009", nama: "Fahri Afif Ihsanuddin", kelas: "8A" },
-            { nis: "252607010", nama: "Galang Nareswara Putra G", kelas: "8A" },
-            { nis: "252607011", nama: "Gaza Syauqi Firdaus", kelas: "8A" },
-            { nis: "252607012", nama: "Habibie Alfarizqi", kelas: "8A" },
-            { nis: "252607013", nama: "Hasan Faiq M. Hutasoit", kelas: "8A" },
-            { nis: "252607014", nama: "Hasby Arif Al Ghifari", kelas: "8A" },
-            { nis: "252607015", nama: "Kazhafran Al Fatih Milono", kelas: "8A" },
-            { nis: "252607016", nama: "M.Serhan Ar Rasyid", kelas: "8A" },
-            { nis: "252607017", nama: "Rafaza Aydin Nadivky", kelas: "8A" },
-            { nis: "252607018", nama: "M. Alfath Athaya Riyanto", kelas: "8A" },
-            { nis: "252607019", nama: "M. Andra Romansyah", kelas: "8A" },
-            { nis: "252607020", nama: "M. Khalifah Al Farisi", kelas: "8A" },
-            { nis: "252607021", nama: "M. Naufal Al Fakhri", kelas: "8A" },
-            { nis: "252607022", nama: "Mischa Alvaro Nata Kunthar", kelas: "8A" },
-            { nis: "252607023", nama: "Muhammad El Azzam A", kelas: "8A" },
-            { nis: "252607024", nama: "Naufal Mu'min Billah", kelas: "8A" },
-            { nis: "252607025", nama: "Raindra Alkhalifi Pratama", kelas: "8A" },
-            { nis: "252607026", nama: "Rakargalu Damar Panuluh", kelas: "8A" },
-            { nis: "252607027", nama: "Umar Fatih Abdurrahman", kelas: "8A" },
-            { nis: "252607028", nama: "Zen Firdaus", kelas: "8A" },
-            { nis: "252607030", nama: "Adela Zahra Nugroho", kelas: "8B" },
-            { nis: "252607031", nama: "Afifah Haniyah", kelas: "8B" },
-            { nis: "252607032", nama: "Aisyah Azzaira", kelas: "8B" },
-            { nis: "252607034", nama: "Askana Sakhia", kelas: "8B" },
-            { nis: "252607036", nama: "Azalea Rasyidatu Naja", kelas: "8B" },
-            { nis: "252607039", nama: "Fatimah Azzahra", kelas: "8B" },
-            { nis: "252607040", nama: "Fiorenza Aretha Arcobaleno", kelas: "8B" },
-            { nis: "252607043", nama: "Hana Nafisah", kelas: "8B" },
-            { nis: "252607044", nama: "Hanayumi Nafiiza Aldrin", kelas: "8B" },
-            { nis: "252607045", nama: "Jasmina Jinan Izzati Akmal", kelas: "8B" },
-            { nis: "252607047", nama: "Khanza Humaira Ariyadi", kelas: "8B" },
-            { nis: "252607050", nama: "Matahari Parahita Prameswari", kelas: "8B" },
-            { nis: "252607052", nama: "Naema Fikriyyah Humaira", kelas: "8B" },
-            { nis: "252607058", nama: "Taalea Raisa Eiliyah", kelas: "8B" },
-            { nis: "252607033", nama: "Aqeela Maulidya Arlen", kelas: "8C" },
-            { nis: "252607035", nama: "Audrey Zaneta Aini", kelas: "8C" },
-            { nis: "252607037", nama: "Azka Raihanah", kelas: "8C" },
-            { nis: "252607038", nama: "Fakhirah Shakila Dini H", kelas: "8C" },
-            { nis: "252607041", nama: "Ghassani Atqiya Zalfa A", kelas: "8C" },
-            { nis: "252607042", nama: "Hafidzah Qotrunnada D.K", kelas: "8C" },
-            { nis: "252607046", nama: "Khaeria Namia Zahrana", kelas: "8C" },
-            { nis: "252607048", nama: "Khayyira Naila Aisha", kelas: "8C" },
-            { nis: "252607049", nama: "Levinka Ayla Rahmadita", kelas: "8C" },
-            { nis: "252607051", nama: "Naima Ashadya Zaida", kelas: "8C" },
-            { nis: "252607053", nama: "Nabila Az-Zahra", kelas: "8C" },
-            { nis: "252607055", nama: "Natasha Kirei Samita", kelas: "8C" },
-            { nis: "252607056", nama: "Rania Ranaa Kurniawan", kelas: "8C" },
-            { nis: "252607057", nama: "Syakira Rahmadita Sijabat", kelas: "8C" },
-            { nis: "252607059", nama: "Violetha Ozora Himmatana", kelas: "8C" },
-            { nis: "242507001", nama: "Alika Imtinan Diassyafahya", kelas: "9A" },
-            { nis: "242507011", nama: "Athifah Mumtazah", kelas: "9A" },
-            { nis: "242507002", nama: "Athiyyah Shofi Muthmainnah", kelas: "9A" },
-            { nis: "242507003", nama: "Balqis Zahra Hanifah", kelas: "9A" },
-            { nis: "252607060", nama: "Damia Khairina Alesha", kelas: "9A" },
-            { nis: "252607061", nama: "Delisha Halwa Tabina", kelas: "9A" },
-            { nis: "242501010", nama: "Kamilia Jaudah Tsuraya", kelas: "9A" },
-            { nis: "242507005", nama: "Mahira Anezka Mulyawan", kelas: "9A" },
-            { nis: "242507006", nama: "Maiza Rahma", kelas: "9A" },
-            { nis: "242507007", nama: "Naura Izzatunnisa", kelas: "9A" },
-            { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9A" }
+            { nis: "262707001", nama: "Abdillah Ammar Al Fauzan", kelas: "7 Banin" },
+            { nis: "262707002", nama: "Ahmad Wildan Rasyid", kelas: "7 Banin" },
+            { nis: "262707003", nama: "Aqila Hamdan Al Fathan", kelas: "7 Banin" },
+            { nis: "262707004", nama: "Aqila Hamdan Al Fatih", kelas: "7 Banin" },
+            { nis: "262707005", nama: "Azlan Arkenzie Adiatmaja", kelas: "7 Banin" },
+            { nis: "262707006", nama: "Chairul Azzam Wijaya", kelas: "7 Banin" },
+            { nis: "262707007", nama: "Muhammad Emran Alafasy", kelas: "7 Banin" },
+            { nis: "262707008", nama: "Muhammad Zahwan Jubaidi", kelas: "7 Banin" },
+            { nis: "262707009", nama: "Raffaza Syaqif Pratama", kelas: "7 Banin" },
+            { nis: "262707010", nama: "Rashka Uno Kamil", kelas: "7 Banin" },
+            { nis: "262707011", nama: "Rayyan Iqra Mahmudy", kelas: "7 Banin" },
+            { nis: "262707012", nama: "Tsaqif Alfaruq Solichin", kelas: "7 Banin" },
+            { nis: "262707013", nama: "Abidah Fidziaritza", kelas: "7 Banat" },
+            { nis: "262707014", nama: "Aisyah Rahma Karenina", kelas: "7 Banat" },
+            { nis: "262707015", nama: "Alya Askana Sakhi", kelas: "7 Banat" },
+            { nis: "262707016", nama: "Annisa Gwen Inara", kelas: "7 Banat" },
+            { nis: "262707017", nama: "Arindi Nada Arcobaleno", kelas: "7 Banat" },
+            { nis: "262707018", nama: "Athiya Ufairah", kelas: "7 Banat" },
+            { nis: "262707019", nama: "Filza Noor Hanifa", kelas: "7 Banat" },
+            { nis: "262707020", nama: "Filza Salsabila Fadhilah", kelas: "7 Banat" },
+            { nis: "262707021", nama: "Haura Nafisah", kelas: "7 Banat" },
+            { nis: "262707022", nama: "Jalilla Dhessafa Alfariji", kelas: "7 Banat" },
+            { nis: "262707023", nama: "Maryam Zahida Aristi", kelas: "7 Banat" },
+            { nis: "262707024", nama: "Nasywa Almeera Khanza", kelas: "7 Banat" },
+            { nis: "262707025", nama: "Quisha Zahidah Rafifa", kelas: "7 Banat" },
+            { nis: "262707026", nama: "Raihana Yasmina Rahman", kelas: "7 Banat" },
+            { nis: "262707027", nama: "Raihanah Hanin", kelas: "7 Banat" },
+            { nis: "262707028", nama: "Raihanna Navy Khafiya", kelas: "7 Banat" },
+            { nis: "262707029", nama: "Rayna Shafiqa Almahyra", kelas: "7 Banat" },
+            { nis: "262707030", nama: "Rayya Viro Azzahra", kelas: "7 Banat" },
+            { nis: "262707031", nama: "Shafina Lucky Adeeba", kelas: "7 Banat" },
+            { nis: "262707032", nama: "Shafiyyah", kelas: "7 Banat" },
+            { nis: "262707033", nama: "Shafiyyah Najib", kelas: "7 Banat" },
+            { nis: "262707034", nama: "Shaqeena Taqiyyah Siregar", kelas: "7 Banat" },
+            { nis: "262707035", nama: "Siti Mutiah Ratu Setiawan", kelas: "7 Banat" },
+            { nis: "252607001", nama: "Abdurrohman", kelas: "8 Banin" },
+            { nis: "252607002", nama: "Agha Sebastian Dhuha", kelas: "8 Banin" },
+            { nis: "252607003", nama: "Alandra Raihan Syazani", kelas: "8 Banin" },
+            { nis: "252607004", nama: "Altadira Mohammed El Fatih", kelas: "8 Banin" },
+            { nis: "252607005", nama: "Arkananta Putra Iriawan", kelas: "8 Banin" },
+            { nis: "252607006", nama: "Arrafi Zaidan Qawiyyu", kelas: "8 Banin" },
+            { nis: "252607007", nama: "Arsya Athalah Haki", kelas: "8 Banin" },
+            { nis: "252607008", nama: "Baihaqi Safaraz", kelas: "8 Banin" },
+            { nis: "252607009", nama: "Fahri Afif Ihsanuddin", kelas: "8 Banin" },
+            { nis: "252607010", nama: "Galang Nareswara Putra G", kelas: "8 Banin" },
+            { nis: "252607011", nama: "Gaza Syauqi Firdaus", kelas: "8 Banin" },
+            { nis: "252607012", nama: "Habibie Alfarizqi", kelas: "8 Banin" },
+            { nis: "252607013", nama: "Hasan Faiq M. Hutasoit", kelas: "8 Banin" },
+            { nis: "252607014", nama: "Hasby Arif Al Ghifari", kelas: "8 Banin" },
+            { nis: "252607015", nama: "Kazhafran Al Fatih Milono", kelas: "8 Banin" },
+            { nis: "252607016", nama: "M.Serhan Ar Rasyid", kelas: "8 Banin" },
+            { nis: "252607017", nama: "Rafaza Aydin Nadivky", kelas: "8 Banin" },
+            { nis: "252607018", nama: "M. Alfath Athaya Riyanto", kelas: "8 Banin" },
+            { nis: "252607019", nama: "M. Andra Romansyah", kelas: "8 Banin" },
+            { nis: "252607020", nama: "M. Khalifah Al Farisi", kelas: "8 Banin" },
+            { nis: "252607021", nama: "M. Naufal Al Fakhri", kelas: "8 Banin" },
+            { nis: "252607022", nama: "Mischa Alvaro Nata Kunthar", kelas: "8 Banin" },
+            { nis: "252607023", nama: "Muhammad El Azzam A", kelas: "8 Banin" },
+            { nis: "252607024", nama: "Naufal Mu'min Billah", kelas: "8 Banin" },
+            { nis: "252607025", nama: "Raindra Alkhalifi Pratama", kelas: "8 Banin" },
+            { nis: "252607026", nama: "Rakargalu Damar Panuluh", kelas: "8 Banin" },
+            { nis: "252607027", nama: "Umar Fatih Abdurrahman", kelas: "8 Banin" },
+            { nis: "252607028", nama: "Zen Firdaus", kelas: "8 Banin" },
+            { nis: "252607030", nama: "Adela Zahra Nugroho", kelas: "8 Banat" },
+            { nis: "252607031", nama: "Afifah Haniyah", kelas: "8 Banat" },
+            { nis: "252607032", nama: "Aisyah Azzaira", kelas: "8 Banat" },
+            { nis: "252607034", nama: "Askana Sakhia", kelas: "8 Banat" },
+            { nis: "252607036", nama: "Azalea Rasyidatu Naja", kelas: "8 Banat" },
+            { nis: "252607039", nama: "Fatimah Azzahra", kelas: "8 Banat" },
+            { nis: "252607040", nama: "Fiorenza Aretha Arcobaleno", kelas: "8 Banat" },
+            { nis: "252607043", nama: "Hana Nafisah", kelas: "8 Banat" },
+            { nis: "252607044", nama: "Hanayumi Nafiiza Aldrin", kelas: "8 Banat" },
+            { nis: "252607045", nama: "Jasmina Jinan Izzati Akmal", kelas: "8 Banat" },
+            { nis: "252607047", nama: "Khanza Humaira Ariyadi", kelas: "8 Banat" },
+            { nis: "252607050", nama: "Matahari Parahita Prameswari", kelas: "8 Banat" },
+            { nis: "252607052", nama: "Naema Fikriyyah Humaira", kelas: "8 Banat" },
+            { nis: "252607058", nama: "Taalea Raisa Eiliyah", kelas: "8 Banat" },
+            { nis: "252607033", nama: "Aqeela Maulidya Arlen", kelas: "8 Banat" },
+            { nis: "252607035", nama: "Audrey Zaneta Aini", kelas: "8 Banat" },
+            { nis: "252607037", nama: "Azka Raihanah", kelas: "8 Banat" },
+            { nis: "252607038", nama: "Fakhirah Shakila Dini H", kelas: "8 Banat" },
+            { nis: "252607041", nama: "Ghassani Atqiya Zalfa A", kelas: "8 Banat" },
+            { nis: "252607042", nama: "Hafidzah Qotrunnada D.K", kelas: "8 Banat" },
+            { nis: "252607046", nama: "Khaeria Namia Zahrana", kelas: "8 Banat" },
+            { nis: "252607048", nama: "Khayyira Naila Aisha", kelas: "8 Banat" },
+            { nis: "252607049", nama: "Levinka Ayla Rahmadita", kelas: "8 Banat" },
+            { nis: "252607051", nama: "Naima Ashadya Zaida", kelas: "8 Banat" },
+            { nis: "252607053", nama: "Nabila Az-Zahra", kelas: "8 Banat" },
+            { nis: "252607055", nama: "Natasha Kirei Samita", kelas: "8 Banat" },
+            { nis: "252607056", nama: "Rania Ranaa Kurniawan", kelas: "8 Banat" },
+            { nis: "252607057", nama: "Syakira Rahmadita Sijabat", kelas: "8 Banat" },
+            { nis: "252607059", nama: "Violetha Ozora Himmatana", kelas: "8 Banat" },
+            { nis: "242507001", nama: "Alika Imtinan Diassyafahya", kelas: "9 Banat" },
+            { nis: "242507011", nama: "Athifah Mumtazah", kelas: "9 Banat" },
+            { nis: "242507002", nama: "Athiyyah Shofi Muthmainnah", kelas: "9 Banat" },
+            { nis: "242507003", nama: "Balqis Zahra Hanifah", kelas: "9 Banat" },
+            { nis: "252607060", nama: "Damia Khairina Alesha", kelas: "9 Banat" },
+            { nis: "252607061", nama: "Delisha Halwa Tabina", kelas: "9 Banat" },
+            { nis: "242501010", nama: "Kamilia Jaudah Tsuraya", kelas: "9 Banat" },
+            { nis: "242507005", nama: "Mahira Anezka Mulyawan", kelas: "9 Banat" },
+            { nis: "242507006", nama: "Maiza Rahma", kelas: "9 Banat" },
+            { nis: "242507007", nama: "Naura Izzatunnisa", kelas: "9 Banat" },
+            { nis: "242501009", nama: "Raihana Nur Azzahra", kelas: "9 Banat" }
         ];
 
         // ============================================================
@@ -2363,6 +2385,19 @@
                 "'": '&#39;' }[c]));
         }
 
+        function kelasIcon(kelas) {
+            if (!kelas) return '';
+            if (kelas.indexOf('Banin') !== -1) return '👳\u200d♂️ ';
+            if (kelas.indexOf('Banat') !== -1) return '🧕 ';
+            return '';
+        }
+
+        function kelasDisplay(kelas, fallback) {
+            const fb = fallback === undefined ? '-' : fallback;
+            if (!kelas) return escapeHtml(fb);
+            return kelasIcon(kelas) + escapeHtml(kelas);
+        }
+
         function formatRupiah(val) {
             if (!val) return 'Rp0';
             return 'Rp' + Number(val).toLocaleString('id-ID');
@@ -2385,6 +2420,7 @@
         let moneyRewardRules = {};
         let userProfilesCache = {};
         let spThresholdsCache = { sp1: 15, sp2: 25, sp3: 40 };
+        let kebaikanThresholdsCache = { tumbuh: 25, meningkat: 50, terbiasa: 75, teladan: 100 };
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
@@ -2800,12 +2836,17 @@
                 spThresholdsCache = snap.val() || { sp1: 15, sp2: 25, sp3: 40 };
                 if (isPageActive('sp-letter')) loadSpLetterList();
             });
+            db.ref('settings/kebaikanThresholds').on('value', (snap) => {
+                kebaikanThresholdsCache = snap.val() || { tumbuh: 25, meningkat: 50, terbiasa: 75, teladan: 100 };
+                if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
+            });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
-                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates', 'settings/spThresholds'
+                'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates', 'absensi',
+                'settings/spThresholds', 'settings/kebaikanThresholds'
             ].forEach(r => db.ref(r).off());
         }
 
@@ -3121,7 +3162,7 @@
             renderRecentList('recentViolations', violations, (v) => `
                 <div class="leaderboard-item">
                     <div class="info">
-                        <div class="name">${escapeHtml(v.nama)} <span class="badge">${escapeHtml(v.kelas || '')}</span></div>
+                        <div class="name">${escapeHtml(v.nama)} <span class="badge">${kelasDisplay(v.kelas, '')}</span></div>
                         <div class="detail">${escapeHtml(v.pelanggaran)} • dicatat oleh ${escapeHtml(v.guru || '-')} • ${formatDate(v.tanggal)}</div>
                     </div>
                     <div class="points">-${v.poin}</div>
@@ -3131,7 +3172,7 @@
             renderRecentList('recentRewards', rewards, (r) => `
                 <div class="leaderboard-item">
                     <div class="info">
-                        <div class="name">${escapeHtml(r.nama)} <span class="badge">${escapeHtml(r.kelas || '')}</span></div>
+                        <div class="name">${escapeHtml(r.nama)} <span class="badge">${kelasDisplay(r.kelas, '')}</span></div>
                         <div class="detail">${escapeHtml(r.bentuk)} • dicatat oleh ${escapeHtml(r.guru || '-')} • ${formatDate(r.tanggal)}${r.moneyAwarded ? ' 🎉 ' + formatRupiah(r.moneyAwarded) : ''}</div>
                     </div>
                     <div class="points reward-points">+${r.poin}</div>
@@ -3174,7 +3215,7 @@
                                 <tr>
                                     <td>${i+1}</td>
                                     <td><strong>${escapeHtml(s.nama)}</strong></td>
-                                    <td>${escapeHtml(s.kelas || '')}</td>
+                                    <td>${kelasDisplay(s.kelas, '')}</td>
                                     <td><span class="badge badge-success">${s.total} ⭐</span></td>
                                     <td>${s.count} kali</td>
                                 </tr>
@@ -3212,7 +3253,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td>${escapeHtml(v.nama)}</td>
-                    <td>${escapeHtml(v.kelas || '')}</td>
+                    <td>${kelasDisplay(v.kelas, '')}</td>
                     <td>${escapeHtml(v.pelanggaran)}</td>
                     <td><span class="badge badge-danger">${v.poin}</span></td>
                     <td>${escapeHtml(v.konsekuensi || '-')}</td>
@@ -3287,7 +3328,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td>${escapeHtml(r.nama)}</td>
-                    <td>${escapeHtml(r.kelas || '')}</td>
+                    <td>${kelasDisplay(r.kelas, '')}</td>
                     <td>${escapeHtml(r.bentuk)}</td>
                     <td><span class="badge badge-success">+${r.poin}</span>${r.moneyAwarded ? ' 🎉' + formatRupiah(r.moneyAwarded) : ''}</td>
                     <td>${escapeHtml(r.guru || '-')}</td>
@@ -3319,6 +3360,44 @@
         // ============================================================
         // LEADERBOARD (PERBAIKAN - Reward tidak ditampilkan di pelanggaran)
         // ============================================================
+        // ============================================================
+        // TARGET KEBAIKAN BULANAN
+        // ============================================================
+        function getKebaikanTier(points) {
+            const t = kebaikanThresholdsCache;
+            if (points >= t.teladan) return { key: 'teladan', label: 'Teladan' };
+            if (points >= t.terbiasa) return { key: 'terbiasa', label: 'Terbiasa' };
+            if (points >= t.meningkat) return { key: 'meningkat', label: 'Meningkat' };
+            if (points >= t.tumbuh) return { key: 'tumbuh', label: 'Tumbuh' };
+            return { key: 'belum', label: 'Belum Tercapai' };
+        }
+
+        function getBestKebaikanTierEver(nis) {
+            const monthTotals = {};
+            Object.values(rewardsCache || {}).forEach(r => {
+                if (r.nis !== nis || !r.tanggal) return;
+                const mk = r.tanggal.slice(0, 7);
+                monthTotals[mk] = (monthTotals[mk] || 0) + (r.poin || 0);
+            });
+            let maxPoints = 0;
+            Object.values(monthTotals).forEach(v => { if (v > maxPoints) maxPoints = v; });
+            return getKebaikanTier(maxPoints);
+        }
+
+        document.getElementById('saveKebaikanThresholdBtn').addEventListener('click', function() {
+            const tumbuh = parseInt(document.getElementById('kbThreshold1').value, 10) || 0;
+            const meningkat = parseInt(document.getElementById('kbThreshold2').value, 10) || 0;
+            const terbiasa = parseInt(document.getElementById('kbThreshold3').value, 10) || 0;
+            const teladan = parseInt(document.getElementById('kbThreshold4').value, 10) || 0;
+            if (!(tumbuh > 0 && meningkat > tumbuh && terbiasa > meningkat && teladan > terbiasa)) {
+                showToast('Ambang batas harus urut naik: Tumbuh < Meningkat < Terbiasa < Teladan, dan lebih dari 0.', 'error');
+                return;
+            }
+            db.ref('settings/kebaikanThresholds').set({ tumbuh, meningkat, terbiasa, teladan }).then(() => {
+                showToast('Ambang batas Target Kebaikan Bulanan disimpan.');
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
+
         function loadLeaderboard(type = 'violation') {
             currentLeaderboardTab = type;
             const el = document.getElementById('leaderboardList');
@@ -3328,6 +3407,17 @@
                 btn.classList.remove('active');
                 if (btn.dataset.leaderboardTab === type) btn.classList.add('active');
             });
+
+            const thresholdBar = document.getElementById('kebaikanThresholdBar');
+            if (thresholdBar) {
+                thresholdBar.style.display = (type === 'reward') ? 'flex' : 'none';
+                if (type === 'reward') {
+                    document.getElementById('kbThreshold1').value = kebaikanThresholdsCache.tumbuh;
+                    document.getElementById('kbThreshold2').value = kebaikanThresholdsCache.meningkat;
+                    document.getElementById('kbThreshold3').value = kebaikanThresholdsCache.terbiasa;
+                    document.getElementById('kbThreshold4').value = kebaikanThresholdsCache.teladan;
+                }
+            }
 
             populateLeaderboardMonthFilter();
             const monthKey = currentLeaderboardMonth || null;
@@ -3371,7 +3461,7 @@
                     <div class="leaderboard-item" data-nis="${s.nis}" data-type="violation">
                         <div class="rank ${rankClass}">#${i + 1}</div>
                         <div class="info">
-                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
+                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${kelasDisplay(s.kelas, '')}</span></div>
                             <div class="point-breakdown">
                                 <span>Ringan/Sedang: ${s.lightMed}</span>
                                 <span class="severe">Berat: ${s.severe}</span>
@@ -3399,12 +3489,17 @@
                 }
                 el.innerHTML = list.map((s, i) => {
                     const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    const tier = getKebaikanTier(s.total);
+                    const bestTier = getBestKebaikanTierEver(s.nis);
                     return `
                     <div class="leaderboard-item" data-nis="${s.nis}" data-type="reward">
                         <div class="rank ${rankClass}">#${i + 1}</div>
                         <div class="info">
-                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${escapeHtml(s.kelas || '')}</span></div>
-                            <div class="detail">${s.count} kali kebaikan</div>
+                            <div class="name">${escapeHtml(s.nama)} <span class="badge">${kelasDisplay(s.kelas, '')}</span></div>
+                            <div class="detail">${s.count} kali kebaikan
+                                <span class="kb-badge kb-${tier.key}">${tier.label}</span>
+                                ${bestTier.key !== 'belum' ? `<span class="kb-best">🏅 Level tertinggi pernah dicapai: ${bestTier.label}</span>` : ''}
+                            </div>
                         </div>
                         <div class="points reward-points">${s.total} ⭐</div>
                     </div>`;
@@ -3482,7 +3577,7 @@
                     <td>${i + 1}</td>
                     <td>${escapeHtml(s.nis)}</td>
                     <td>${escapeHtml(s.nama)}</td>
-                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><span class="badge">${kelasDisplay(s.kelas)}</span></td>
                     <td><span class="badge badge-danger">${s.poinPelanggaran}</span></td>
                     <td>${s.jmlPelanggaran}</td>
                     <td><span class="badge badge-success">${s.poinReward}</span></td>
@@ -3563,7 +3658,7 @@
             tbody.innerHTML = list.map(s => `
                 <tr>
                     <td>${escapeHtml(s.nama)}</td>
-                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><span class="badge">${kelasDisplay(s.kelas)}</span></td>
                     <td><strong>${s.poin}</strong></td>
                     <td><span class="badge badge-danger">SP ${s.level}</span></td>
                     <td class="no-print"><button class="btn btn-sm btn-print" data-gen-sp="${s.nis}" data-sp-level="${s.level}"><i class="fas fa-file-signature"></i> Buat Surat</button></td>
@@ -3633,7 +3728,7 @@
                     <table style="width:auto;">
                         <tr><td style="padding:2px 12px 2px 0;">Nama</td><td>: <strong>${escapeHtml(s.nama)}</strong></td></tr>
                         <tr><td style="padding:2px 12px 2px 0;">NIS</td><td>: ${escapeHtml(s.nis)}</td></tr>
-                        <tr><td style="padding:2px 12px 2px 0;">Kelas</td><td>: ${escapeHtml(s.kelas || '-')}</td></tr>
+                        <tr><td style="padding:2px 12px 2px 0;">Kelas</td><td>: ${kelasDisplay(s.kelas)}</td></tr>
                         <tr><td style="padding:2px 12px 2px 0;">Periode</td><td>: ${periodeLabel}</td></tr>
                         <tr><td style="padding:2px 12px 2px 0;">Total Poin Efektif</td><td>: <strong>${stats.totalEffective}</strong></td></tr>
                     </table>
@@ -3800,7 +3895,7 @@
                 <tr>
                     <td>${escapeHtml(s.nis)}</td>
                     <td>${escapeHtml(s.nama)}</td>
-                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><span class="badge">${kelasDisplay(s.kelas)}</span></td>
                     <td><strong>${s.poinEfektif}</strong></td>
                     <td><button class="btn btn-sm btn-outline" data-view-profile="${s.nis}"><i class="fas fa-eye"></i> Detail</button></td>
                 </tr>
@@ -3826,7 +3921,7 @@
 
             document.getElementById('studentProfileListCard').classList.add('hidden');
             document.getElementById('studentProfileDetailCard').classList.remove('hidden');
-            document.getElementById('spDetailName').textContent = `${s.nama} — ${s.kelas || '-'}`;
+            document.getElementById('spDetailName').textContent = `${s.nama} — ${kelasIcon(s.kelas)}${s.kelas || '-'}`;
 
             const stats = getStudentStats(nis, null);
             const statsThisMonth = getStudentStats(nis, currentMonthKey());
@@ -3944,7 +4039,7 @@
                 return;
             }
             let tableHtml = `
-                <div style="margin-bottom:12px;"><strong>Kelas:</strong> ${student.kelas} | <strong>Total:</strong> ${rows.length} catatan</div>
+                <div style="margin-bottom:12px;"><strong>Kelas:</strong> ${kelasDisplay(student.kelas)} | <strong>Total:</strong> ${rows.length} catatan</div>
                 <div class="table-wrap">
                     <table>
                         <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
@@ -4045,7 +4140,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td>${escapeHtml(l.nama)}</td>
-                    <td>${escapeHtml(l.kelas || '')}</td>
+                    <td>${kelasDisplay(l.kelas, '')}</td>
                     <td>${formatDate(l.tanggal)}</td>
                     <td>${escapeHtml(l.waktu)}</td>
                     <td>${escapeHtml(l.catatan || '-')}</td>
@@ -4250,7 +4345,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td>${escapeHtml(b.nama)}</td>
-                    <td>${escapeHtml(b.kelas || '')}</td>
+                    <td>${kelasDisplay(b.kelas, '')}</td>
                     <td>${escapeHtml(b.ringkasan || '-')}</td>
                     <td>${escapeHtml(b.solusi || '-')}</td>
                     <td>${escapeHtml(b.guru || '-')}</td>
@@ -4266,7 +4361,7 @@
                     const id = this.getAttribute('data-view-bk');
                     const b = bkCache[id];
                     if (b) openModal('Detail BK', `
-                        <p><strong>Siswa:</strong> ${escapeHtml(b.nama)} (${escapeHtml(b.kelas || '')})</p>
+                        <p><strong>Siswa:</strong> ${escapeHtml(b.nama)} (${kelasDisplay(b.kelas, '')})</p>
                         <p><strong>Guru:</strong> ${escapeHtml(b.guru || '-')}</p>
                         <p><strong>Tanggal:</strong> ${formatDate(b.tanggal)}</p>
                         <p><strong>Catatan:</strong> ${escapeHtml(b.catatan || '-')}</p>
@@ -4613,7 +4708,7 @@
                 <tr>
                     <td>${escapeHtml(s.nis)}</td>
                     <td>${escapeHtml(s.nama)}</td>
-                    <td><span class="badge">${escapeHtml(s.kelas || '-')}</span></td>
+                    <td><span class="badge">${kelasDisplay(s.kelas)}</span></td>
                     <td>
                         <select data-gender-nis="${s.nis}" style="width:auto;display:inline-block;">
                             <option value="" ${!s.gender ? 'selected' : ''}>— Belum diketahui —</option>
@@ -4647,12 +4742,12 @@
         // ============================================================
         function suggestNextClass(kelas) {
             if (!kelas) return kelas;
-            const m = String(kelas).match(/^(\d+)([A-Za-z]*)$/);
+            const m = String(kelas).match(/^(\d+)\s*(.*)$/);
             if (!m) return kelas;
             const grade = parseInt(m[1], 10);
             const suffix = m[2] || '';
             if (grade === 9) return 'LULUS';
-            return `${grade + 1}${suffix}`;
+            return suffix ? `${grade + 1} ${suffix}` : `${grade + 1}`;
         }
 
         function renderKkMapping() {
@@ -4675,12 +4770,12 @@
                         <tbody>
                             ${classes.map(k => `
                                 <tr>
-                                    <td><span class="badge">${escapeHtml(k)}</span></td>
+                                    <td><span class="badge">${kelasDisplay(k)}</span></td>
                                     <td>${classCounts[k]}</td>
                                     <td>
                                         <select data-kk-from="${escapeHtml(k)}">
                                             <option value="__TETAP__">Tetap (tidak naik)</option>
-                                            ${allTargetOptions.map(opt => `<option value="${escapeHtml(opt)}" ${opt === suggestNextClass(k) ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+                                            ${allTargetOptions.map(opt => `<option value="${escapeHtml(opt)}" ${opt === suggestNextClass(k) ? 'selected' : ''}>${opt === 'LULUS' ? 'LULUS' : kelasIcon(opt) + escapeHtml(opt)}</option>`).join('')}
                                             <option value="__CUSTOM__">Kelas baru (ketik manual)...</option>
                                         </select>
                                         <input type="text" data-kk-custom="${escapeHtml(k)}" placeholder="Nama kelas baru" style="display:none;width:120px;margin-top:4px;" />
@@ -5318,7 +5413,7 @@
                 `).join('');
                 return `
                     <div class="att-row" data-nis="${escapeHtml(s.nis)}">
-                        <div class="att-name">${escapeHtml(s.nama)}<span class="att-nis">${escapeHtml(s.nis)} • ${escapeHtml(s.kelas)}</span></div>
+                        <div class="att-name">${escapeHtml(s.nama)}<span class="att-nis">${escapeHtml(s.nis)} • ${kelasDisplay(s.kelas)}</span></div>
                         <div class="att-btns">${btns}</div>
                     </div>
                 `;
@@ -5403,6 +5498,34 @@
         }
 
         const STATUS_CODE_MAP = { hadir: 'H', telat: 'T', izin: 'I', sakit: 'S', alfa: 'A' };
+        // Hari Libur Nasional & Cuti Bersama (SKB 3 Menteri) - perkiraan/berdasarkan pengumuman resmi.
+        // Tanggal untuk hari raya berbasis kalender Hijriah/Saka bisa berubah menyesuaikan ketetapan pemerintah terbaru.
+        const HARI_LIBUR_NASIONAL = {
+            '2026-01-01': 'Tahun Baru Masehi',
+            '2026-01-16': 'Isra Mikraj Nabi Muhammad SAW',
+            '2026-02-16': 'Cuti Bersama Imlek',
+            '2026-02-17': 'Tahun Baru Imlek 2577',
+            '2026-03-18': 'Cuti Bersama Hari Suci Nyepi',
+            '2026-03-19': 'Hari Suci Nyepi (Tahun Baru Saka)',
+            '2026-03-20': 'Cuti Bersama Idul Fitri',
+            '2026-03-21': 'Hari Raya Idul Fitri (Hari 1)',
+            '2026-03-22': 'Hari Raya Idul Fitri (Hari 2)',
+            '2026-03-23': 'Cuti Bersama Idul Fitri',
+            '2026-03-24': 'Cuti Bersama Idul Fitri',
+            '2026-04-03': 'Wafat Isa Almasih',
+            '2026-05-01': 'Hari Buruh Internasional',
+            '2026-05-14': 'Kenaikan Isa Almasih',
+            '2026-05-15': 'Cuti Bersama Kenaikan Isa Almasih',
+            '2026-05-27': 'Hari Raya Idul Adha',
+            '2026-05-28': 'Cuti Bersama Idul Adha',
+            '2026-05-31': 'Hari Raya Waisak',
+            '2026-06-01': 'Hari Lahir Pancasila',
+            '2026-06-16': 'Tahun Baru Islam 1448 H',
+            '2026-08-17': 'Hari Kemerdekaan RI',
+            '2026-08-25': 'Maulid Nabi Muhammad SAW',
+            '2026-12-24': 'Cuti Bersama Hari Raya Natal',
+            '2026-12-25': 'Hari Raya Natal'
+        };
         function daysInMonth(monthKey) {
             const [y, m] = monthKey.split('-').map(Number);
             return new Date(y, m, 0).getDate();
@@ -5428,7 +5551,11 @@
                     let hariEfektif = 0;
                     for (let d = 1; d <= totalDays; d++) {
                         const tanggal = `${monthKey}-${String(d).padStart(2, '0')}`;
-                        if (isWeekend(monthKey, d)) { days.push({ code: 'L', libur: true }); continue; }
+                        const namaLibur = HARI_LIBUR_NASIONAL[tanggal];
+                        if (isWeekend(monthKey, d) || namaLibur) {
+                            days.push({ code: 'L', libur: true, title: namaLibur || 'Akhir Pekan' });
+                            continue;
+                        }
                         hariEfektif++;
                         const rec = absensiCache[absensiKey(tanggal, s.nis)];
                         if (rec && rec.status) {
@@ -5473,12 +5600,12 @@
             }
             emptyEl.classList.add('hidden');
             tbody.innerHTML = rows.map((r, i) => {
-                const dayCells = r.days.map(d => `<td class="rekap-day-cell ${d.libur ? 'libur' : d.code}">${d.code}</td>`).join('');
+                const dayCells = r.days.map(d => `<td class="rekap-day-cell ${d.libur ? 'libur' : d.code}"${d.title ? ` title="${escapeHtml(d.title)}"` : ''}>${d.code}</td>`).join('');
                 return `
                     <tr>
                         <td>${i + 1}</td>
                         <td>${escapeHtml(r.nama)}</td>
-                        <td>${escapeHtml(r.kelas)}</td>
+                        <td>${kelasDisplay(r.kelas)}</td>
                         <td>${r.hariEfektif}</td>
                         <td class="rekap-att-cell rekap-att-hadir">${r.counts.hadir}</td>
                         <td class="rekap-att-cell rekap-att-telat">${r.counts.telat}</td>
