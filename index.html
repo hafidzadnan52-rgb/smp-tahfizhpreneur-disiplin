@@ -2773,7 +2773,8 @@
             if (isPageActive('student-profile')) loadStudentProfileList();
             if (isPageActive('analytics')) loadAnalytics();
             if (isPageActive('sp-letter')) loadSpLetterList();
-            if (isPageActive('absensi')) { renderAbsensiForm();
+            if (isPageActive('absensi')) { populateAbsensiKelasOptions();
+                renderAbsensiForm();
                 loadAbsensiRekap(); }
         }
 
@@ -5363,16 +5364,33 @@
         // ============================================================
         // ABSENSI
         // ============================================================
+        function normalizeKelas(str) {
+            return String(str || '').trim().replace(/\s+/g, ' ');
+        }
+
         function getStudentsByClass(kelas) {
+            const target = normalizeKelas(kelas);
             return Object.entries(siswaCache || {})
                 .map(([nis, s]) => ({ nis: s.nis || nis, nama: s.nama, kelas: s.kelas }))
-                .filter(s => s.kelas === kelas)
+                .filter(s => normalizeKelas(s.kelas) === target)
                 .sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+        }
+
+        function populateAbsensiKelasOptions() {
+            const sel = document.getElementById('absensiKelas');
+            if (!sel) return;
+            const current = sel.value;
+            const knownKelas = [...new Set(Object.values(siswaCache || {}).map(s => s.kelas).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+            sel.innerHTML = '<option value="">— Pilih kelas —</option>' +
+                knownKelas.map(k => `<option value="${escapeHtml(k)}">${kelasIcon(k)}${escapeHtml(k)}</option>`).join('');
+            if (knownKelas.includes(current)) sel.value = current;
         }
 
         function initAbsensiPage() {
             const tglInput = document.getElementById('absensiTanggal');
             if (tglInput && !tglInput.value) tglInput.value = today();
+            populateAbsensiKelasOptions();
             renderAbsensiForm();
             loadAbsensiRekap();
         }
@@ -5396,7 +5414,11 @@
             if (!students.length) {
                 listEl.innerHTML = '';
                 emptyEl.classList.remove('hidden');
-                emptyEl.innerHTML = '<i class="fas fa-users"></i><p>Belum ada siswa terdaftar di kelas ini.</p>';
+                const knownKelas = [...new Set(Object.values(siswaCache || {}).map(s => s.kelas).filter(Boolean))];
+                const hint = knownKelas.length
+                    ? `<p class="text-muted" style="font-size:0.8rem;margin-top:4px;">Kelas yang tersedia di data siswa: ${knownKelas.map(escapeHtml).join(', ')}</p>`
+                    : '';
+                emptyEl.innerHTML = `<i class="fas fa-users"></i><p>Belum ada siswa terdaftar di kelas ini.</p>${hint}`;
                 if (infoEl) infoEl.textContent = '';
                 return;
             }
