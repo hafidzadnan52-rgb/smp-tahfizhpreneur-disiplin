@@ -2097,7 +2097,6 @@
                                             <option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option>
                                         </select>
                                     </div>
-                                    <div class="form-group"><label>No. WA Orang Tua <span class="text-muted">(opsional)</span></label><input type="text" id="newNoWaOrtu" placeholder="Contoh: 081234567890" /></div>
                                 </div>
                                 <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
                             </form>
@@ -2121,33 +2120,6 @@
                                 <table>
                                     <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Jenis Kelamin</th></tr></thead>
                                     <tbody id="genderSiswaTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Kelola Nomor WA Orang Tua -->
-                    <div class="accordion-section">
-                        <div class="accordion-header" data-target="accWaOrtu">
-                            <span><i class="fab fa-whatsapp" style="color:var(--success);"></i> Kelola Nomor WA Orang Tua & Ambang Notifikasi</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="accordion-body" id="accWaOrtu">
-                            <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Isi nomor WhatsApp orang tua/wali per siswa. Notifikasi otomatis dikirim saat poin pelanggaran atau kebaikan siswa mencapai ambang batas di bawah ini.</p>
-                            <div class="form-row" style="margin-bottom:14px;">
-                                <div class="form-group"><label>Ambang Poin Pelanggaran</label><input type="number" id="waThresholdPelanggaran" min="1" style="width:120px;" /></div>
-                                <div class="form-group"><label>Ambang Poin Kebaikan</label><input type="number" id="waThresholdKebaikan" min="1" style="width:120px;" /></div>
-                                <div class="form-group" style="align-self:flex-end;"><button class="btn btn-sm btn-gold" id="saveWaThresholdBtn" type="button"><i class="fas fa-save"></i> Simpan Ambang Batas</button></div>
-                            </div>
-                            <div class="filter-bar">
-                                <input type="text" id="waFilterStudent" placeholder="Cari nama siswa..." />
-                                <select id="waFilterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
-                                <select id="waFilterStatus"><option value="">Semua</option><option value="filled">Sudah Ada Nomor</option><option value="empty">Belum Ada Nomor</option></select>
-                            </div>
-                            <div class="table-wrap">
-                                <table>
-                                    <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>No. WA Orang Tua</th></tr></thead>
-                                    <tbody id="waOrtuTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -2550,8 +2522,6 @@
         let userProfilesCache = {};
         let spThresholdsCache = { sp1: 15, sp2: 25, sp3: 40 };
         let kebaikanThresholdsCache = { tumbuh: 25, meningkat: 50, terbiasa: 75, teladan: 100 };
-        let waNotifThresholdsCache = { pelanggaran: 50, kebaikan: 50 };
-        let waNotifStateCache = {};
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
@@ -2686,68 +2656,6 @@
         function markAllNotificationsRead() {
             const items = Object.values(notificationsCache || {});
             items.forEach(n => { if (!n.read) db.ref('notifications/' + n.id).update({ read: true }); });
-        }
-
-        // ============================================================
-        // NOTIFIKASI WHATSAPP KE ORANG TUA
-        // ============================================================
-        // GANTI dua nilai ini setelah Anda deploy Google Apps Script Web App
-        // (lihat file wa-proxy-code-gs.txt yang disertakan terpisah).
-        const WA_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzsyRIbQOABFUDap1UWyON75u22coHY0caoJEF5sYCEIPIJ3EHnkb4E8BrM0byj-6AR5Q/exec';
-        const WA_SHARED_SECRET = 'y08Z5K6CvF6XJDpSV3mPJgtFq6hoUplY';
-
-        function formatNomorWa(nomor) {
-            if (!nomor) return '';
-            let n = String(nomor).replace(/[^0-9]/g, '');
-            if (!n) return '';
-            if (n.startsWith('0')) n = '62' + n.slice(1);
-            else if (!n.startsWith('62')) n = '62' + n;
-            return n;
-        }
-
-        function sendWaNotif(nomor, pesan) {
-            const target = formatNomorWa(nomor);
-            if (!target || !WA_PROXY_URL || WA_PROXY_URL.indexOf('PASTE_URL') === 0) {
-                console.warn('WA belum dikonfigurasi atau nomor kosong, notifikasi dilewati.');
-                return Promise.resolve();
-            }
-            // Catatan: pakai Content-Type text/plain (bukan application/json) supaya
-            // browser tidak mengirim preflight OPTIONS, karena Apps Script Web App
-            // tidak menangani preflight itu dengan baik.
-            return fetch(WA_PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ secret: WA_SHARED_SECRET, target: target, message: pesan })
-            }).catch(err => console.error('Gagal mengirim notifikasi WA:', err));
-        }
-
-        // Dipanggil setiap kali ada pelanggaran/reward baru tersimpan untuk seorang siswa.
-        // Mengecek apakah poin siswa sudah melewati ambang batas yang diatur admin,
-        // dan hanya mengirim WA sekali per ambang batas (tidak spam berulang).
-        function checkAndSendWaNotif(nis) {
-            const s = siswaCache[nis];
-            if (!s || !s.noWaOrtu) return;
-            const stats = getStudentStats(nis, null);
-            const th = waNotifThresholdsCache || { pelanggaran: 50, kebaikan: 50 };
-            const state = waNotifStateCache[nis] || {};
-            const namaKelas = `${s.nama} (Kelas ${kelasDisplay(s.kelas)})`;
-
-            if (th.pelanggaran > 0 && stats.totalEffective >= th.pelanggaran && state.pelanggaranThreshold !== th.pelanggaran) {
-                const pesan = `Assalamu'alaikum, Bapak/Ibu Orang Tua/Wali dari ananda ${namaKelas}.\n\n` +
-                    `Kami informasikan bahwa poin pelanggaran ananda saat ini telah mencapai *${stats.totalEffective} poin* ` +
-                    `(ambang batas pemberitahuan: ${th.pelanggaran} poin). Mohon menjadi perhatian dan kerja sama Bapak/Ibu.\n\n` +
-                    `Terima kasih.\nSMP Tahfizh Preneur`;
-                sendWaNotif(s.noWaOrtu, pesan);
-                db.ref('waNotifState/' + nis).update({ pelanggaranThreshold: th.pelanggaran, pelanggaranAt: Date.now() });
-            }
-
-            if (th.kebaikan > 0 && stats.rewardPts >= th.kebaikan && state.kebaikanThreshold !== th.kebaikan) {
-                const pesan = `Assalamu'alaikum, Bapak/Ibu Orang Tua/Wali dari ananda ${namaKelas}.\n\n` +
-                    `Alhamdulillah, kami informasikan bahwa ananda telah mengumpulkan *${stats.rewardPts} poin kebaikan/reward*. ` +
-                    `Selamat atas pencapaian ini!\n\nTerima kasih.\nSMP Tahfizh Preneur`;
-                sendWaNotif(s.noWaOrtu, pesan);
-                db.ref('waNotifState/' + nis).update({ kebaikanThreshold: th.kebaikan, kebaikanAt: Date.now() });
-            }
         }
 
         // ============================================================
@@ -3034,18 +2942,13 @@
                 kebaikanThresholdsCache = snap.val() || { tumbuh: 25, meningkat: 50, terbiasa: 75, teladan: 100 };
                 if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
             });
-            db.ref('settings/waNotifThresholds').on('value', (snap) => {
-                waNotifThresholdsCache = snap.val() || { pelanggaran: 50, kebaikan: 50 };
-                if (isPageActive('admin')) loadAdminPanel();
-            });
-            db.ref('waNotifState').on('value', (snap) => { waNotifStateCache = snap.val() || {}; });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
                 'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates', 'absensi',
-                'settings/spThresholds', 'settings/kebaikanThresholds', 'settings/waNotifThresholds', 'waNotifState'
+                'settings/spThresholds', 'settings/kebaikanThresholds'
             ].forEach(r => db.ref(r).off());
         }
 
@@ -4797,7 +4700,6 @@
             renderUsersTable();
             renderGuruTable();
             renderGenderSiswaTable();
-            renderWaOrtuTable();
             renderKkMapping();
             loadFeedbackList();
         }
@@ -5016,65 +4918,6 @@
         document.getElementById('genderFilterStudent').addEventListener('input', renderGenderSiswaTable);
         document.getElementById('genderFilterClass').addEventListener('change', renderGenderSiswaTable);
         document.getElementById('genderFilterStatus').addEventListener('change', renderGenderSiswaTable);
-
-        // Panel Admin -> Kelola Nomor WA Orang Tua & Ambang Notifikasi (tersimpan di siswa/{nis}/noWaOrtu)
-        function renderWaOrtuTable() {
-            const tbody = document.getElementById('waOrtuTableBody');
-            if (!tbody) return;
-
-            const th1 = document.getElementById('waThresholdPelanggaran');
-            const th2 = document.getElementById('waThresholdKebaikan');
-            if (th1 && document.activeElement !== th1) th1.value = waNotifThresholdsCache.pelanggaran;
-            if (th2 && document.activeElement !== th2) th2.value = waNotifThresholdsCache.kebaikan;
-
-            const filterStudent = (document.getElementById('waFilterStudent').value || '').toLowerCase().trim();
-            const filterClass = document.getElementById('waFilterClass').value;
-            const filterStatus = document.getElementById('waFilterStatus').value;
-
-            let list = Object.values(siswaCache || {}).map(s => ({ nis: s.nis, nama: s.nama, kelas: s.kelas, noWaOrtu: s.noWaOrtu || '' }));
-            list = list.filter(s =>
-                (!filterStudent || (s.nama || '').toLowerCase().includes(filterStudent)) &&
-                (!filterClass || s.kelas === filterClass) &&
-                (!filterStatus || (filterStatus === 'filled' && s.noWaOrtu) || (filterStatus === 'empty' && !s.noWaOrtu))
-            );
-            list.sort((a, b) => (a.kelas || '').localeCompare(b.kelas || '') || (a.nama || '').localeCompare(b.nama || ''));
-
-            if (!list.length) { tbody.innerHTML =
-                '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Tidak ada data siswa.</td></tr>';
-                return; }
-
-            tbody.innerHTML = list.map(s => `
-                <tr>
-                    <td>${escapeHtml(s.nis)}</td>
-                    <td>${escapeHtml(s.nama)}</td>
-                    <td><span class="badge">${kelasDisplay(s.kelas)}</span></td>
-                    <td><input type="text" data-wa-nis="${s.nis}" value="${escapeHtml(s.noWaOrtu)}" placeholder="081234567890" style="width:160px;" /></td>
-                </tr>
-            `).join('');
-
-            tbody.querySelectorAll('[data-wa-nis]').forEach(input => {
-                input.addEventListener('change', function() {
-                    const nis = this.getAttribute('data-wa-nis');
-                    const val = this.value.trim();
-                    db.ref('siswa/' + nis + '/noWaOrtu').set(val).then(() => {
-                        if (siswaCache[nis]) siswaCache[nis].noWaOrtu = val;
-                        showToast('Nomor WA orang tua diperbarui.');
-                    }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
-                });
-            });
-        }
-
-        document.getElementById('waFilterStudent').addEventListener('input', renderWaOrtuTable);
-        document.getElementById('waFilterClass').addEventListener('change', renderWaOrtuTable);
-        document.getElementById('waFilterStatus').addEventListener('change', renderWaOrtuTable);
-        document.getElementById('saveWaThresholdBtn').addEventListener('click', function() {
-            const pelanggaran = parseInt(document.getElementById('waThresholdPelanggaran').value, 10) || 0;
-            const kebaikan = parseInt(document.getElementById('waThresholdKebaikan').value, 10) || 0;
-            if (!(pelanggaran > 0 && kebaikan > 0)) { showToast('Ambang batas harus lebih dari 0.', 'error'); return; }
-            db.ref('settings/waNotifThresholds').set({ pelanggaran, kebaikan }).then(() => {
-                showToast('Ambang batas notifikasi WA disimpan.');
-            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
-        });
 
         // ============================================================
         // KENAIKAN KELAS / TAHUN AJARAN BARU
@@ -5493,13 +5336,11 @@
             const nis = document.getElementById('newNis').value.trim();
             const nama = document.getElementById('newNama').value.trim();
             const kelas = document.getElementById('newKelas').value;
-            const noWaOrtu = document.getElementById('newNoWaOrtu').value.trim();
 
             if (!nis || !nama || !kelas) { showToast('Lengkapi semua data siswa!', 'error'); return; }
             if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
 
             const newStudent = { nis, nama, kelas };
-            if (noWaOrtu) newStudent.noWaOrtu = noWaOrtu;
             db.ref('siswa/' + nis).set(newStudent).then(() => {
                 showToast(`Siswa ${nama} berhasil ditambahkan!`);
                 this.reset();
@@ -5645,7 +5486,6 @@
                     saveNotif('violation', '⚠️ Pelanggaran',
                         `${s.nama} - ${records.length} pelanggaran sekaligus (${totalPoin} poin) oleh ${currentUser.name}`);
                     sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${records.length} pelanggaran (${totalPoin} poin)`);
-                    checkAndSendWaNotif(nis);
                     this.reset();
                     document.getElementById('recMultiToggle').checked = false;
                     document.getElementById('recSingleFields').classList.remove('hidden');
@@ -5684,7 +5524,6 @@
                 saveNotif('violation', '⚠️ Pelanggaran',
                     `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
-                checkAndSendWaNotif(nis);
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
                 renderRecTypeOptions();
@@ -5742,7 +5581,6 @@
                     const allRewards = Object.values(rewardsCache || {});
                     const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0) + totalPoinBaru;
                     checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
-                    checkAndSendWaNotif(nis);
 
                     resetRewardForm();
                 }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
@@ -5775,7 +5613,6 @@
                 const allRewards = Object.values(rewardsCache || {});
                 const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
                 checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
-                checkAndSendWaNotif(nis);
 
                 resetRewardForm();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
