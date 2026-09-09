@@ -208,6 +208,18 @@
             color: var(--primary-dark);
             white-space: nowrap;
         }
+        .multi-check-item input.mci-qty {
+            width: 48px !important;
+            height: auto !important;
+            flex-shrink: 0;
+            cursor: text;
+            text-align: center;
+            padding: 3px 2px;
+            border: 1px solid #d8d2c2;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
         .multi-summary-bar {
             display: flex;
             justify-content: space-between;
@@ -1653,6 +1665,7 @@
                                 <div class="form-row">
                                     <div class="form-group"><label>Kategori Pelanggaran</label><select id="recCategory"><option value="ringan">Ringan (2-5)</option><option value="sedang">Sedang (10-25)</option><option value="berat">Berat (30-100)</option></select></div>
                                     <div class="form-group"><label>Jenis Pelanggaran <span class="text-muted">*</span></label><select id="recType" required><option value="">— Pilih jenis —</option></select></div>
+                                    <div class="form-group"><label>Kelipatan <span class="text-muted">(brp kali terjadi)</span></label><input type="number" id="recQty" value="1" min="1" max="30" /></div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group"><label>Poin <span class="text-muted">(otomatis)</span></label><input type="text" id="recPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
@@ -1692,6 +1705,7 @@
                                 <div class="form-row">
                                     <div class="form-group"><label>Kategori Reward</label><select id="rewardCategory"><option value="kecil">Kebaikan Kecil (1-2 poin)</option><option value="sedang">Kebaikan Sedang (3-4 poin)</option><option value="besar">Kebaikan Besar (5 poin)</option></select></div>
                                     <div class="form-group"><label>Bentuk Kebaikan <span class="text-muted">*</span></label><select id="rewardType" required><option value="">— Pilih bentuk —</option></select></div>
+                                    <div class="form-group"><label>Kelipatan <span class="text-muted">(brp kali terjadi)</span></label><input type="number" id="rewardQty" value="1" min="1" max="30" /></div>
                                 </div>
                                 <div class="form-group"><label>Poin Reward <span class="text-muted">(otomatis)</span></label><input type="text" id="rewardPoints" readonly style="background:#f4f1ea;font-weight:600;" /></div>
                             </div>
@@ -2097,6 +2111,7 @@
                                             <option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option>
                                         </select>
                                     </div>
+                                    <div class="form-group"><label>No. WA Orang Tua <span class="text-muted">(opsional)</span></label><input type="text" id="newNoWaOrtu" placeholder="Contoh: 081234567890" /></div>
                                 </div>
                                 <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tambah Siswa</button>
                             </form>
@@ -2120,6 +2135,33 @@
                                 <table>
                                     <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Jenis Kelamin</th></tr></thead>
                                     <tbody id="genderSiswaTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kelola Nomor WA Orang Tua -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accWaOrtu">
+                            <span><i class="fab fa-whatsapp" style="color:var(--success);"></i> Kelola Nomor WA Orang Tua & Ambang Notifikasi</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accWaOrtu">
+                            <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Isi nomor WhatsApp orang tua/wali per siswa. Notifikasi otomatis dikirim saat poin pelanggaran atau kebaikan siswa mencapai ambang batas di bawah ini.</p>
+                            <div class="form-row" style="margin-bottom:14px;">
+                                <div class="form-group"><label>Ambang Poin Pelanggaran</label><input type="number" id="waThresholdPelanggaran" min="1" style="width:120px;" /></div>
+                                <div class="form-group"><label>Ambang Poin Kebaikan</label><input type="number" id="waThresholdKebaikan" min="1" style="width:120px;" /></div>
+                                <div class="form-group" style="align-self:flex-end;"><button class="btn btn-sm btn-gold" id="saveWaThresholdBtn" type="button"><i class="fas fa-save"></i> Simpan Ambang Batas</button></div>
+                            </div>
+                            <div class="filter-bar">
+                                <input type="text" id="waFilterStudent" placeholder="Cari nama siswa..." />
+                                <select id="waFilterClass"><option value="">Semua Kelas</option><option value="7 Banin">👳‍♂️ 7 Banin</option><option value="7 Banat">🧕 7 Banat</option><option value="8 Banin">👳‍♂️ 8 Banin</option><option value="8 Banat">🧕 8 Banat</option><option value="9 Banin">👳‍♂️ 9 Banin</option><option value="9 Banat">🧕 9 Banat</option></select>
+                                <select id="waFilterStatus"><option value="">Semua</option><option value="filled">Sudah Ada Nomor</option><option value="empty">Belum Ada Nomor</option></select>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>No. WA Orang Tua</th></tr></thead>
+                                    <tbody id="waOrtuTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -2522,6 +2564,8 @@
         let userProfilesCache = {};
         let spThresholdsCache = { sp1: 15, sp2: 25, sp3: 40 };
         let kebaikanThresholdsCache = { tumbuh: 25, meningkat: 50, terbiasa: 75, teladan: 100 };
+        let waNotifThresholdsCache = { pelanggaran: 50, kebaikan: 50 };
+        let waNotifStateCache = {};
         let listenersAttached = false;
         let notifCount = 0;
         let currentLeaderboardTab = 'violation';
@@ -2656,6 +2700,68 @@
         function markAllNotificationsRead() {
             const items = Object.values(notificationsCache || {});
             items.forEach(n => { if (!n.read) db.ref('notifications/' + n.id).update({ read: true }); });
+        }
+
+        // ============================================================
+        // NOTIFIKASI WHATSAPP KE ORANG TUA
+        // ============================================================
+        // GANTI dua nilai ini setelah Anda deploy Google Apps Script Web App
+        // (lihat file wa-proxy-code-gs.txt yang disertakan terpisah).
+        const WA_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzsyRIbQOABFUDap1UWyON75u22coHY0caoJEF5sYCEIPIJ3EHnkb4E8BrM0byj-6AR5Q/exec';
+        const WA_SHARED_SECRET = 'y08Z5K6CvF6XJDpSV3mPJgtFq6hoUplY';
+
+        function formatNomorWa(nomor) {
+            if (!nomor) return '';
+            let n = String(nomor).replace(/[^0-9]/g, '');
+            if (!n) return '';
+            if (n.startsWith('0')) n = '62' + n.slice(1);
+            else if (!n.startsWith('62')) n = '62' + n;
+            return n;
+        }
+
+        function sendWaNotif(nomor, pesan) {
+            const target = formatNomorWa(nomor);
+            if (!target || !WA_PROXY_URL || WA_PROXY_URL.indexOf('PASTE_URL') === 0) {
+                console.warn('WA belum dikonfigurasi atau nomor kosong, notifikasi dilewati.');
+                return Promise.resolve();
+            }
+            // Catatan: pakai Content-Type text/plain (bukan application/json) supaya
+            // browser tidak mengirim preflight OPTIONS, karena Apps Script Web App
+            // tidak menangani preflight itu dengan baik.
+            return fetch(WA_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ secret: WA_SHARED_SECRET, target: target, message: pesan })
+            }).catch(err => console.error('Gagal mengirim notifikasi WA:', err));
+        }
+
+        // Dipanggil setiap kali ada pelanggaran/reward baru tersimpan untuk seorang siswa.
+        // Mengecek apakah poin siswa sudah melewati ambang batas yang diatur admin,
+        // dan hanya mengirim WA sekali per ambang batas (tidak spam berulang).
+        function checkAndSendWaNotif(nis) {
+            const s = siswaCache[nis];
+            if (!s || !s.noWaOrtu) return;
+            const stats = getStudentStats(nis, null);
+            const th = waNotifThresholdsCache || { pelanggaran: 50, kebaikan: 50 };
+            const state = waNotifStateCache[nis] || {};
+            const namaKelas = `${s.nama} (Kelas ${kelasDisplay(s.kelas)})`;
+
+            if (th.pelanggaran > 0 && stats.totalEffective >= th.pelanggaran && state.pelanggaranThreshold !== th.pelanggaran) {
+                const pesan = `Assalamu'alaikum, Bapak/Ibu Orang Tua/Wali dari ananda ${namaKelas}.\n\n` +
+                    `Kami informasikan bahwa poin pelanggaran ananda saat ini telah mencapai *${stats.totalEffective} poin* ` +
+                    `(ambang batas pemberitahuan: ${th.pelanggaran} poin). Mohon menjadi perhatian dan kerja sama Bapak/Ibu.\n\n` +
+                    `Terima kasih.\nSMP Tahfizh Preneur`;
+                sendWaNotif(s.noWaOrtu, pesan);
+                db.ref('waNotifState/' + nis).update({ pelanggaranThreshold: th.pelanggaran, pelanggaranAt: Date.now() });
+            }
+
+            if (th.kebaikan > 0 && stats.rewardPts >= th.kebaikan && state.kebaikanThreshold !== th.kebaikan) {
+                const pesan = `Assalamu'alaikum, Bapak/Ibu Orang Tua/Wali dari ananda ${namaKelas}.\n\n` +
+                    `Alhamdulillah, kami informasikan bahwa ananda telah mengumpulkan *${stats.rewardPts} poin kebaikan/reward*. ` +
+                    `Selamat atas pencapaian ini!\n\nTerima kasih.\nSMP Tahfizh Preneur`;
+                sendWaNotif(s.noWaOrtu, pesan);
+                db.ref('waNotifState/' + nis).update({ kebaikanThreshold: th.kebaikan, kebaikanAt: Date.now() });
+            }
         }
 
         // ============================================================
@@ -2942,13 +3048,18 @@
                 kebaikanThresholdsCache = snap.val() || { tumbuh: 25, meningkat: 50, terbiasa: 75, teladan: 100 };
                 if (isPageActive('leaderboard')) loadLeaderboard(currentLeaderboardTab);
             });
+            db.ref('settings/waNotifThresholds').on('value', (snap) => {
+                waNotifThresholdsCache = snap.val() || { pelanggaran: 50, kebaikan: 50 };
+                if (isPageActive('admin')) loadAdminPanel();
+            });
+            db.ref('waNotifState').on('value', (snap) => { waNotifStateCache = snap.val() || {}; });
         }
 
         function detachRealtimeListeners() {
             listenersAttached = false;
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
                 'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates', 'absensi',
-                'settings/spThresholds', 'settings/kebaikanThresholds'
+                'settings/spThresholds', 'settings/kebaikanThresholds', 'settings/waNotifThresholds', 'waNotifState'
             ].forEach(r => db.ref(r).off());
         }
 
@@ -3058,9 +3169,11 @@
             const typeSel = document.getElementById('recType');
             const pointsEl = document.getElementById('recPoints');
             const consEl = document.getElementById('recConsequence');
+            const qtyEl = document.getElementById('recQty');
             if (!typeSel || !pointsEl || !consEl) return;
             const t = violationTypesCache[typeSel.value];
-            pointsEl.value = t ? t.poin : '';
+            const qty = Math.max(1, parseInt(qtyEl?.value, 10) || 1);
+            pointsEl.value = t ? (qty > 1 ? `${t.poin} x ${qty} = ${t.poin * qty}` : t.poin) : '';
             consEl.value = t ? (t.konsekuensi || '-') : '';
         }
 
@@ -3079,32 +3192,75 @@
                 html += `<div class="multi-check-group-title">${escapeHtml(kategoriLabels[kat] || kat)}</div>`;
                 items.forEach(id => {
                     const t = typesCache[id];
-                    html += `<label class="multi-check-item">
+                    html += `<div class="multi-check-item">
                         <input type="checkbox" class="multi-check-cb" value="${id}" />
                         <span class="mci-name">${escapeHtml(t.nama)}</span>
+                        <input type="number" class="mci-qty" value="1" min="1" max="30" title="Kelipatan (berapa kali terjadi)" />
                         <span class="mci-poin">${t.poin} poin</span>
-                    </label>`;
+                    </div>`;
                 });
             });
             listEl.innerHTML = html || '<p class="text-muted" style="font-size:0.85rem;">Belum ada jenis yang tersedia.</p>';
+        }
+
+        function getRowQty(row) {
+            const qtyInput = row.querySelector('.mci-qty');
+            return Math.max(1, parseInt(qtyInput?.value, 10) || 1);
         }
 
         function updateMultiSummary(listElId, countElId, totalElId, typesCache) {
             const listEl = document.getElementById(listElId);
             if (!listEl) return;
             const checked = Array.from(listEl.querySelectorAll('.multi-check-cb:checked'));
-            const total = checked.reduce((sum, cb) => sum + (typesCache[cb.value]?.poin || 0), 0);
+            let totalKejadian = 0, totalPoin = 0;
+            checked.forEach(cb => {
+                const row = cb.closest('.multi-check-item');
+                const qty = getRowQty(row);
+                totalKejadian += qty;
+                totalPoin += (typesCache[cb.value]?.poin || 0) * qty;
+            });
             const countEl = document.getElementById(countElId);
             const totalEl = document.getElementById(totalElId);
-            if (countEl) countEl.textContent = `${checked.length} dipilih`;
-            if (totalEl) totalEl.textContent = `Total: ${total} poin`;
+            if (countEl) countEl.textContent = checked.length ? `${checked.length} jenis • ${totalKejadian} kejadian` : '0 dipilih';
+            if (totalEl) totalEl.textContent = `Total: ${totalPoin} poin`;
         }
 
         function getMultiSelectedIds(listElId) {
             const listEl = document.getElementById(listElId);
             if (!listEl) return [];
-            return Array.from(listEl.querySelectorAll('.multi-check-cb:checked')).map(cb => cb.value);
+            return Array.from(listEl.querySelectorAll('.multi-check-cb:checked')).flatMap(cb => {
+                const row = cb.closest('.multi-check-item');
+                return Array(getRowQty(row)).fill(cb.value);
+            });
         }
+
+        function setupMultiCheckListInteractions(listElId, typesCache, countElId, totalElId) {
+            const listEl = document.getElementById(listElId);
+            if (!listEl) return;
+            listEl.addEventListener('click', function(e) {
+                if (e.target.classList.contains('mci-qty') || e.target.classList.contains('multi-check-cb')) return;
+                const row = e.target.closest('.multi-check-item');
+                if (!row) return;
+                const cb = row.querySelector('.multi-check-cb');
+                cb.checked = !cb.checked;
+                cb.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            listEl.addEventListener('change', function(e) {
+                if (e.target.classList.contains('multi-check-cb')) {
+                    updateMultiSummary(listElId, countElId, totalElId, typesCache);
+                }
+            });
+            listEl.addEventListener('input', function(e) {
+                if (e.target.classList.contains('mci-qty')) {
+                    const row = e.target.closest('.multi-check-item');
+                    const cb = row.querySelector('.multi-check-cb');
+                    if (getRowQty(row) > 1) cb.checked = true;
+                    updateMultiSummary(listElId, countElId, totalElId, typesCache);
+                }
+            });
+        }
+        setupMultiCheckListInteractions('recMultiList', violationTypesCache, 'recMultiCount', 'recMultiTotal');
+        setupMultiCheckListInteractions('rewardMultiList', rewardTypesCache, 'rewardMultiCount', 'rewardMultiTotal');
 
         document.getElementById('recMultiToggle').addEventListener('change', function() {
             const single = document.getElementById('recSingleFields');
@@ -3119,11 +3275,6 @@
                 multi.classList.add('hidden');
             }
         });
-        document.getElementById('recMultiList').addEventListener('change', function(e) {
-            if (e.target.classList.contains('multi-check-cb')) {
-                updateMultiSummary('recMultiList', 'recMultiCount', 'recMultiTotal', violationTypesCache);
-            }
-        });
 
         document.getElementById('rewardMultiToggle').addEventListener('change', function() {
             const single = document.getElementById('rewardSingleFields');
@@ -3136,11 +3287,6 @@
             } else {
                 single.classList.remove('hidden');
                 multi.classList.add('hidden');
-            }
-        });
-        document.getElementById('rewardMultiList').addEventListener('change', function(e) {
-            if (e.target.classList.contains('multi-check-cb')) {
-                updateMultiSummary('rewardMultiList', 'rewardMultiCount', 'rewardMultiTotal', rewardTypesCache);
             }
         });
 
@@ -3180,9 +3326,11 @@
         function updateRewardAutoFields() {
             const typeSel = document.getElementById('rewardType');
             const pointsEl = document.getElementById('rewardPoints');
+            const qtyEl = document.getElementById('rewardQty');
             if (!typeSel || !pointsEl) return;
             const t = rewardTypesCache[typeSel.value];
-            pointsEl.value = t ? t.poin : '';
+            const qty = Math.max(1, parseInt(qtyEl?.value, 10) || 1);
+            pointsEl.value = t ? (qty > 1 ? `${t.poin} x ${qty} = ${t.poin * qty}` : t.poin) : '';
         }
 
         // ============================================================
@@ -4700,6 +4848,7 @@
             renderUsersTable();
             renderGuruTable();
             renderGenderSiswaTable();
+            renderWaOrtuTable();
             renderKkMapping();
             loadFeedbackList();
         }
@@ -4918,6 +5067,65 @@
         document.getElementById('genderFilterStudent').addEventListener('input', renderGenderSiswaTable);
         document.getElementById('genderFilterClass').addEventListener('change', renderGenderSiswaTable);
         document.getElementById('genderFilterStatus').addEventListener('change', renderGenderSiswaTable);
+
+        // Panel Admin -> Kelola Nomor WA Orang Tua & Ambang Notifikasi (tersimpan di siswa/{nis}/noWaOrtu)
+        function renderWaOrtuTable() {
+            const tbody = document.getElementById('waOrtuTableBody');
+            if (!tbody) return;
+
+            const th1 = document.getElementById('waThresholdPelanggaran');
+            const th2 = document.getElementById('waThresholdKebaikan');
+            if (th1 && document.activeElement !== th1) th1.value = waNotifThresholdsCache.pelanggaran;
+            if (th2 && document.activeElement !== th2) th2.value = waNotifThresholdsCache.kebaikan;
+
+            const filterStudent = (document.getElementById('waFilterStudent').value || '').toLowerCase().trim();
+            const filterClass = document.getElementById('waFilterClass').value;
+            const filterStatus = document.getElementById('waFilterStatus').value;
+
+            let list = Object.values(siswaCache || {}).map(s => ({ nis: s.nis, nama: s.nama, kelas: s.kelas, noWaOrtu: s.noWaOrtu || '' }));
+            list = list.filter(s =>
+                (!filterStudent || (s.nama || '').toLowerCase().includes(filterStudent)) &&
+                (!filterClass || s.kelas === filterClass) &&
+                (!filterStatus || (filterStatus === 'filled' && s.noWaOrtu) || (filterStatus === 'empty' && !s.noWaOrtu))
+            );
+            list.sort((a, b) => (a.kelas || '').localeCompare(b.kelas || '') || (a.nama || '').localeCompare(b.nama || ''));
+
+            if (!list.length) { tbody.innerHTML =
+                '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Tidak ada data siswa.</td></tr>';
+                return; }
+
+            tbody.innerHTML = list.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.nis)}</td>
+                    <td>${escapeHtml(s.nama)}</td>
+                    <td><span class="badge">${kelasDisplay(s.kelas)}</span></td>
+                    <td><input type="text" data-wa-nis="${s.nis}" value="${escapeHtml(s.noWaOrtu)}" placeholder="081234567890" style="width:160px;" /></td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('[data-wa-nis]').forEach(input => {
+                input.addEventListener('change', function() {
+                    const nis = this.getAttribute('data-wa-nis');
+                    const val = this.value.trim();
+                    db.ref('siswa/' + nis + '/noWaOrtu').set(val).then(() => {
+                        if (siswaCache[nis]) siswaCache[nis].noWaOrtu = val;
+                        showToast('Nomor WA orang tua diperbarui.');
+                    }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+                });
+            });
+        }
+
+        document.getElementById('waFilterStudent').addEventListener('input', renderWaOrtuTable);
+        document.getElementById('waFilterClass').addEventListener('change', renderWaOrtuTable);
+        document.getElementById('waFilterStatus').addEventListener('change', renderWaOrtuTable);
+        document.getElementById('saveWaThresholdBtn').addEventListener('click', function() {
+            const pelanggaran = parseInt(document.getElementById('waThresholdPelanggaran').value, 10) || 0;
+            const kebaikan = parseInt(document.getElementById('waThresholdKebaikan').value, 10) || 0;
+            if (!(pelanggaran > 0 && kebaikan > 0)) { showToast('Ambang batas harus lebih dari 0.', 'error'); return; }
+            db.ref('settings/waNotifThresholds').set({ pelanggaran, kebaikan }).then(() => {
+                showToast('Ambang batas notifikasi WA disimpan.');
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        });
 
         // ============================================================
         // KENAIKAN KELAS / TAHUN AJARAN BARU
@@ -5336,11 +5544,13 @@
             const nis = document.getElementById('newNis').value.trim();
             const nama = document.getElementById('newNama').value.trim();
             const kelas = document.getElementById('newKelas').value;
+            const noWaOrtu = document.getElementById('newNoWaOrtu').value.trim();
 
             if (!nis || !nama || !kelas) { showToast('Lengkapi semua data siswa!', 'error'); return; }
             if (siswaCache[nis]) { showToast('NIS sudah terdaftar!', 'error'); return; }
 
             const newStudent = { nis, nama, kelas };
+            if (noWaOrtu) newStudent.noWaOrtu = noWaOrtu;
             db.ref('siswa/' + nis).set(newStudent).then(() => {
                 showToast(`Siswa ${nama} berhasil ditambahkan!`);
                 this.reset();
@@ -5450,9 +5660,11 @@
         // ============================================================
         document.getElementById('recCategory').addEventListener('change', renderRecTypeOptions);
         document.getElementById('recType').addEventListener('change', updateRecAutoFields);
+        document.getElementById('recQty').addEventListener('input', updateRecAutoFields);
 
         document.getElementById('rewardCategory').addEventListener('change', renderRewardTypeOptions);
         document.getElementById('rewardType').addEventListener('change', updateRewardAutoFields);
+        document.getElementById('rewardQty').addEventListener('input', updateRewardAutoFields);
 
         // FORM PELANGGARAN
         document.getElementById('recordForm').addEventListener('submit', function(e) {
@@ -5486,6 +5698,7 @@
                     saveNotif('violation', '⚠️ Pelanggaran',
                         `${s.nama} - ${records.length} pelanggaran sekaligus (${totalPoin} poin) oleh ${currentUser.name}`);
                     sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${records.length} pelanggaran (${totalPoin} poin)`);
+                    checkAndSendWaNotif(nis);
                     this.reset();
                     document.getElementById('recMultiToggle').checked = false;
                     document.getElementById('recSingleFields').classList.remove('hidden');
@@ -5504,28 +5717,41 @@
             if (!typeId) { showToast('Pilih jenis pelanggaran!', 'error'); return; }
             const t = violationTypesCache[typeId];
             if (!t) { showToast('Data tidak valid!', 'error'); return; }
+            const qty = Math.max(1, parseInt(document.getElementById('recQty').value, 10) || 1);
 
-            const record = {
-                nis,
-                nama: s.nama,
-                kelas: s.kelas,
-                typeId,
-                pelanggaran: t.nama,
-                kategori: t.kategori,
-                poin: t.poin,
-                konsekuensi: t.konsekuensi || '-',
-                catatan: note,
-                guru: currentUser.name,
-                tanggal: today(),
-                createdAt: Date.now()
-            };
-            db.ref('violations/' + genId()).set(record).then(() => {
-                showToast('Pelanggaran berhasil dicatat!');
+            const now = Date.now();
+            const tgl = today();
+            const writes = Array.from({ length: qty }).map(() => {
+                const record = {
+                    nis,
+                    nama: s.nama,
+                    kelas: s.kelas,
+                    typeId,
+                    pelanggaran: t.nama,
+                    kategori: t.kategori,
+                    poin: t.poin,
+                    konsekuensi: t.konsekuensi || '-',
+                    catatan: note,
+                    guru: currentUser.name,
+                    tanggal: tgl,
+                    createdAt: now
+                };
+                return db.ref('violations/' + genId()).set(record).then(() => record);
+            });
+            Promise.all(writes).then(records => {
+                const totalPoin = records.reduce((sum, r) => sum + (r.poin || 0), 0);
+                showToast(qty > 1
+                    ? `Pelanggaran "${t.nama}" dicatat ${qty}x! (Total ${totalPoin} poin)`
+                    : 'Pelanggaran berhasil dicatat!');
                 saveNotif('violation', '⚠️ Pelanggaran',
-                    `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
-                sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama} (${t.poin} poin)`);
+                    qty > 1
+                        ? `${s.nama} - ${t.nama} x${qty} (${totalPoin} poin) oleh ${currentUser.name}`
+                        : `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
+                sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama}${qty > 1 ? ' x' + qty : ''} (${totalPoin} poin)`);
+                checkAndSendWaNotif(nis);
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
+                document.getElementById('recQty').value = 1;
                 renderRecTypeOptions();
                 document.getElementById('recStudentInput').value = '';
                 document.getElementById('recStudent').value = '';
@@ -5581,6 +5807,7 @@
                     const allRewards = Object.values(rewardsCache || {});
                     const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0) + totalPoinBaru;
                     checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
+                    checkAndSendWaNotif(nis);
 
                     resetRewardForm();
                 }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
@@ -5591,29 +5818,42 @@
             if (!typeId) { showToast('Pilih bentuk kebaikan!', 'error'); return; }
             const t = rewardTypesCache[typeId];
             if (!t) { showToast('Data tidak valid!', 'error'); return; }
+            const qty = Math.max(1, parseInt(document.getElementById('rewardQty').value, 10) || 1);
 
-            const record = {
-                nis,
-                nama: s.nama,
-                kelas: s.kelas,
-                typeId,
-                bentuk: t.nama,
-                kategori: t.kategori,
-                poin: t.poin,
-                guru: currentUser.name,
-                tanggal: today(),
-                createdAt: Date.now()
-            };
-            db.ref('rewards/' + genId()).set(record).then(() => {
-                showToast('Reward berhasil diberikan! Poin ringan/sedang akan otomatis berkurang!');
+            const now = Date.now();
+            const tgl = today();
+            const writes = Array.from({ length: qty }).map(() => {
+                const record = {
+                    nis,
+                    nama: s.nama,
+                    kelas: s.kelas,
+                    typeId,
+                    bentuk: t.nama,
+                    kategori: t.kategori,
+                    poin: t.poin,
+                    guru: currentUser.name,
+                    tanggal: tgl,
+                    createdAt: now
+                };
+                return db.ref('rewards/' + genId()).set(record).then(() => record);
+            });
+            Promise.all(writes).then(records => {
+                const totalPoinBaru = records.reduce((sum, r) => sum + (r.poin || 0), 0);
+                showToast(qty > 1
+                    ? `Kebaikan "${t.nama}" dicatat ${qty}x! (Total +${totalPoinBaru} poin)`
+                    : 'Reward berhasil diberikan! Poin ringan/sedang akan otomatis berkurang!');
                 saveNotif('reward', '⭐ Reward Kebaikan',
-                    `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`);
-                sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama} (+${t.poin} poin)`);
+                    qty > 1
+                        ? `${s.nama} - ${t.nama} x${qty} (+${totalPoinBaru} poin) oleh ${currentUser.name}`
+                        : `${s.nama} - ${t.nama} (+${t.poin} poin) oleh ${currentUser.name}`);
+                sendBrowserNotification('⭐ Reward Baru', `${s.nama} - ${t.nama}${qty > 1 ? ' x' + qty : ''} (+${totalPoinBaru} poin)`);
 
                 const allRewards = Object.values(rewardsCache || {});
-                const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0);
+                const totalPoin = allRewards.filter(r => r.nis === nis).reduce((sum, r) => sum + (r.poin || 0), 0) + totalPoinBaru;
                 checkAndAwardMoney(nis, s.nama, s.kelas, totalPoin);
+                checkAndSendWaNotif(nis);
 
+                document.getElementById('rewardQty').value = 1;
                 resetRewardForm();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
