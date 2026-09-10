@@ -23,12 +23,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
+      - name: Prepare installed-app assets
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '<link rel="manifest" href="./pwa/manifest.webmanifest">'
+          if marker not in s and '</head>' in s:
+              inject = '''\n    <!-- PWA / Installed App -->\n    <link rel="manifest" href="./pwa/manifest.webmanifest">\n    <link rel="icon" type="image/png" sizes="192x192" href="./pwa/icon-192.png">\n    <link rel="apple-touch-icon" href="./pwa/icon-192.png">\n    <meta name="theme-color" content="#1a2a4a">\n    <script>\n      if ('serviceWorker' in navigator) {\n        window.addEventListener('load', function () {\n          navigator.serviceWorker.register('./pwa/sw.js').catch(function () {});\n        });\n      }\n    </script>\n'''
+              s = s.replace('</head>', inject + '</head>', 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
