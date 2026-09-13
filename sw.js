@@ -1,6 +1,6 @@
 // Naikkan angka versi ini setiap kali Anda deploy perubahan besar,
 // supaya perangkat pengguna mengambil versi cache yang baru.
-const SW_VERSION = 'v1';
+const SW_VERSION = 'v2';
 const CACHE_NAME = 'kesiswaan-cq-' + SW_VERSION;
 
 // File inti yang perlu tersedia offline. Sengaja dibuat minim
