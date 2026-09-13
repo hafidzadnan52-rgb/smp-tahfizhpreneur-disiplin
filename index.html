@@ -1931,6 +1931,12 @@
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-medal" style="color:var(--gold);"></i> Guru Paling Rajin Mencatat (Bulan Ini)</h3>
+                            <button class="btn btn-sm btn-outline" id="lihatSemuaGuruBtn">Lihat Semua</button>
+                        </div>
+                        <div id="dashTopGuru"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada aktivitas pencatatan bulan ini.</p></div></div>
+                    </div>
                 </section>
 
                 <!-- ABSENSI -->
@@ -2100,9 +2106,10 @@
                             <div class="tab-buttons no-print">
                                 <button class="btn btn-sm btn-gold active" data-leaderboard-tab="violation">Pelanggaran</button>
                                 <button class="btn btn-sm btn-outline" data-leaderboard-tab="reward">Kebaikan</button>
+                                <button class="btn btn-sm btn-outline" data-leaderboard-tab="guru">Guru Teraktif</button>
                             </div>
                         </div>
-                        <div class="tab-buttons no-print" style="padding:0 16px 12px;">
+                        <div class="tab-buttons no-print" id="leaderboardGenderTabs" style="padding:0 16px 12px;">
                             <button class="btn btn-sm btn-outline active" data-leaderboard-gender="all">Semua Siswa</button>
                             <button class="btn btn-sm btn-outline" data-leaderboard-gender="L">Banin (Putra)</button>
                             <button class="btn btn-sm btn-outline" data-leaderboard-gender="P">Banat (Putri)</button>
@@ -4030,7 +4037,45 @@
                     <div class="points reward-points">+${r.poin}</div>
                 </div>
             `, 'Belum ada reward.');
+
+            renderDashTopGuru(monthKey);
         }
+
+        function renderDashTopGuru(monthKey) {
+            const el = document.getElementById('dashTopGuru');
+            if (!el) return;
+            const inPeriod = (tgl) => !monthKey || (tgl && tgl.slice(0, 7) === monthKey);
+            const map = {};
+            const bump = (guru) => {
+                if (!guru || guru === 'Sistem') return;
+                map[guru] = (map[guru] || 0) + 1;
+            };
+            Object.values(violationsCache || {}).forEach(v => { if (inPeriod(v.tanggal)) bump(v.guru); });
+            Object.values(rewardsCache || {}).forEach(r => { if (inPeriod(r.tanggal)) bump(r.guru); });
+            Object.values(absensiCache || {}).forEach(a => { if (inPeriod(a.tanggal)) bump(a.guru); });
+            Object.values(latesCache || {}).forEach(l => { if (inPeriod(l.tanggal)) bump(l.guru); });
+            Object.values(bkCache || {}).forEach(b => { if (inPeriod(b.tanggal)) bump(b.guru); });
+
+            const list = Object.entries(map).map(([guru, total]) => ({ guru, total })).sort((a, b) => b.total - a.total).slice(0, 3);
+            if (!list.length) {
+                el.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada aktivitas pencatatan bulan ini.</p></div>';
+                return;
+            }
+            const medals = ['🥇', '🥈', '🥉'];
+            el.innerHTML = list.map((g, i) => `
+                <div class="leaderboard-item">
+                    <div class="rank">${medals[i] || '#' + (i + 1)}</div>
+                    <div class="info">
+                        <div class="name">${escapeHtml(g.guru)}</div>
+                    </div>
+                    <div class="points reward-points">${g.total} catatan</div>
+                </div>
+            `).join('');
+        }
+        document.getElementById('lihatSemuaGuruBtn').addEventListener('click', function() {
+            navigateTo('leaderboard');
+            loadLeaderboard('guru');
+        });
         document.getElementById('dashboardMonthFilter').addEventListener('change', function() {
             currentDashboardMonth = this.value;
             loadDashboard();
@@ -4270,6 +4315,8 @@
                     document.getElementById('kbThreshold4').value = kebaikanThresholdsCache.teladan;
                 }
             }
+            const genderTabs = document.getElementById('leaderboardGenderTabs');
+            if (genderTabs) genderTabs.style.display = (type === 'guru') ? 'none' : 'flex';
 
             populateLeaderboardMonthFilter();
             const monthKey = currentLeaderboardMonth || null;
@@ -4323,7 +4370,7 @@
                         <div class="points">${s.total} poin</div>
                     </div>`;
                 }).join('');
-            } else {
+            } else if (type === 'reward') {
                 // ===== REWARD =====
                 const map = {};
                 Object.values(rewardsCache || {}).forEach(r => {
@@ -4356,12 +4403,66 @@
                         <div class="points reward-points">${s.total} ⭐</div>
                     </div>`;
                 }).join('');
+            } else if (type === 'guru') {
+                // ===== GURU TERAKTIF MENCATAT =====
+                const map = {};
+                const bump = (guru, field) => {
+                    if (!guru || guru === 'Sistem') return;
+                    if (!map[guru]) map[guru] = { guru, violation: 0, reward: 0, absensi: 0, late: 0, bk: 0, total: 0 };
+                    map[guru][field] += 1;
+                    map[guru].total += 1;
+                };
+                Object.values(violationsCache || {}).forEach(v => {
+                    if (monthKey && (!v.tanggal || v.tanggal.slice(0, 7) !== monthKey)) return;
+                    bump(v.guru, 'violation');
+                });
+                Object.values(rewardsCache || {}).forEach(r => {
+                    if (monthKey && (!r.tanggal || r.tanggal.slice(0, 7) !== monthKey)) return;
+                    bump(r.guru, 'reward');
+                });
+                Object.values(absensiCache || {}).forEach(a => {
+                    if (monthKey && (!a.tanggal || a.tanggal.slice(0, 7) !== monthKey)) return;
+                    bump(a.guru, 'absensi');
+                });
+                Object.values(latesCache || {}).forEach(l => {
+                    if (monthKey && (!l.tanggal || l.tanggal.slice(0, 7) !== monthKey)) return;
+                    bump(l.guru, 'late');
+                });
+                Object.values(bkCache || {}).forEach(b => {
+                    if (monthKey && (!b.tanggal || b.tanggal.slice(0, 7) !== monthKey)) return;
+                    bump(b.guru, 'bk');
+                });
+                const list = Object.values(map).sort((a, b) => b.total - a.total);
+                if (!list.length) {
+                    el.innerHTML =
+                        '<div class="empty-state"><i class="fas fa-trophy"></i><p>Belum ada aktivitas pencatatan pada periode ini.</p></div>';
+                    return;
+                }
+                el.innerHTML = list.map((g, i) => {
+                    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    return `
+                    <div class="leaderboard-item" data-type="guru">
+                        <div class="rank ${rankClass}">#${i + 1}</div>
+                        <div class="info">
+                            <div class="name">${escapeHtml(g.guru)}</div>
+                            <div class="point-breakdown">
+                                <span>Pelanggaran: ${g.violation}</span>
+                                <span>Kebaikan: ${g.reward}</span>
+                                <span>Absensi: ${g.absensi}</span>
+                                <span>Terlambat: ${g.late}</span>
+                                <span>BK: ${g.bk}</span>
+                            </div>
+                        </div>
+                        <div class="points reward-points">${g.total} catatan</div>
+                    </div>`;
+                }).join('');
             }
 
             el.querySelectorAll('.leaderboard-item').forEach(item => {
                 item.addEventListener('click', function() {
                     const nis = this.dataset.nis;
                     const type = this.dataset.type;
+                    if (!nis || type === 'guru') return;
                     showStudentDetail(nis, type);
                 });
             });
