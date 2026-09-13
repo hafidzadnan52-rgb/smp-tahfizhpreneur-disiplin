@@ -1512,6 +1512,29 @@
             color: var(--text-light);
         }
 
+        .late-foto-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .late-foto-preview {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        .late-foto-thumb {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
+            margin-left: 8px;
+        }
         .late-threshold-box {
             display:flex;
             align-items:center;
@@ -1907,6 +1930,12 @@
             <main class="main-content">
                 <!-- DASHBOARD -->
                 <section class="page-section active" id="page-dashboard">
+                    <div class="card">
+                        <div class="card-header"><h3><i class="fas fa-medal" style="color:var(--gold);"></i> Guru Paling Rajin Mencatat (Bulan Ini)</h3>
+                            <button class="btn btn-sm btn-outline" id="lihatSemuaGuruBtn">Lihat Semua</button>
+                        </div>
+                        <div id="dashTopGuru"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada aktivitas pencatatan bulan ini.</p></div></div>
+                    </div>
                     <div class="dash-greeting-card no-print">
                         <div class="dash-greeting-text">
                             <div class="dash-greeting-hi">Assalaamu'alaikum, <span id="dashGreetingName">Admin</span> 👋</div>
@@ -1931,12 +1960,6 @@
                     </div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Pelanggaran Terbaru</h3></div><div id="recentViolations"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada pelanggaran.</p></div></div></div>
                     <div class="card"><div class="card-header"><h3><i class="fas fa-star" style="color:var(--success);"></i> Reward Terbaru</h3></div><div id="recentRewards"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada reward.</p></div></div></div>
-                    <div class="card">
-                        <div class="card-header"><h3><i class="fas fa-medal" style="color:var(--gold);"></i> Guru Paling Rajin Mencatat (Bulan Ini)</h3>
-                            <button class="btn btn-sm btn-outline" id="lihatSemuaGuruBtn">Lihat Semua</button>
-                        </div>
-                        <div id="dashTopGuru"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada aktivitas pencatatan bulan ini.</p></div></div>
-                    </div>
                 </section>
 
                 <!-- ABSENSI -->
@@ -2270,7 +2293,15 @@
                                 <div class="form-group"><label>Jam Masuk</label><input type="time" id="lateTime" required /></div>
                             </div>
                             <div class="form-group"><label>Keterangan</label><input type="text" id="lateNote" placeholder="Alasan terlambat (opsional)" /></div>
-                            <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Keterlambatan</button>
+                            <div class="form-group">
+                                <label>Foto Siswa Terlambat <span class="text-muted">(opsional)</span></label>
+                                <input type="file" accept="image/*" capture="environment" id="lateFotoInput" />
+                                <div id="lateFotoPreviewWrap" class="late-foto-preview-wrap hidden">
+                                    <img id="lateFotoPreview" class="late-foto-preview" alt="Preview foto" />
+                                    <button type="button" class="btn btn-sm btn-outline" id="lateFotoRemoveBtn"><i class="fas fa-trash"></i> Hapus Foto</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-gold" id="lateSubmitBtn"><i class="fas fa-save"></i> Simpan Keterlambatan</button>
                         </form>
                     </div>
                     <div class="card no-print">
@@ -2303,7 +2334,7 @@
                             <input type="date" id="lateFilterDate" />
                             <button class="btn btn-sm btn-outline" id="clearLateFilters"><i class="fas fa-undo"></i> Reset</button>
                         </div>
-                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Tanggal</th><th>Jam Masuk</th><th>Keterangan</th><th>Guru</th><th>Aksi</th></tr></thead><tbody id="lateTableBody"></tbody></table></div>
+                        <div class="table-wrap"><table><thead><tr><th>#</th><th>Siswa</th><th>Kelas</th><th>Tanggal</th><th>Jam Masuk</th><th>Keterangan</th><th>Foto</th><th>Guru</th><th>Aksi</th></tr></thead><tbody id="lateTableBody"></tbody></table></div>
                         <div id="lateEmpty" class="empty-state hidden"><i class="fas fa-search"></i><p>Tidak ada data keterlambatan.</p></div>
                     </div>
                 </section>
@@ -5045,6 +5076,66 @@
         // ============================================================
         // LATE
         // ============================================================
+        // ============================================================
+        // UPLOAD FOTO KETERLAMBATAN (via Google Apps Script -> Google Drive)
+        // ============================================================
+        const PHOTO_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbznPmeW-hvVuyGyaXqXzgPMdwQOiZUnNg9g_JEJ6tpiYBR-_ZzpqIlbZ48MutRkPIDGJA/exec';
+        let pendingLateFotoFile = null;
+
+        function compressImageFile(file, maxWidth, quality) {
+            maxWidth = maxWidth || 900;
+            quality = quality || 0.7;
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = () => reject(new Error('Gagal memuat gambar.'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('Gagal membaca file.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function uploadPhotoToDrive(dataUrl, fileName) {
+            const base64 = dataUrl.split(',')[1];
+            return fetch(PHOTO_UPLOAD_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ image: base64, fileName: fileName })
+            }).then(res => res.json()).then(data => {
+                if (!data || !data.success) throw new Error((data && data.error) || 'Upload foto gagal.');
+                return data.url;
+            });
+        }
+
+        document.getElementById('lateFotoInput').addEventListener('change', function() {
+            const file = this.files[0];
+            const wrap = document.getElementById('lateFotoPreviewWrap');
+            const previewImg = document.getElementById('lateFotoPreview');
+            if (!file) { pendingLateFotoFile = null; wrap.classList.add('hidden'); return; }
+            pendingLateFotoFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                wrap.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+        document.getElementById('lateFotoRemoveBtn').addEventListener('click', function() {
+            pendingLateFotoFile = null;
+            document.getElementById('lateFotoInput').value = '';
+            document.getElementById('lateFotoPreviewWrap').classList.add('hidden');
+        });
+
         document.getElementById('lateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('lateStudent').value;
@@ -5054,6 +5145,8 @@
             const note = document.getElementById('lateNote').value.trim();
             if (!nis || !tanggal || !waktu) { showToast('Lengkapi data siswa, tanggal, dan jam!', 'error'); return; }
             const s = siswaCache[nis];
+            const formEl = this;
+            const submitBtn = document.getElementById('lateSubmitBtn');
             const record = {
                 nis: nis,
                 nama: s ? s.nama : 'Unknown',
@@ -5064,13 +5157,42 @@
                 guru: currentUser.name,
                 createdAt: Date.now()
             };
-            db.ref('lates/' + genId()).set(record).then(() => {
-                showToast('Data keterlambatan berhasil dicatat!');
-                this.reset();
-                document.getElementById('lateDate').value = today();
-                document.getElementById('lateNote').value = '';
-                loadLateList();
-            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+
+            const finishSave = () => {
+                db.ref('lates/' + genId()).set(record).then(() => {
+                    showToast('Data keterlambatan berhasil dicatat!');
+                    formEl.reset();
+                    document.getElementById('lateDate').value = today();
+                    document.getElementById('lateNote').value = '';
+                    pendingLateFotoFile = null;
+                    document.getElementById('lateFotoPreviewWrap').classList.add('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Keterlambatan';
+                    loadLateList();
+                }).catch(err => {
+                    showToast('Gagal menyimpan: ' + err.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Keterlambatan';
+                });
+            };
+
+            if (pendingLateFotoFile) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload foto...';
+                compressImageFile(pendingLateFotoFile)
+                    .then(dataUrl => uploadPhotoToDrive(dataUrl, `terlambat_${nis}_${tanggal}.jpg`))
+                    .then(url => {
+                        record.foto = url;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+                        finishSave();
+                    })
+                    .catch(err => {
+                        showToast('Foto gagal diupload: ' + err.message + ' — data tetap disimpan tanpa foto.', 'error');
+                        finishSave();
+                    });
+            } else {
+                finishSave();
+            }
         });
 
         function getLateRecordsForStudent(nis) {
@@ -5346,6 +5468,7 @@
                         <td>${formatDate(l.tanggal)}</td>
                         <td>${escapeHtml(l.waktu)}</td>
                         <td>${escapeHtml(l.catatan || '-')}</td>
+                        <td>${l.foto ? `<img src="${l.foto}" class="late-foto-thumb" data-foto-full="${l.foto}" alt="Foto" />` : '-'}</td>
                         <td>${escapeHtml(l.guru || '-')}</td>
                         <td class="actions">
                             ${(isAdmin() || l.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-late="${l.id}"><i class="fas fa-trash"></i></button>` : ''}
@@ -5360,6 +5483,11 @@
                             db.ref('lates/' + id).remove().then(() => { showToast('Data dihapus.');
                                 loadLateList(); checkLateLetterThresholds(); });
                         }
+                    });
+                });
+                tbody.querySelectorAll('[data-foto-full]').forEach(img => {
+                    img.addEventListener('click', function() {
+                        window.open(this.getAttribute('data-foto-full'), '_blank');
                     });
                 });
             }
