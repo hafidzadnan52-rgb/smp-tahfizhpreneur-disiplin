@@ -2754,7 +2754,26 @@
 
         function sendBrowserNotification(title, body) {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            try { new Notification(title, { body }); } catch (e) { /* ignore */ }
+            const options = {
+                body: body,
+                icon: './icon-192.png',
+                badge: './icon-192.png',
+                tag: 'sikap-' + Date.now(),
+                vibrate: [120, 60, 120]
+            };
+            // Chrome Android tidak mendukung `new Notification()` langsung dari halaman
+            // (akan throw "Illegal constructor") - harus lewat Service Worker.
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then((reg) => {
+                    reg.showNotification(title, options).catch(() => {
+                        try { new Notification(title, options); } catch (e) { /* browser tidak mendukung keduanya, abaikan */ }
+                    });
+                }).catch(() => {
+                    try { new Notification(title, options); } catch (e) { /* abaikan */ }
+                });
+            } else {
+                try { new Notification(title, options); } catch (e) { /* abaikan */ }
+            }
         }
 
         function saveNotif(type, title, message, extra = {}) {
