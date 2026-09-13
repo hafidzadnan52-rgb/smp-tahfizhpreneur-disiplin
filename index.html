@@ -1064,14 +1064,19 @@
             justify-content: space-between;
             gap: 20px;
             flex-wrap: wrap;
-            background: linear-gradient(120deg, #fbf6e9 0%, #ffffff 60%);
+            background:
+                linear-gradient(90deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.88) 40%, rgba(255,255,255,0.55) 75%, rgba(255,255,255,0.3) 100%),
+                url('./login-bg.jpg') center 35% / cover no-repeat;
             border: 1px solid var(--border-color);
             border-radius: var(--radius);
             padding: 18px 24px;
             margin-bottom: 18px;
+            min-height: 110px;
         }
         [data-theme="dark"] .dash-greeting-card {
-            background: linear-gradient(120deg, #2c2411 0%, var(--card) 70%);
+            background:
+                linear-gradient(90deg, rgba(18,20,28,0.92) 0%, rgba(18,20,28,0.85) 40%, rgba(18,20,28,0.55) 75%, rgba(18,20,28,0.25) 100%),
+                url('./login-bg.jpg') center 35% / cover no-repeat;
         }
         .dash-greeting-hi {
             font-size: 1.25rem;
@@ -1092,6 +1097,29 @@
             padding: 10px 16px;
             border-radius: var(--radius-sm);
             max-width: 280px;
+        }
+        .dash-date-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        [data-theme="dark"] .dash-date-badge {
+            background: rgba(30, 34, 44, 0.85);
+        }
+        .dash-date-gregorian {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .dash-date-hijri {
+            font-size: 0.72rem;
+            color: var(--text-light);
         }
         .stat-icon-circle {
             width: 44px;
@@ -1940,6 +1968,13 @@
                         <div class="dash-greeting-text">
                             <div class="dash-greeting-hi">Assalaamu'alaikum, <span id="dashGreetingName">Admin</span> 👋</div>
                             <div class="dash-greeting-sub">Semoga hari ini penuh keberkahan dan kemudahan.</div>
+                        </div>
+                        <div class="dash-date-badge">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <div class="dash-date-gregorian" id="dashDateGregorian">-</div>
+                                <div class="dash-date-hijri" id="dashDateHijri">-</div>
+                            </div>
                         </div>
                         <div class="dash-greeting-quote">"Disiplin hari ini, kesuksesan esok hari."</div>
                     </div>
@@ -3989,6 +4024,32 @@
 
         function currentMonthKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
+        // ============================================================
+        // TANGGAL MASEHI & HIJRIAH (perkiraan, kalender tabular Islam)
+        // ============================================================
+        const HIJRI_MONTHS = ['Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir', 'Jumadil Awal', 'Jumadil Akhir', 'Rajab', "Sya'ban", 'Ramadhan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah'];
+        function gregorianToHijri(date) {
+            const jd = Math.floor((date.getTime() / 86400000) + 2440588);
+            let l = jd - 1948440 + 10632;
+            const n = Math.floor((l - 1) / 10631);
+            l = l - 10631 * n + 354;
+            const j = (Math.floor((10985 - l) / 5316)) * (Math.floor((50 * l) / 17719)) + (Math.floor(l / 5670)) * (Math.floor((43 * l) / 15238));
+            l = l - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50)) - (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
+            const month = Math.floor((24 * l) / 709);
+            const day = l - Math.floor((709 * month) / 24);
+            const year = 30 * n + j - 30;
+            return { year, month, day };
+        }
+        function renderDashDate() {
+            const gEl = document.getElementById('dashDateGregorian');
+            const hEl = document.getElementById('dashDateHijri');
+            if (!gEl || !hEl) return;
+            const now = new Date();
+            gEl.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const h = gregorianToHijri(now);
+            hEl.textContent = `${h.day} ${HIJRI_MONTHS[h.month - 1] || ''} ${h.year} H`;
+        }
+
         function monthKeyLabel(monthKey) {
             if (!monthKey) return 'Semua Waktu';
             const bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -4017,6 +4078,7 @@
             currentDashboardMonth = sel.value;
         }
         function loadDashboard() {
+            renderDashDate();
             populateDashboardMonthFilter();
             const monthKey = currentDashboardMonth || null;
             const monthLabelEl = document.getElementById('dashboardMonthLabel');
