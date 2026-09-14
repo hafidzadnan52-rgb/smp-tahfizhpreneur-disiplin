@@ -6817,6 +6817,34 @@
         document.getElementById('rewardQty').addEventListener('input', updateRewardAutoFields);
 
         // FORM PELANGGARAN
+        // ============================================================
+        // AUTO-LOG KETERLAMBATAN DARI CATAT PELANGGARAN
+        // ============================================================
+        function autoLogLateFromViolation(records) {
+            const seen = new Set();
+            (records || []).forEach(r => {
+                if (!r.pelanggaran || !/terlambat/i.test(r.pelanggaran)) return;
+                const key = r.nis + '_' + r.tanggal;
+                if (seen.has(key)) return;
+                seen.add(key);
+                const alreadyLogged = Object.values(latesCache || {}).some(l => l.nis === r.nis && l.tanggal === r.tanggal);
+                if (alreadyLogged) return;
+                const now = new Date();
+                const waktu = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                const lateRecord = {
+                    nis: r.nis,
+                    nama: r.nama,
+                    kelas: r.kelas,
+                    tanggal: r.tanggal,
+                    waktu: waktu,
+                    catatan: 'Otomatis dari Catat Pelanggaran: ' + r.pelanggaran,
+                    guru: r.guru,
+                    createdAt: Date.now()
+                };
+                db.ref('lates/' + genId()).set(lateRecord);
+            });
+        }
+
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const nis = document.getElementById('recStudent').value;
@@ -6848,6 +6876,7 @@
                     saveNotif('violation', '⚠️ Pelanggaran',
                         `${s.nama} - ${records.length} pelanggaran sekaligus (${totalPoin} poin) oleh ${currentUser.name}`);
                     sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${records.length} pelanggaran (${totalPoin} poin)`);
+                    autoLogLateFromViolation(records);
                     checkAndSendWaNotif(nis);
                     this.reset();
                     document.getElementById('recMultiToggle').checked = false;
@@ -6898,6 +6927,7 @@
                         ? `${s.nama} - ${t.nama} x${qty} (${totalPoin} poin) oleh ${currentUser.name}`
                         : `${s.nama} - ${t.nama} (${t.poin} poin) oleh ${currentUser.name}`);
                 sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama}${qty > 1 ? ' x' + qty : ''} (${totalPoin} poin)`);
+                autoLogLateFromViolation(records);
                 checkAndSendWaNotif(nis);
                 this.reset();
                 document.getElementById('recCategory').value = 'ringan';
