@@ -2655,7 +2655,7 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="accordion-body" id="accImportMassal">
-                            <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Tambahkan banyak jenis pelanggaran/reward sekaligus tanpa input satu-satu. Satu baris = satu jenis. Data yang namanya sudah ada di daftar otomatis dilewati (tidak dobel).</p>
+                            <p class="text-muted" style="font-size:0.85rem;margin-bottom:10px;">Tambahkan banyak jenis pelanggaran/reward sekaligus tanpa input satu-satu. Satu baris = satu jenis. Nama yang belum ada akan ditambahkan baru; nama yang sudah ada di daftar akan <strong>diperbarui poinnya</strong> otomatis kalau berbeda (tidak dobel).</p>
 
                             <h4 style="margin:14px 0 6px;"><i class="fas fa-star" style="color:var(--success);"></i> Import Jenis Reward</h4>
                             <p class="text-muted" style="font-size:0.8rem;">Format per baris: <code>Nama Kegiatan | kategori (kecil/sedang/besar) | poin</code></p>
@@ -2672,6 +2672,7 @@
                             <p class="text-muted" style="font-size:0.8rem;">Format per baris: <code>Nama Pelanggaran | kategori (ringan/sedang/berat) | poin | konsekuensi (opsional)</code></p>
                             <textarea id="importViolationTextarea" rows="6" style="width:100%;font-family:monospace;font-size:0.82rem;" placeholder="Contoh: Terlambat lebih dari 15 menit | ringan | 5 | Memungut sampah 15 menit"></textarea>
                             <div style="margin-top:8px;">
+                                <button class="btn btn-sm btn-outline" id="importViolationPrefillBtn" type="button"><i class="fas fa-wand-magic-sparkles"></i> Isi Data Update Terbaru (68 item)</button>
                                 <button class="btn btn-sm btn-success" id="importViolationBtn" type="button"><i class="fas fa-upload"></i> Import ke Database</button>
                             </div>
                             <div id="importViolationResult" style="margin-top:8px;font-size:0.85rem;"></div>
@@ -3293,27 +3294,55 @@
         // Dipanggil setiap kali ada pelanggaran/reward baru tersimpan untuk seorang siswa.
         // Mengecek apakah poin siswa sudah melewati ambang batas yang diatur admin,
         // dan hanya mengirim WA sekali per ambang batas (tidak spam berulang).
+        function buildPesanWaPelanggaran(nama, kelasText, poin, ambang) {
+            return `🌿 Assalamu'alaikum warahmatullahi wabarakatuh
+Bapak/Ibu Orang Tua/Wali Ananda ${nama} (Kelas ${kelasText}) yang kami hormati,
+Kami ingin menyampaikan informasi terkait perkembangan kedisiplinan ananda di sekolah. Berdasarkan catatan pembinaan yang ada, saat ini poin pelanggaran ananda telah mencapai ${poin} poin, sementara ambang batas pemberitahuan kepada orang tua adalah ${ambang} poin.
+Pemberitahuan ini kami sampaikan bukan semata-mata sebagai bentuk teguran, tetapi sebagai ikhtiar bersama untuk membantu ananda memperbaiki sikap, kedisiplinan, dan tanggung jawabnya. Kami meyakini bahwa pembentukan karakter anak akan jauh lebih kuat apabila sekolah dan orang tua dapat berjalan bersama.
+Kami sangat berharap Bapak/Ibu dapat memberikan perhatian, nasihat, serta pendampingan kepada ananda di rumah, sekaligus mengingatkan kembali pentingnya menaati tata tertib, menghargai guru dan teman, menjaga adab, serta bertanggung jawab terhadap setiap amanah yang diberikan.
+InsyaAllah, dari pihak sekolah kami juga akan terus melakukan pembinaan dan pendampingan kepada ananda agar setiap pelanggaran dapat menjadi bahan evaluasi dan kesempatan untuk belajar menjadi pribadi yang lebih baik.
+🤝 Mari kita bersama-sama membantu ananda.
+Karena tujuan kita bukan sekadar agar ananda terhindar dari pelanggaran, tetapi agar tumbuh menjadi anak yang beradab, disiplin, bertanggung jawab, dan memiliki akhlak yang baik.
+Mohon kiranya informasi ini dapat menjadi perhatian Bapak/Ibu dan dapat ditindaklanjuti dengan komunikasi serta pendampingan kepada ananda.
+Jazakumullahu khairan atas perhatian, kepedulian, dan kerja sama Bapak/Ibu.
+Wassalamu'alaikum warahmatullahi wabarakatuh.
+🏫 SMP TahfizhPreneur Cahaya Qur'an`;
+        }
+
+        function buildPesanWaKebaikan(nama, kelasText, poin) {
+            return `🌿 Assalamu'alaikum warahmatullahi wabarakatuh
+Bapak/Ibu Orang Tua/Wali Ananda ${nama} (Kelas ${kelasText}) yang kami hormati,
+Alhamdulillah, kami ingin menyampaikan kabar baik mengenai perkembangan ananda. 🌟
+Berdasarkan catatan pembiasaan dan penilaian karakter di sekolah, saat ini ananda telah berhasil mengumpulkan ✨ ${poin} Poin Kebaikan ✨.
+Poin tersebut merupakan bentuk apresiasi atas berbagai sikap positif, kedisiplinan, tanggung jawab, adab, kepedulian, serta kebiasaan baik yang ananda tunjukkan selama berada di lingkungan sekolah.
+💚 Kami sangat mengapresiasi usaha dan perkembangan ananda.
+Hal-hal kecil seperti datang tepat waktu, menjaga kebersihan, membantu teman, menghormati guru, melaksanakan tugas dengan baik, menjaga adab, dan melakukan kebaikan lainnya merupakan proses penting dalam membentuk karakter seorang anak.
+Kami juga berharap Bapak/Ibu dapat terus memberikan apresiasi dan motivasi kepada ananda di rumah. Sampaikan bahwa setiap kebaikan yang dilakukan memiliki nilai dan manfaat, serta teruslah mendampingi ananda agar kebiasaan baik tersebut menjadi karakter yang melekat dalam dirinya.
+🤝 Sekolah dan keluarga memiliki peran yang sama dalam membentuk pribadi ananda.
+Semoga poin kebaikan ini bukan hanya menjadi angka, tetapi menjadi gambaran dari tumbuhnya akhlak, kedisiplinan, tanggung jawab, dan kepedulian dalam diri ananda.
+🌱 Terus bertumbuh, terus berbuat baik, dan terus menjadi versi terbaik dari diri sendiri.
+Semoga Allah ﷻ senantiasa membimbing dan memberkahi setiap langkah kebaikan ananda.
+Jazakumullahu khairan atas dukungan dan kerja sama Bapak/Ibu dalam mendampingi perkembangan ananda.
+Wassalamu'alaikum warahmatullahi wabarakatuh.
+🏫 SMP TahfizhPreneur Cahaya Qur'an`;
+        }
+
         function checkAndSendWaNotif(nis) {
             const s = siswaCache[nis];
             if (!s || !s.noWaOrtu) return;
             const stats = getStudentStats(nis, null);
             const th = waNotifThresholdsCache || { pelanggaran: 50, kebaikan: 50 };
             const state = waNotifStateCache[nis] || {};
-            const namaKelas = `${s.nama} (Kelas ${profileKelasDisplay(s.kelas)})`;
+            const kelasText = profileKelasDisplay(s.kelas);
 
             if (th.pelanggaran > 0 && stats.totalEffective >= th.pelanggaran && state.pelanggaranThreshold !== th.pelanggaran) {
-                const pesan = `Assalamu'alaikum, Bapak/Ibu Orang Tua/Wali dari ananda ${namaKelas}.\n\n` +
-                    `Kami informasikan bahwa poin pelanggaran ananda saat ini telah mencapai *${stats.totalEffective} poin* ` +
-                    `(ambang batas pemberitahuan: ${th.pelanggaran} poin). Mohon menjadi perhatian dan kerja sama Bapak/Ibu.\n\n` +
-                    `Terima kasih.\nSMP Tahfizh Preneur`;
+                const pesan = buildPesanWaPelanggaran(s.nama, kelasText, stats.totalEffective, th.pelanggaran);
                 sendWaNotif(s.noWaOrtu, pesan);
                 db.ref('waNotifState/' + nis).update({ pelanggaranThreshold: th.pelanggaran, pelanggaranAt: Date.now() });
             }
 
             if (th.kebaikan > 0 && stats.rewardPts >= th.kebaikan && state.kebaikanThreshold !== th.kebaikan) {
-                const pesan = `Assalamu'alaikum, Bapak/Ibu Orang Tua/Wali dari ananda ${namaKelas}.\n\n` +
-                    `Alhamdulillah, kami informasikan bahwa ananda telah mengumpulkan *${stats.rewardPts} poin kebaikan/reward*. ` +
-                    `Selamat atas pencapaian ini!\n\nTerima kasih.\nSMP Tahfizh Preneur`;
+                const pesan = buildPesanWaKebaikan(s.nama, kelasText, stats.rewardPts);
                 sendWaNotif(s.noWaOrtu, pesan);
                 db.ref('waNotifState/' + nis).update({ kebaikanThreshold: th.kebaikan, kebaikanAt: Date.now() });
             }
@@ -6462,6 +6491,85 @@
             document.getElementById('importRewardTextarea').value = lines.join('\n');
             showToast(`${lines.length} baris data reward siap diimpor. Klik "Import ke Database".`);
         });
+        const VIOLATION_IMPORT_PREFILL_DATA = [
+            // RINGAN
+            ['Terlambat lebih dari 15 menit', 'ringan', 5],
+            ['Tidak membawa kartu pelajar', 'ringan', 3],
+            ['Tidak mengenakan seragam sesuai ketentuan sekolah', 'ringan', 5],
+            ['Tidak memakai sepatu dari rumah (kecuali sakit)', 'ringan', 3],
+            ['Tidak memakai kaos kaki', 'ringan', 3],
+            ['Tidak memakai ciput (banat)', 'ringan', 5],
+            ['Tidak memakai peci (banin)', 'ringan', 5],
+            ['Rambut gondrong/diwarnai/khoza (banin)', 'ringan', 5],
+            ['Berkata kasar/berkata kotor', 'ringan', 5],
+            ['Membawa barang yang berhubungan dengan K-Pop, anime, western, dan yang berkaitan', 'ringan', 5],
+            ['Berjualan di lingkungan sekolah (kecuali marketday)', 'ringan', 2],
+            ['Membeli makanan atau minuman di luar area sekolah selama jam sekolah berlangsung', 'ringan', 5],
+            ['Mengambil makan siang atau snack tanpa izin', 'ringan', 5],
+            ['Tidak menaruh sepatu/sandal di rak maupun menaruh secara berantakan', 'ringan', 3],
+            ['Menyimpan sepatu/sandal di rak lewat dari jam kepulangan', 'ringan', 5],
+            ['Meninggalkan halaqah tanpa izin', 'ringan', 5],
+            ['Makan dan minum di mushola', 'ringan', 5],
+            ['Mengotori mushola', 'ringan', 5],
+            ['Berperilaku tidak sopan di mushola, seperti duduk selonjoran, bercanda berlebihan, atau membuat keributan saat orang lain beribadah', 'ringan', 3],
+            ['Menaruh mushaf atau buku agama sembarangan', 'ringan', 5],
+            ['Telat mengembalikan buku perpustakaan', 'ringan', 3],
+            ['Tidur, makan, dan minum di perpustakaan', 'ringan', 5],
+            ['Tidak mengenakan seragam olahraga ketika jam olahraga', 'ringan', 5],
+            ['Menggunakan lapangan di luar waktu dan jadwal yang ditetapkan oleh sekolah (olahraga/bermain)', 'ringan', 3],
+            ['Menggunakan lapangan ketika kondisi lapangan tidak aman (seperti hujan deras, banyak mobil, dll)', 'ringan', 2],
+            ['Membuang sampah sembarangan', 'ringan', 3],
+            ['Menggunakan peralatan olahraga selain di lapangan', 'ringan', 2],
+            ['Membawa makanan/minuman ke lab komputer', 'ringan', 5],
+            ['Menggunakan komputer atau mengakses internet tanpa izin guru', 'ringan', 5],
+            ['Makan saat KBM', 'ringan', 5],
+            ['Berada di sekitar sekolah saat KBM, seperti perpustakaan, kantin, mushola, lab komputer, lapangan, UKS (tanpa izin)', 'ringan', 5],
+            ['Berada di dalam kelas ketika jam pulang', 'ringan', 2],
+            ['Menaruh wadah makan/wadah prasmanan terlambat dari jam ketentuan/tidak menaruh di tempat pengembalian yang telah disediakan', 'ringan', 3],
+            ['Tidak mengenakan alas kaki (sepatu/sandal) saat berada di area lapangan', 'ringan', 3],
+            ['Bermain bola/basket setelah jam kepulangan', 'ringan', 3],
+            // SEDANG
+            ['Meninggalkan area sekolah tanpa izin saat KBM', 'sedang', 10],
+            ['Melakukan tindakan tidak menyenangkan kepada siswa lain (menyembunyikan barang, meludahi, menoyor kepala, menjegal kaki/menyelengkat, melempar peci)', 'sedang', 10],
+            ['Membawa buku perpustakaan tanpa izin', 'sedang', 10],
+            ['Pulang sebelum waktunya tanpa izin', 'sedang', 15],
+            ['Merusak atau mencoret sarana dan prasarana sekolah (seperti tembok, meja, kursi, loker, komputer, kamar mandi, lapangan, dll)', 'sedang', 15],
+            ['Melindungi atau menutupi teman yang melakukan pelanggaran (seperti bully, berpacaran, merokok, dll)', 'sedang', 10],
+            ['Membawa dan/atau menggunakan kosmetik (seperti lipstik, eyeliner, eye shadow, maskara, kutek, blush on, softlens, dll)', 'sedang', 15],
+            ['Menghilangkan buku perpustakaan', 'sedang', 15],
+            ['Melipat, mencoret, mengotori, dan merusak buku perpustakaan', 'sedang', 15],
+            ['Mengambil dagangan kantin tanpa bayar', 'sedang', 21],
+            ['Melakukan pemerasan kepada siswa lain', 'sedang', 21],
+            ['Siswa SD membawa gadget atau smartwatch', 'sedang', 21],
+            ['Siswa SMP membawa gadget/ smartwatch/ laptop (kecuali keperluan akademik)', 'sedang', 21],
+            ['Menggunakan pakaian bebas yang tidak sesuai syariat, seperti ketat, transparan, tidak menutup aurat, bergambar makhluk hidup, atau menyerupai serta mendukung orang- orang kafir melalui logo, nama, atau simbol', 'sedang', 25],
+            // BERAT
+            ['Berkelahi', 'berat', 30],
+            ['Ketahuan tidak salat wajib (kecuali banat sedang haid)', 'berat', 30],
+            ['Siswa membawa teman luar sekolah ke dalam sekolah tanpa izin, dengan tujuan tertentu (negatif)', 'berat', 40],
+            ['Membawa atau menggunakan rokok maupun vape di lingkungan sekolah', 'berat', 50],
+            ['Tawuran', 'berat', 50],
+            ['Bergabung dengan geng motor atau geng yang membahayakan diluar sekolah', 'berat', 50],
+            ['Membawa buku komik, novel, majalah, foto, CD, memori card, dan sebagainya yang bersifat pornografi', 'berat', 50],
+            ['Mengakses/menonton hal yang berkaitan dengan pornografi/LGBT', 'berat', 50],
+            ['Mencemarkan nama baik sekolah di dalam maupun di luar sekolah', 'berat', 50],
+            ['Melakukan pembulian baik secara verbal atau non-verbal', 'berat', 75],
+            ['Melakukan penghinaan terhadap guru', 'berat', 80],
+            ['Tato tubuh', 'berat', 80],
+            ['Membawa senjata tajam atau sejenisnya, yang dapat dipergunakan untuk hal-hal yang membahayakan diri sendiri maupun orang lain (tanpa izin)', 'berat', 80],
+            ['Berpacaran', 'berat', 80],
+            ['Melakukan perilaku yang dilarang syariat LGBT (lesbian, gay, biseksual, transgender, queer)', 'berat', 100],
+            ['Melakukan tindakan kekerasan kepada guru', 'berat', 100],
+            ['Meminum minuman keras, menghisap lem, atau berjudi', 'berat', 100],
+            ['Menyimpan, membawa, memakai, maupun mengedarkan obat terlarang seperti narkotika, sabu-sabu, ekstasi, dan sejenisnya', 'berat', 100],
+            ['Hamil diluar nikah', 'berat', 100]
+        ];
+
+        document.getElementById('importViolationPrefillBtn').addEventListener('click', function() {
+            const lines = VIOLATION_IMPORT_PREFILL_DATA.map(([nama, kategori, poin]) => `${nama} | ${kategori} | ${poin}`);
+            document.getElementById('importViolationTextarea').value = lines.join('\n');
+            showToast(`${lines.length} baris data pelanggaran siap diimpor. Klik "Import ke Database".`);
+        });
 
         function parseImportLine(line, expectedParts) {
             const source = String(line || '').trim();
@@ -6497,9 +6605,12 @@
                 return;
             }
 
-            const existingNames = new Set(Object.values(rewardTypesCache || {}).map(r => (r.nama || '').toLowerCase().trim()));
+            const existingByName = {};
+            Object.entries(rewardTypesCache || {}).forEach(([id, r]) => {
+                existingByName[(r.nama || '').toLowerCase().trim()] = { id, kategori: r.kategori, poin: r.poin };
+            });
             const updates = {};
-            let added = 0, skipped = 0, invalid = 0;
+            let added = 0, updated = 0, unchanged = 0, invalid = 0;
             const kategoriValid = ['kecil', 'sedang', 'besar'];
 
             rows.forEach(parts => {
@@ -6507,20 +6618,31 @@
                 const kategori = normalizeImportCategory(parts[1]);
                 const poin = parseInt(String(parts[2] || '').replace(/[^0-9-]/g, ''), 10);
                 if (!nama || !kategoriValid.includes(kategori) || !Number.isFinite(poin) || poin <= 0) { invalid++; return; }
-                if (existingNames.has(nama.toLowerCase())) { skipped++; return; }
+                const key = nama.toLowerCase();
+                const existing = existingByName[key];
+                if (existing) {
+                    if (existing.kategori !== kategori || existing.poin !== poin) {
+                        updates['rewardTypes/' + existing.id] = { nama, kategori, poin };
+                        existingByName[key] = { id: existing.id, kategori, poin };
+                        updated++;
+                    } else {
+                        unchanged++;
+                    }
+                    return;
+                }
                 const id = genId();
                 updates['rewardTypes/' + id] = { nama, kategori, poin };
-                existingNames.add(nama.toLowerCase());
+                existingByName[key] = { id, kategori, poin };
                 added++;
             });
 
-            if (!added) {
-                resultEl.innerHTML = `<span style="color:var(--danger);">Tidak ada data baru ditambahkan. (${skipped} duplikat, ${invalid} baris tidak valid)</span>`;
+            if (!added && !updated) {
+                resultEl.innerHTML = `<span style="color:var(--success);">Semua data sudah sesuai, tidak ada yang perlu diubah. (${unchanged} sudah sama, ${invalid} baris tidak valid)</span>`;
                 return;
             }
             db.ref().update(updates).then(() => {
-                resultEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> Berhasil menambahkan ${added} jenis reward baru. (${skipped} dilewati karena sudah ada, ${invalid} baris tidak valid)</span>`;
-                showToast(`${added} jenis reward berhasil diimpor!`);
+                resultEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${added} jenis reward baru ditambahkan, ${updated} diperbarui poinnya. (${unchanged} sudah sama, ${invalid} baris tidak valid)</span>`;
+                showToast(`${added} ditambahkan, ${updated} diperbarui!`);
             }).catch(err => {
                 resultEl.innerHTML = `<span style="color:var(--danger);">Gagal: ${escapeHtml(err.message)}</span>`;
             });
@@ -6535,9 +6657,12 @@
                 return;
             }
 
-            const existingNames = new Set(Object.values(violationTypesCache || {}).map(v => (v.nama || '').toLowerCase().trim()));
+            const existingByName = {};
+            Object.entries(violationTypesCache || {}).forEach(([id, v]) => {
+                existingByName[(v.nama || '').toLowerCase().trim()] = { id, kategori: v.kategori, poin: v.poin, konsekuensi: v.konsekuensi || '' };
+            });
             const updates = {};
-            let added = 0, skipped = 0, invalid = 0;
+            let added = 0, updated = 0, unchanged = 0, invalid = 0;
             const kategoriValid = ['ringan', 'sedang', 'berat'];
 
             rows.forEach(parts => {
@@ -6546,20 +6671,34 @@
                 const poin = parseInt(String(parts[2] || '').replace(/[^0-9-]/g, ''), 10);
                 const konsekuensi = parts.slice(3).join(' | ').trim();
                 if (!nama || !kategoriValid.includes(kategori) || !Number.isFinite(poin) || poin <= 0) { invalid++; return; }
-                if (existingNames.has(nama.toLowerCase())) { skipped++; return; }
+                const key = nama.toLowerCase();
+                const existing = existingByName[key];
+                if (existing) {
+                    // Konsekuensi lama dipertahankan kalau baris import tidak menyertakan konsekuensi baru.
+                    const konsekuensiFinal = konsekuensi || existing.konsekuensi;
+                    const berubah = existing.kategori !== kategori || existing.poin !== poin || (konsekuensi && existing.konsekuensi !== konsekuensi);
+                    if (berubah) {
+                        updates['violationTypes/' + existing.id] = { nama, kategori, poin, konsekuensi: konsekuensiFinal };
+                        existingByName[key] = { id: existing.id, kategori, poin, konsekuensi: konsekuensiFinal };
+                        updated++;
+                    } else {
+                        unchanged++;
+                    }
+                    return;
+                }
                 const id = genId();
                 updates['violationTypes/' + id] = { nama, kategori, poin, konsekuensi };
-                existingNames.add(nama.toLowerCase());
+                existingByName[key] = { id, kategori, poin, konsekuensi };
                 added++;
             });
 
-            if (!added) {
-                resultEl.innerHTML = `<span style="color:var(--danger);">Tidak ada data baru ditambahkan. (${skipped} duplikat, ${invalid} baris tidak valid)</span>`;
+            if (!added && !updated) {
+                resultEl.innerHTML = `<span style="color:var(--success);">Semua data sudah sesuai, tidak ada yang perlu diubah. (${unchanged} sudah sama, ${invalid} baris tidak valid)</span>`;
                 return;
             }
             db.ref().update(updates).then(() => {
-                resultEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> Berhasil menambahkan ${added} jenis pelanggaran baru. (${skipped} dilewati karena sudah ada, ${invalid} baris tidak valid)</span>`;
-                showToast(`${added} jenis pelanggaran berhasil diimpor!`);
+                resultEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${added} jenis pelanggaran baru ditambahkan, ${updated} diperbarui poinnya. (${unchanged} sudah sama, ${invalid} baris tidak valid)</span>`;
+                showToast(`${added} ditambahkan, ${updated} diperbarui!`);
             }).catch(err => {
                 resultEl.innerHTML = `<span style="color:var(--danger);">Gagal: ${escapeHtml(err.message)}</span>`;
             });
