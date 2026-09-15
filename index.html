@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran · v2026.09.13</title>
+    <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran · v2026.09.15</title>
     <!-- App identity / favicon / PWA -->
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=6" />
     <link rel="shortcut icon" type="image/png" href="./icon-192.png?v=6" />
@@ -2215,6 +2215,7 @@
                                         <th>Poin Reward</th>
                                         <th>Jml Reward</th>
                                         <th>Poin Efektif</th>
+                                        <th>Level Kebaikan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="rekapTableBody"></tbody>
@@ -4612,7 +4613,8 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
                     jmlPelanggaran,
                     poinReward: stats.rewardPts,
                     jmlReward,
-                    poinEfektif: stats.totalEffective
+                    poinEfektif: stats.totalEffective,
+                    levelKebaikan: getKebaikanTier(stats.rewardPts)
                 };
             });
 
@@ -4658,6 +4660,7 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
                     <td><span class="badge badge-success">${s.poinReward}</span></td>
                     <td>${s.jmlReward}</td>
                     <td><strong>${s.poinEfektif}</strong></td>
+                    <td><span class="kb-badge kb-${s.levelKebaikan.key}">${s.levelKebaikan.label}</span></td>
                 </tr>
             `).join('');
         }
@@ -4678,10 +4681,10 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
             const monthKey = monthSel ? monthSel.value : '';
             const periodeLabel = monthKeyLabel(monthKey || null);
             const headers = ['No', 'NIS', 'Nama', 'Kelas', 'Poin Pelanggaran', 'Jumlah Pelanggaran', 'Poin Reward',
-                'Jumlah Reward', 'Poin Efektif'
+                'Jumlah Reward', 'Poin Efektif', 'Level Kebaikan'
             ];
             const rows = data.map((s, i) => [i + 1, s.nis, s.nama, s.kelas || '-', s.poinPelanggaran, s.jmlPelanggaran,
-                s.poinReward, s.jmlReward, s.poinEfektif
+                s.poinReward, s.jmlReward, s.poinEfektif, s.levelKebaikan.label
             ]);
             const csv = [[`Rekap Siswa - ${periodeLabel}`], headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
             '\r\n');
