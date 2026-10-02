@@ -2260,6 +2260,18 @@
                     <div class="page-header"><h2><i class="fas fa-chart-line"></i> Analitik &amp; Tren</h2>
                         <p>Grafik tren pelanggaran dan reward untuk membantu identifikasi pola dan pengambilan keputusan.</p>
                     </div>
+                    <div class="card no-print" id="geminiAiCard" style="border:1px solid var(--gold-light);background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(26,42,74,0.03));">
+                        <div class="card-header">
+                            <div>
+                                <h3><i class="fas fa-wand-magic-sparkles"></i> Analisis Kesiswaan dengan AI</h3>
+                                <p style="margin:4px 0 0;color:var(--text-light);font-size:.82rem;">Gemini menganalisis data agregat periode yang dipilih dan membantu menyusun temuan serta rencana tindak lanjut.</p>
+                            </div>
+                            <button class="btn btn-gold" id="geminiAnalyzeBtn" type="button"><i class="fas fa-sparkles"></i> Analisis dengan AI</button>
+                        </div>
+                        <div id="geminiAiStatus" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:10px;background:rgba(201,168,76,.12);font-size:.85rem;"></div>
+                        <div id="geminiAiResult" class="hidden"></div>
+                    </div>
+
                     <div class="filter-bar no-print">
                         <select id="analyticsMonthRange">
                             <option value="3">3 Bulan Terakhir</option>
@@ -4943,6 +4955,137 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
                 });
             }
         }
+        // ============================================================
+        // GEMINI AI - ANALISIS KESISWAAN
+        // ============================================================
+        // Untuk uji awal, isi API key Gemini di bawah. Jangan gunakan cara
+        // ini untuk aplikasi publik/produksi; Google menyarankan backend proxy.
+        const GEMINI_API_KEY = 'AQ.Ab8RN6LMcP8CtOOJ7UCur54pamhOnGcGUDXg5_cvGNeb1U2Ehg';
+        const GEMINI_MODEL = 'gemini-3.8-flash';
+
+        function buildGeminiAnalyticsPayload() {
+            const rangeSel = document.getElementById('analyticsMonthRange');
+            const genderSel = document.getElementById('analyticsGenderFilter');
+            const nMonths = parseInt((rangeSel && rangeSel.value) || '6', 10);
+            const genderFilter = (genderSel && genderSel.value) || 'all';
+            const now = new Date();
+            const months = [];
+            for (let i = nMonths - 1; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+            }
+            const genderMatches = (nis) => genderFilter === 'all' || getStudentGender(siswaCache[nis]) === genderFilter;
+            const students = Object.values(siswaCache || {}).filter(s => s && s.nis && genderMatches(s.nis));
+            const studentByClass = {};
+            students.forEach(s => {
+                const k = s.kelas || 'Tanpa Kelas';
+                studentByClass[k] = (studentByClass[k] || 0) + 1;
+            });
+
+            const monthData = months.map(mk => {
+                const att = Object.values(absensiCache || {}).filter(a => a && a.tanggal && a.tanggal.slice(0,7) === mk && genderMatches(a.nis));
+                const vio = Object.values(violationsCache || {}).filter(v => v && v.tanggal && v.tanggal.slice(0,7) === mk && genderMatches(v.nis));
+                const rew = Object.values(rewardsCache || {}).filter(r => r && r.tanggal && r.tanggal.slice(0,7) === mk && genderMatches(r.nis));
+                const counts = { hadir:0, telat:0, izin:0, sakit:0, alfa:0 };
+                att.forEach(a => { if (a.status && counts[a.status] !== undefined) counts[a.status]++; });
+                const totalRecorded = Object.values(counts).reduce((a,b)=>a+b,0);
+                const effectivePresence = counts.hadir + counts.telat;
+                return {
+                    bulan: mk,
+                    jumlah_siswa: students.length,
+                    absensi_tercatat: totalRecorded,
+                    hadir: counts.hadir,
+                    terlambat: counts.telat,
+                    izin: counts.izin,
+                    sakit: counts.sakit,
+                    alfa: counts.alfa,
+                    persentase_kehadiran_tercatat: totalRecorded ? Number(((effectivePresence/totalRecorded)*100).toFixed(1)) : null,
+                    jumlah_pelanggaran: vio.length,
+                    poin_pelanggaran: vio.reduce((s,v)=>s + Number(v.poin || 0),0),
+                    jumlah_reward: rew.length,
+                    poin_reward: rew.reduce((s,r)=>s + Number(r.poin || 0),0)
+                };
+            });
+            return { periode: months, filter_gender: genderFilter, jumlah_siswa: students.length, siswa_per_kelas: studentByClass, data_bulanan: monthData };
+        }
+
+        function setGeminiStatus(message, type) {
+            const el = document.getElementById('geminiAiStatus');
+            if (!el) return;
+            el.style.display = 'block';
+            el.style.background = type === 'error' ? 'rgba(209,69,59,.12)' : 'rgba(201,168,76,.12)';
+            el.style.color = type === 'error' ? 'var(--danger)' : 'var(--text)';
+            el.textContent = message;
+        }
+
+        function renderGeminiResult(data) {
+            const el = document.getElementById('geminiAiResult');
+            if (!el) return;
+            const list = (arr) => Array.isArray(arr) && arr.length ? `<ul style="margin:6px 0 0 20px;">${arr.map(x => `<li>${escapeHtml(String(x))}</li>`).join('')}</ul>` : '<p style="margin:6px 0;color:var(--text-light);">Tidak ada data.</p>';
+            el.innerHTML = `
+                <div class="form-row">
+                    <div class="card" style="margin-bottom:0;"><h3>📊 Ringkasan</h3><p style="margin-top:8px;">${escapeHtml(data.ringkasan || '-')}</p></div>
+                    <div class="card" style="margin-bottom:0;"><h3>🔎 Temuan Utama</h3>${list(data.temuan_utama)}</div>
+                </div>
+                <div class="form-row" style="margin-top:16px;">
+                    <div class="card" style="margin-bottom:0;"><h3>🛠️ Tindak Lanjut</h3>${list(data.tindak_lanjut)}</div>
+                    <div class="card" style="margin-bottom:0;"><h3>🎯 Target Bulan Berikutnya</h3>${list(data.target_bulan_berikutnya)}</div>
+                </div>
+                <div class="card" style="margin-top:16px;margin-bottom:0;"><h3>📋 Hasil Tindak Lanjut</h3><p style="margin-top:8px;">${escapeHtml(data.hasil_tindak_lanjut || 'Data hasil tindak lanjut belum tersedia.')}</p><p style="margin-top:8px;"><strong>Status:</strong> ${escapeHtml(data.status || 'Belum ada data hasil')}</p></div>`;
+            el.classList.remove('hidden');
+        }
+
+        async function analyzeWithGemini() {
+            const btn = document.getElementById('geminiAnalyzeBtn');
+            if (!btn) return;
+            if (!GEMINI_API_KEY || GEMINI_API_KEY === 'PASTE_YOUR_NEW_GEMINI_API_KEY_HERE') {
+                setGeminiStatus('API Key Gemini belum diisi pada konfigurasi aplikasi.', 'error');
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menganalisis...';
+            setGeminiStatus('Gemini sedang membaca data agregat dan menyusun analisis...', 'info');
+            try {
+                const data = buildGeminiAnalyticsPayload();
+                const prompt = `Anda adalah asisten analisis bidang kesiswaan SMP Tahfizhpreneur Cahaya Qur\'an. Analisis DATA AGREGAT berikut secara objektif. Jangan menyebut atau menebak nama siswa. Jangan mengarang penyebab, hasil tindak lanjut, atau data yang tidak ada. Jika hasil tindak lanjut tidak tersedia, tulis bahwa data hasil tindak lanjut belum tersedia. Bedakan fakta dari rekomendasi. Gunakan Bahasa Indonesia formal, ringkas, dan cocok untuk laporan yayasan.\n\nDATA:\n${JSON.stringify(data, null, 2)}`;
+                const schema = {
+                    type: 'OBJECT',
+                    properties: {
+                        ringkasan: { type: 'STRING' },
+                        temuan_utama: { type: 'ARRAY', items: { type: 'STRING' } },
+                        tindak_lanjut: { type: 'ARRAY', items: { type: 'STRING' } },
+                        hasil_tindak_lanjut: { type: 'STRING' },
+                        status: { type: 'STRING' },
+                        target_bulan_berikutnya: { type: 'ARRAY', items: { type: 'STRING' } }
+                    },
+                    required: ['ringkasan','temuan_utama','tindak_lanjut','hasil_tindak_lanjut','status','target_bulan_berikutnya']
+                };
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+                    body: JSON.stringify({
+                        system_instruction: { parts: [{ text: 'Anda adalah analis data kesiswaan. Selalu jujur terhadap data. Jangan membuat fakta baru.' }] },
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 0.2 }
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result?.error?.message || `HTTP ${response.status}`);
+                const raw = result?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+                if (!raw) throw new Error('Gemini tidak mengembalikan hasil.');
+                const parsed = JSON.parse(raw);
+                renderGeminiResult(parsed);
+                setGeminiStatus('Analisis AI selesai. Hasil di bawah berasal dari data agregat yang dikirim.', 'success');
+            } catch (err) {
+                console.error('Gemini error:', err);
+                setGeminiStatus('Gagal menghubungi Gemini: ' + (err.message || err), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sparkles"></i> Analisis dengan AI';
+            }
+        }
+        document.getElementById('geminiAnalyzeBtn').addEventListener('click', analyzeWithGemini);
+
         document.getElementById('analyticsMonthRange').addEventListener('change', loadAnalytics);
         document.getElementById('analyticsGenderFilter').addEventListener('change', loadAnalytics);
 
