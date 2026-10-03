@@ -147,7 +147,7 @@ async function generate(body, apiKey) {
 // ---- endpoint -------------------------------------------------------
 exports.aiAssistant = functions
   .region(REGION)
-  .runWith({ secrets: ["GEMINI_API_KEY"], timeoutSeconds: 120, memory: "256MB", maxInstances: 5 })
+  .runWith({ secrets: ["AQ.Ab8RN6JjUFuGihXoJg3Fy-dnR3opl1v1jTAwD-h8nydZHLiAOA"], timeoutSeconds: 120, memory: "256MB", maxInstances: 5 })
   .https.onRequest(async (req, res) => {
     const originOk = cors(req, res);
     if (req.method === "OPTIONS") return res.status(originOk ? 204 : 403).send("");
