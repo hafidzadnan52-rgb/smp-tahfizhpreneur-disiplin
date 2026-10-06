@@ -2125,6 +2125,7 @@
                                 </div>
                             </div>
                             <div class="form-group"><label>Catatan Tambahan</label><input type="text" id="recNote" placeholder="Misal: sudah diperingatkan" /></div>
+                            <div class="form-group"><label>Lampiran Foto/Dokumen <span class="text-muted">(opsional)</span></label><input type="file" id="recAttach" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"><small class="text-muted">Foto atau dokumen maks. 8 MB, disimpan di Google Drive.</small></div>
                             <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Simpan Pelanggaran</button>
                         </form>
                     </div>
@@ -2311,6 +2312,34 @@
                             <div class="ai-hero-sub">AI hanya menggunakan konteks data yang dikirim aplikasi dan diarahkan untuk membedakan fakta, pola, serta rekomendasi.</div>
                         </div>
                         <button class="btn btn-sm btn-outline" id="aiHealthBtn" type="button"><i class="fas fa-plug"></i> Tes Koneksi AI</button>
+                    </div>
+
+                    <div class="card no-print" id="aiSettingsCard">
+                        <div class="card-header">
+                            <div>
+                                <h3><i class="fas fa-key"></i> Pengaturan AI (Gemini)</h3>
+                                <p class="text-muted" style="font-size:.8rem;margin-top:3px;">Masukkan API key Gemini Anda. Key hanya disimpan di browser perangkat ini dan dikirim langsung ke Google.</p>
+                            </div>
+                            <span id="aiKeyBadge" style="font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(209,69,59,.12);color:var(--danger);">Belum diisi</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2;">
+                                <label>API Key Gemini</label>
+                                <div style="display:flex;gap:6px;">
+                                    <input id="aiApiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="Tempel API key di sini..." style="flex:1;">
+                                    <button class="btn btn-sm btn-outline" id="aiToggleKeyBtn" type="button" title="Tampilkan/sembunyikan"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="flex:1.5;">
+                                <label>Model Gemini</label>
+                                <select id="aiModelSelect"></select>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-sm btn-gold" id="aiSaveKeyBtn" type="button"><i class="fas fa-save"></i> Simpan</button>
+                            <button class="btn btn-sm btn-outline" id="aiDeleteKeyBtn" type="button"><i class="fas fa-trash"></i> Hapus Key</button>
+                        </div>
+                        <p class="text-muted" style="font-size:.75rem;margin:10px 0 0;">Dapatkan key di Google AI Studio (aistudio.google.com/apikey). Key perlu diisi sekali per browser/perangkat. Jangan bagikan key kepada orang lain.</p>
                     </div>
 
                     <div class="ai-quick-grid no-print">
@@ -2511,6 +2540,7 @@
                                 <label>Solusi Saran (AI dari ringkasan)</label>
                                 <div class="bk-solution" id="bkSolution">Belum ada solusi.</div>
                             </div>
+                            <div class="form-group"><label>Lampiran Foto/Dokumen <span class="text-muted">(opsional)</span></label><input type="file" id="bkAttach" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"><small class="text-muted">Foto atau dokumen maks. 8 MB, disimpan di Google Drive.</small></div>
                             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
                                 <button type="button" class="btn btn-danger" id="bkRecordBtn"><i class="fas fa-microphone"></i> Rekam Langsung</button>
                                 <button type="button" class="btn btn-outline" id="bkStopBtn"><i class="fas fa-stop"></i> Hentikan</button>
@@ -2570,6 +2600,22 @@
                         </div>
                         <div class="accordion-body open" id="accFeedback">
                             <div id="feedbackList"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accAppsScript">
+                            <span><i class="fab fa-google-drive" style="color:var(--gold);"></i> Google Apps Script (Foto &amp; Dokumen)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accAppsScript">
+                            <p class="text-muted" style="font-size:.82rem;margin-bottom:10px;">Tempel URL <strong>Web App</strong> Apps Script (berakhiran <code>/exec</code>) dari menu Deploy &gt; Kelola deployment. Bukan URL editor. Dipakai untuk upload foto keterlambatan serta lampiran foto/dokumen pada pelanggaran dan BK.</p>
+                            <div class="form-group"><label>URL Web App</label><input type="url" id="appsScriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn btn-sm btn-gold" id="saveAppsScriptUrlBtn" type="button"><i class="fas fa-save"></i> Simpan</button>
+                                <button class="btn btn-sm btn-outline" id="testAppsScriptUrlBtn" type="button"><i class="fas fa-plug"></i> Tes Koneksi</button>
+                            </div>
+                            <div id="appsScriptStatus" class="ai-chat-status" style="display:none;margin-top:10px;"></div>
                         </div>
                     </div>
 
@@ -3743,6 +3789,11 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
             db.ref('absensi').on('value', (snap) => { absensiCache = snap.val() || {};
                 if (isPageActive('absensi')) { renderAbsensiForm();
                     loadAbsensiRekap(); } });
+            db.ref('settings/appsScriptUrl').on('value', (snap) => {
+                appsScriptUrlCache = (snap.val() || '').toString().trim();
+                const inp = document.getElementById('appsScriptUrlInput');
+                if (inp) inp.value = appsScriptUrlCache;
+            });
             db.ref('settings/spThresholds').on('value', (snap) => {
                 spThresholdsCache = snap.val() || { sp1: 15, sp2: 25, sp3: 40 };
                 if (isPageActive('sp-letter')) loadSpLetterList();
@@ -4396,6 +4447,7 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
                     <td>${escapeHtml(v.guru || '-')}</td>
                     <td>${formatDate(v.tanggal)}</td>
                     <td class="actions">
+                        ${attachLinkBtn(v.lampiran)}
                         ${(isAdmin() || v.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-violation="${v.id}"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
@@ -5066,14 +5118,25 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
         // Tidak ada Gemini API key yang disimpan di HTML.
         const AI_BACKEND_URL = 'PASTE_FIREBASE_FUNCTION_URL_HERE';
 
-        // ---- MODE LANGSUNG (tanpa Cloud Function) --------------------------------
-        // Isi API key Gemini di bawah ini. PERHATIAN: key akan terlihat oleh siapa pun yang
-        // membuka "lihat sumber halaman". Batasi key di Google Cloud Console (HTTP referrer +
-        // hanya Generative Language API) dan pasang batas kuota/budget.
-        const GEMINI_DIRECT_KEY = 'AQ.Ab8RN6JjUFuGihXoJg3Fy-dnR3opl1v1jTAwD-h8nydZHLiAOA';
-        const GEMINI_DIRECT_MODEL = 'gemini-3.5-flash';
-        const GEMINI_DIRECT_FALLBACK = 'gemini-3.1-flash-lite';
-        function aiDirectMode() { return !!GEMINI_DIRECT_KEY; }
+        // ---- API KEY GEMINI DIINPUT DI DALAM APLIKASI ------------------------------
+        // Key TIDAK ditulis di file HTML. Pengguna memasukkannya di menu AI Kesiswaan >
+        // "Pengaturan AI". Key disimpan di browser perangkat ini saja (localStorage).
+        const GEMINI_LS_KEY = 'kesiswaan_gemini_api_key';
+        const GEMINI_LS_MODEL = 'kesiswaan_gemini_model';
+        const GEMINI_MODELS = [
+            { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Stabil, disarankan) \u2705' },
+            { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite (Cepat) \u26A1' },
+            { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Akurat) \uD83C\uDFAF' },
+            { id: 'gemini-3-flash-preview', label: 'Gemini 3 Flash (Preview) \uD83C\uDF1E' }
+        ];
+        const GEMINI_DEFAULT_MODEL = 'gemini-2.5-flash';
+        function getGeminiKey() { try { return (localStorage.getItem(GEMINI_LS_KEY) || '').trim(); } catch (_) { return ''; } }
+        function getGeminiModel() {
+            let m = ''; try { m = localStorage.getItem(GEMINI_LS_MODEL) || ''; } catch (_) {}
+            return GEMINI_MODELS.some(x => x.id === m) ? m : GEMINI_DEFAULT_MODEL;
+        }
+        function aiDirectMode() { return !!getGeminiKey(); }
+        const AI_NO_KEY_MSG = 'API key Gemini belum diisi. Buka menu AI Kesiswaan > Pengaturan AI, lalu masukkan API key.';
 
         const AI_SYSTEM_PROMPT = `Anda adalah "Asisten Kesiswaan" untuk Bidang Kesiswaan SMP TahfizhPreneur Cahaya Qur'an.
 Tugas: membantu Kabid/guru membaca data kesiswaan (kehadiran, keterlambatan, pelanggaran, kebaikan/reward, BK) dan menyusun tindak lanjut.
@@ -5115,11 +5178,13 @@ ATURAN WAJIB
                     isJson ? { responseMimeType: 'application/json', responseSchema: AI_SCHEMAS[action] } : {})
             };
             let lastErr;
-            for (const model of [GEMINI_DIRECT_MODEL, GEMINI_DIRECT_FALLBACK].filter((m, i, a) => m && a.indexOf(m) === i)) {
+            const apiKey = getGeminiKey();
+            if (!apiKey) throw new Error(AI_NO_KEY_MSG);
+            for (const model of [getGeminiModel(), 'gemini-2.5-flash', 'gemini-2.5-flash-lite'].filter((m, i, a) => m && a.indexOf(m) === i)) {
                 try {
                     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_DIRECT_KEY },
+                        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
                         body: JSON.stringify(body)
                     });
                     const data = await r.json().catch(() => ({}));
@@ -5137,7 +5202,7 @@ ATURAN WAJIB
                     return { ok: true, text };
                 } catch (e) {
                     lastErr = e;
-                    if (![404, 429, 500, 503].includes(e.status)) break;
+                    if (![404, 429, 500, 503].includes(e.status)) break; // model tidak tersedia/kuota habis -> coba model cadangan
                 }
             }
             throw lastErr;
@@ -5269,7 +5334,7 @@ ATURAN WAJIB
 
         async function callKesiswaanAi(action, message, context) {
             if (aiDirectMode()) return callGeminiDirect(action, message, context);
-            if (!aiBackendReady()) throw new Error('URL backend AI belum diisi pada konfigurasi aplikasi.');
+            if (!aiBackendReady()) throw new Error(AI_NO_KEY_MSG);
             const response = await fetch(AI_BACKEND_URL, {
                 method:'POST',
                 headers:{'Content-Type':'application/json'},
@@ -5354,7 +5419,7 @@ ATURAN WAJIB
             } catch (err) {
                 console.error('AI backend error:', err);
                 setAiChatStatus('Gagal: ' + (err.message || err), 'error');
-                appendAiMessage('assistant', 'Saya belum dapat memproses permintaan ini. Periksa koneksi backend AI dan konfigurasi Gemini.', 'Sistem');
+                appendAiMessage('assistant', 'Saya belum dapat memproses permintaan ini. Periksa API key, koneksi internet, dan model Gemini di Pengaturan AI.', 'Sistem');
             } finally {
                 if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim'; }
             }
@@ -5397,6 +5462,82 @@ ATURAN WAJIB
             }
         });
 
+
+        // ---- Pengaturan AI: simpan API key & model di dalam aplikasi ----
+        (function initAiSettings() {
+            const keyInput = document.getElementById('aiApiKeyInput');
+            const modelSel = document.getElementById('aiModelSelect');
+            const badge = document.getElementById('aiKeyBadge');
+            if (!keyInput || !modelSel) return;
+            modelSel.innerHTML = GEMINI_MODELS.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
+            function refresh() {
+                modelSel.value = getGeminiModel();
+                const has = !!getGeminiKey();
+                keyInput.value = has ? getGeminiKey() : '';
+                badge.textContent = has ? 'Key tersimpan' : 'Belum diisi';
+                badge.style.background = has ? 'rgba(46,160,67,.14)' : 'rgba(209,69,59,.12)';
+                badge.style.color = has ? '#1f7a3a' : 'var(--danger)';
+            }
+            document.getElementById('aiToggleKeyBtn').addEventListener('click', function() {
+                const show = keyInput.type === 'password';
+                keyInput.type = show ? 'text' : 'password';
+                this.innerHTML = show ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+            document.getElementById('aiSaveKeyBtn').addEventListener('click', function() {
+                const k = keyInput.value.trim();
+                if (!k) { setAiChatStatus('API key masih kosong.', 'error'); return; }
+                try {
+                    localStorage.setItem(GEMINI_LS_KEY, k);
+                    localStorage.setItem(GEMINI_LS_MODEL, modelSel.value);
+                } catch (_) { setAiChatStatus('Browser tidak mengizinkan penyimpanan (mode privat?).', 'error'); return; }
+                refresh();
+                setAiChatStatus('Pengaturan tersimpan. Model aktif: ' + getGeminiModel() + '. Klik "Tes Koneksi AI" untuk mencoba.');
+            });
+            modelSel.addEventListener('change', function() {
+                try { localStorage.setItem(GEMINI_LS_MODEL, modelSel.value); } catch (_) {}
+            });
+            document.getElementById('aiDeleteKeyBtn').addEventListener('click', function() {
+                if (!confirm('Hapus API key dari browser ini?')) return;
+                try { localStorage.removeItem(GEMINI_LS_KEY); } catch (_) {}
+                refresh();
+                setAiChatStatus('API key dihapus dari browser ini.');
+            });
+            refresh();
+        })();
+
+
+        // ---- Pengaturan URL Apps Script (admin) ----
+        (function initAppsScriptSettings() {
+            const inp = document.getElementById('appsScriptUrlInput');
+            if (!inp) return;
+            const st = document.getElementById('appsScriptStatus');
+            function say(msg, err) { st.textContent = msg; st.className = 'ai-chat-status' + (err ? ' error' : ''); st.style.display = 'block'; }
+            function validUrl(u) { return /^https:\/\/script\.google\.com\/macros\/s\/[^\/]+\/exec$/.test(u); }
+            document.getElementById('saveAppsScriptUrlBtn').addEventListener('click', function() {
+                if (!isAdmin()) { say('Hanya Administrator yang dapat mengubah pengaturan ini.', true); return; }
+                const u = inp.value.trim();
+                if (u && !validUrl(u)) { say('URL tidak valid. Gunakan URL Web App yang berakhiran /exec (bukan URL editor/edit).', true); return; }
+                db.ref('settings/appsScriptUrl').set(u).then(() => say(u ? 'URL tersimpan. Klik Tes Koneksi untuk mencoba.' : 'URL dikosongkan, memakai URL cadangan bawaan.'))
+                    .catch(err => say('Gagal menyimpan: ' + err.message, true));
+            });
+            document.getElementById('testAppsScriptUrlBtn').addEventListener('click', async function() {
+                const u = inp.value.trim() || getUploadUrl();
+                if (!validUrl(u)) { say('URL belum valid.', true); return; }
+                this.disabled = true; say('Menguji koneksi...');
+                try {
+                    const r = await fetch(u); const d = await r.json();
+                    if (!d || !d.success) throw new Error((d && d.error) || 'Respons tidak sesuai.');
+                    say('Koneksi berhasil. ' + (d.message || ''));
+                } catch (err) { say('Tes gagal: ' + err.message + '. Pastikan deployment "Siapa yang memiliki akses: Siapa saja".', true); }
+                finally { this.disabled = false; }
+            });
+        })();
+
+        ['recAttach:recordForm','bkAttach:bkForm'].forEach(pair => {
+            const [fid, formId] = pair.split(':');
+            const fi = document.getElementById(fid), fm = document.getElementById(formId);
+            if (fi && fm) fi.addEventListener('change', () => { delete fm.dataset.attachDone; delete fm.dataset.attachUrl; });
+        });
         document.getElementById('aiSendBtn').addEventListener('click', () => {
             const input = document.getElementById('aiChatInput');
             const message = input.value.trim();
@@ -5415,8 +5556,8 @@ ATURAN WAJIB
         });
         document.getElementById('aiHealthBtn').addEventListener('click', async function() {
             try {
-                if (!aiBackendReady()) throw new Error('URL backend AI belum diisi.');
-                if (aiDirectMode()) { this.disabled = true; await callGeminiDirect('chat', 'Balas hanya dengan kata: OK', {}); setAiChatStatus('Koneksi AI aktif • Mode langsung • Model ' + GEMINI_DIRECT_MODEL); return; }
+                if (!aiBackendReady()) throw new Error(AI_NO_KEY_MSG);
+                if (aiDirectMode()) { this.disabled = true; await callGeminiDirect('chat', 'Balas hanya dengan kata: OK', {}); setAiChatStatus('Koneksi AI aktif • Model ' + getGeminiModel()); return; }
                 this.disabled = true;
                 const base = AI_BACKEND_URL.replace(/\/$/, '');
                 const r = await fetch(base.replace(/\/aiAssistant$/, '/aiHealth'));
@@ -5664,7 +5805,12 @@ ATURAN WAJIB
         // ============================================================
         // UPLOAD FOTO KETERLAMBATAN (via Google Apps Script -> Google Drive)
         // ============================================================
-        const PHOTO_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbznPmeW-hvVuyGyaXqXzgPMdwQOiZUnNg9g_JEJ6tpiYBR-_ZzpqIlbZ48MutRkPIDGJA/exec';
+        // URL Web App Apps Script disimpan di Firebase (settings/appsScriptUrl) dan diatur oleh admin
+        // di Panel Admin > "Google Apps Script (Foto & Dokumen)". Nilai di bawah hanya cadangan.
+        const DEFAULT_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbznPmeW-hvVuyGyaXqXzgPMdwQOiZUnNg9g_JEJ6tpiYBR-_ZzpqIlbZ48MutRkPIDGJA/exec';
+        let appsScriptUrlCache = '';
+        function getUploadUrl() { return appsScriptUrlCache || DEFAULT_UPLOAD_URL; }
+        function safeUrl(u) { return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
         let pendingLateFotoFile = null;
 
         function compressImageFile(file, maxWidth, quality) {
@@ -5692,7 +5838,7 @@ ATURAN WAJIB
 
         function uploadPhotoToDrive(dataUrl, fileName) {
             const base64 = dataUrl.split(',')[1];
-            return fetch(PHOTO_UPLOAD_URL, {
+            return fetch(getUploadUrl(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ image: base64, fileName: fileName })
@@ -5700,6 +5846,64 @@ ATURAN WAJIB
                 if (!data || !data.success) throw new Error((data && data.error) || 'Upload foto gagal.');
                 return data.url;
             });
+        }
+
+
+        // ---- Upload lampiran umum (foto & dokumen) ke Google Drive via Apps Script ----
+        const ATTACH_MAX_BYTES = 8 * 1024 * 1024;
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(String(r.result).split(',')[1]);
+                r.onerror = () => reject(new Error('Gagal membaca file.'));
+                r.readAsDataURL(file);
+            });
+        }
+        async function uploadAttachment(file, folder, baseName) {
+            let payload;
+            if ((file.type || '').startsWith('image/')) {
+                const dataUrl = await compressImageFile(file, 1280, 0.75);
+                payload = { image: dataUrl.split(',')[1], mimeType: 'image/jpeg', fileName: baseName + '.jpg' };
+            } else {
+                if (file.size > ATTACH_MAX_BYTES) throw new Error('Ukuran dokumen maksimal 8 MB.');
+                const ext = (file.name.match(/\.[A-Za-z0-9]+$/) || [''])[0].toLowerCase();
+                payload = { file: await fileToBase64(file), mimeType: file.type || 'application/octet-stream', fileName: baseName + ext };
+            }
+            payload.folder = folder;
+            const res = await fetch(getUploadUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => null);
+            if (!data || !data.success) throw new Error((data && data.error) || 'Upload gagal. Periksa URL Apps Script di Panel Admin.');
+            return data.url;
+        }
+        // Dipanggil di awal submit form. Return true jika upload sedang berjalan (handler harus berhenti);
+        // setelah upload selesai form dikirim ulang otomatis dan URL lampiran ada di form.dataset.attachUrl.
+        function gateAttachUpload(form, fileInputId, folder, baseName) {
+            const f = document.getElementById(fileInputId).files[0];
+            if (!f || form.dataset.attachDone === '1') return false;
+            const btn = form.querySelector('[type=submit]');
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload lampiran...';
+            uploadAttachment(f, folder, baseName)
+                .then(url => { form.dataset.attachUrl = url; })
+                .catch(err => { form.dataset.attachUrl = ''; showToast('Lampiran gagal diupload: ' + err.message + ' — data tetap disimpan tanpa lampiran.', 'error'); })
+                .finally(() => {
+                    form.dataset.attachDone = '1';
+                    btn.disabled = false; btn.innerHTML = oldHtml;
+                    if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event('submit', { cancelable: true }));
+                });
+            return true;
+        }
+        function clearAttachState(form, fileInputId) {
+            delete form.dataset.attachDone; delete form.dataset.attachUrl;
+            const fi = document.getElementById(fileInputId); if (fi) fi.value = '';
+        }
+        function attachLinkBtn(url) {
+            const u = safeUrl(url);
+            return u ? `<a class="btn btn-xs btn-outline" href="${escapeHtml(u)}" target="_blank" rel="noopener" title="Lihat lampiran"><i class="fas fa-paperclip"></i></a>` : '';
         }
 
         document.getElementById('lateFotoInput').addEventListener('change', function() {
@@ -6221,11 +6425,14 @@ ATURAN WAJIB
             if (!nis) { showToast('Pilih siswa terlebih dahulu!', 'error'); return; }
             if (!transcript || transcript === 'Klik tombol rekam untuk mulai...' || transcript === 'Merekam...' || transcript ===
                 'Belum ada transkrip.') { showToast('Belum ada transkrip.', 'error'); return; }
+            if (gateAttachUpload(this, 'bkAttach', 'bk', `bk_${nis}_${today()}_${Date.now()}`)) return;
+            const attUrl = this.dataset.attachUrl || '';
             const record = {
                 nis,
                 nama: siswaCache[nis] ? siswaCache[nis].nama : 'Unknown',
                 kelas,
                 catatan: note,
+                lampiran: attUrl,
                 transkrip: transcript,
                 ringkasan: summary,
                 solusi: solution,
@@ -6235,6 +6442,7 @@ ATURAN WAJIB
             };
             db.ref('bk/' + genId()).set(record).then(() => {
                 showToast('Catatan BK berhasil disimpan!');
+                clearAttachState(document.getElementById('bkForm'), 'bkAttach');
                 document.getElementById('bkStudent').value = '';
                 document.getElementById('bkStudentInput').value = '';
                 document.getElementById('bkClass').value = '';
@@ -6270,6 +6478,7 @@ ATURAN WAJIB
                     <td>${formatDate(b.tanggal)}</td>
                     <td class="actions">
                         <button class="btn btn-xs btn-outline" data-view-bk="${b.id}"><i class="fas fa-eye"></i></button>
+                        ${attachLinkBtn(b.lampiran)}
                         ${(isAdmin() || b.guru === currentUser.name) ? `<button class="btn btn-xs btn-danger" data-delete-bk="${b.id}"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
@@ -6285,6 +6494,7 @@ ATURAN WAJIB
                         <p><strong>Catatan:</strong> ${escapeHtml(b.catatan || '-')}</p>
                         <p><strong>Ringkasan:</strong> ${escapeHtml(b.ringkasan || '-')}</p>
                         <p><strong>Solusi:</strong> ${escapeHtml(b.solusi || '-')}</p>
+                        ${safeUrl(b.lampiran) ? `<p><strong>Lampiran:</strong> <a href="${escapeHtml(safeUrl(b.lampiran))}" target="_blank" rel="noopener">Buka lampiran</a></p>` : ''}
                         <p><strong>Transkrip:</strong></p>
                         <div style="background:#f8f5f0;padding:12px;border-radius:var(--radius-sm);white-space:pre-wrap;max-height:200px;overflow-y:auto;">${escapeHtml(b.transkrip || '-')}</div>
                     `);
@@ -7487,6 +7697,8 @@ ATURAN WAJIB
             if (!nis) { showToast('Pilih siswa terlebih dahulu! Ketik nama lalu pilih dari daftar.', 'error'); return; }
             const s = siswaCache[nis];
             if (!s) { showToast('Data tidak valid!', 'error'); return; }
+            if (gateAttachUpload(this, 'recAttach', 'pelanggaran', `pelanggaran_${nis}_${today()}_${Date.now()}`)) return;
+            const attUrl = this.dataset.attachUrl || '';
 
             if (isMulti) {
                 const typeIds = getMultiSelectedIds('recMultiList');
@@ -7498,7 +7710,7 @@ ATURAN WAJIB
                     const record = {
                         nis, nama: s.nama, kelas: s.kelas, typeId,
                         pelanggaran: t.nama, kategori: t.kategori, poin: t.poin,
-                        konsekuensi: t.konsekuensi || '-', catatan: note,
+                        konsekuensi: t.konsekuensi || '-', catatan: note, lampiran: attUrl,
                         guru: currentUser.name, tanggal: tgl, createdAt: now
                     };
                     return db.ref('violations/' + genId()).set(record).then(() => record);
@@ -7511,7 +7723,7 @@ ATURAN WAJIB
                     sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${records.length} pelanggaran (${totalPoin} poin)`);
                     autoLogLateFromViolation(records);
                     setTimeout(() => checkAndSendWaNotif(nis), 1200);
-                    this.reset();
+                    this.reset(); clearAttachState(this, 'recAttach');
                     document.getElementById('recMultiToggle').checked = false;
                     document.getElementById('recSingleFields').classList.remove('hidden');
                     document.getElementById('recMultiFields').classList.add('hidden');
@@ -7543,7 +7755,7 @@ ATURAN WAJIB
                     kategori: t.kategori,
                     poin: t.poin,
                     konsekuensi: t.konsekuensi || '-',
-                    catatan: note,
+                    catatan: note, lampiran: attUrl,
                     guru: currentUser.name,
                     tanggal: tgl,
                     createdAt: now
@@ -7562,7 +7774,7 @@ ATURAN WAJIB
                 sendBrowserNotification('⚠️ Pelanggaran Baru', `${s.nama} - ${t.nama}${qty > 1 ? ' x' + qty : ''} (${totalPoin} poin)`);
                 autoLogLateFromViolation(records);
                 setTimeout(() => checkAndSendWaNotif(nis), 1200);
-                this.reset();
+                this.reset(); clearAttachState(this, 'recAttach');
                 document.getElementById('recCategory').value = 'ringan';
                 document.getElementById('recQty').value = 1;
                 renderRecTypeOptions();
