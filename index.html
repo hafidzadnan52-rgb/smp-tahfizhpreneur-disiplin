@@ -19,6 +19,507 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+/* Minimal XLSX writer: styles, merged cells, conditional formatting, native charts. Needs JSZip. */
+(function (root) {
+    'use strict';
+    const esc = s => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function colL(c) { let s = ''; c++; while (c > 0) { const m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = Math.floor((c - 1) / 26); } return s; }
+    const ref = (r, c) => colL(c) + (r + 1);
+    const aref = (r, c) => '$' + colL(c) + '$' + (r + 1);
+    const q = n => "'" + String(n).replace(/'/g, "''") + "'";
+    function range(sheet, r1, c1, r2, c2) {
+        return (sheet ? q(sheet) + '!' : '') + (r1 === r2 && c1 === c2 ? aref(r1, c1) : aref(r1, c1) + ':' + aref(r2, c2));
+    }
+    const BUILTIN = { 'General': 0, '0': 1, '0.00': 2, '#,##0': 3, '#,##0.00': 4, '0%': 9, '0.00%': 10 };
+
+    function Workbook() {
+        this.sheets = []; this.fonts = []; this.fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'];
+        this.borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>']; this.xfs = []; this.numFmts = []; this.sst = []; this.sstMap = new Map(); this.cache = new Map();
+        this.st({});
+    }
+    function pushU(arr, xml) { const i = arr.indexOf(xml); if (i >= 0) return i; arr.push(xml); return arr.length - 1; }
+    Workbook.prototype.st = function (sp) {
+        const key = JSON.stringify(sp); if (this.cache.has(key)) return this.cache.get(key);
+        const font = '<font>' + (sp.b ? '<b/>' : '') + (sp.i ? '<i/>' : '') + `<sz val="${sp.sz || 10}"/><color rgb="FF${sp.color || '000000'}"/><name val="Arial"/><family val="2"/></font>`;
+        const fi = pushU(this.fonts, font);
+        const fl = sp.bg ? pushU(this.fills, `<fill><patternFill patternType="solid"><fgColor rgb="FF${sp.bg}"/><bgColor indexed="64"/></patternFill></fill>`) : 0;
+        let bo = 0;
+        if (sp.bd) {
+            const c = sp.bdc || 'BFBFBF';
+            const sd = (n, st) => st ? `<${n} style="${st}"><color rgb="FF${c}"/></${n}>` : `<${n}/>`;
+            const all = sp.bd === true ? 'thin' : null, bt = sp.bd === 'bottom' ? 'medium' : all;
+            bo = pushU(this.borders, '<border>' + sd('left', all) + sd('right', all) + sd('top', all) + sd('bottom', bt) + '<diagonal/></border>');
+        }
+        let nf = 0;
+        if (sp.fmt) { if (BUILTIN[sp.fmt] !== undefined) nf = BUILTIN[sp.fmt]; else { let i = this.numFmts.indexOf(sp.fmt); if (i < 0) { this.numFmts.push(sp.fmt); i = this.numFmts.length - 1; } nf = 164 + i; } }
+        const xf = `<xf numFmtId="${nf}" fontId="${fi}" fillId="${fl}" borderId="${bo}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${sp.al || 'general'}" vertical="${sp.va || 'center'}" wrapText="${sp.wrap ? 1 : 0}"${sp.indent ? ` indent="${sp.indent}"` : ''}/></xf>`;
+        this.xfs.push(xf); const id = this.xfs.length - 1; this.cache.set(key, id); return id;
+    };
+    Workbook.prototype.sheet = function (name, opts) { const s = new Sheet(this, name, opts || {}); this.sheets.push(s); return s; };
+    Workbook.prototype.str = function (s) { s = String(s); if (this.sstMap.has(s)) return this.sstMap.get(s); this.sst.push(s); this.sstMap.set(s, this.sst.length - 1); return this.sst.length - 1; };
+
+    function Sheet(wb, name, opts) {
+        this.wb = wb; this.name = String(name).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31); this.rows = new Map(); this.cols = {}; this.merges = []; this.cf = []; this.charts = []; this.heights = {};
+        this.tab = opts.tab; this.landscape = opts.landscape !== false; this.freezeAt = null; this.filterRng = null; this.prio = 1; this.grid = opts.grid === true;
+    }
+    Sheet.prototype.set = function (r, c, v, s) { let row = this.rows.get(r); if (!row) { row = new Map(); this.rows.set(r, row); } row.set(c, { v, s: s || 0 }); return this; };
+    Sheet.prototype.width = function (c, w) { this.cols[c] = w; return this; };
+    Sheet.prototype.height = function (r, h) { this.heights[r] = h; return this; };
+    Sheet.prototype.freeze = function (r, c) { this.freezeAt = [r, c || 0]; return this; };
+    Sheet.prototype.filter = function (r1, c1, r2, c2) { this.filterRng = [r1, c1, r2, c2]; return this; };
+    Sheet.prototype.merge = function (r1, c1, r2, c2, v, s) {
+        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) if (!(r === r1 && c === c1)) this.set(r, c, null, s);
+        this.set(r1, c1, v, s); if (r1 !== r2 || c1 !== c2) this.merges.push(ref(r1, c1) + ':' + ref(r2, c2)); return this;
+    };
+    Sheet.prototype.scale = function (rng, colors) {
+        const cv = colors.length === 3 ? '<cfvo type="min"/><cfvo type="percentile" val="50"/><cfvo type="max"/>' : '<cfvo type="min"/><cfvo type="max"/>';
+        this.cf.push(`<conditionalFormatting sqref="${rng}"><cfRule type="colorScale" priority="${this.prio++}"><colorScale>${cv}${colors.map(c => `<color rgb="FF${c}"/>`).join('')}</colorScale></cfRule></conditionalFormatting>`); return this;
+    };
+    Sheet.prototype.bar = function (rng, color) {
+        this.cf.push(`<conditionalFormatting sqref="${rng}"><cfRule type="dataBar" priority="${this.prio++}"><dataBar><cfvo type="num" val="0"/><cfvo type="max"/><color rgb="FF${color}"/></dataBar></cfRule></conditionalFormatting>`); return this;
+    };
+    Sheet.prototype.chart = function (spec) { this.charts.push(spec); return this; };
+    Sheet.prototype.xml = function (hasDrawing) {
+        const rowKeys = [...this.rows.keys()].sort((a, b) => a - b); let maxR = 0, maxC = 0;
+        let data = '';
+        rowKeys.forEach(r => {
+            const row = this.rows.get(r); const cs = [...row.keys()].sort((a, b) => a - b); maxR = Math.max(maxR, r); maxC = Math.max(maxC, cs[cs.length - 1]);
+            const ht = this.heights[r] ? ` ht="${this.heights[r]}" customHeight="1"` : '';
+            data += `<row r="${r + 1}"${ht}>`;
+            cs.forEach(c => {
+                const { v, s } = row.get(c); const a = ref(r, c); const sa = s ? ` s="${s}"` : '';
+                if (v === null || v === undefined || v === '') data += `<c r="${a}"${sa}/>`;
+                else if (typeof v === 'number') data += `<c r="${a}"${sa}><v>${isFinite(v) ? v : 0}</v></c>`;
+                else if (typeof v === 'string') data += `<c r="${a}"${sa} t="s"><v>${this.wb.str(v)}</v></c>`;
+                else if (typeof v.v === 'string') data += `<c r="${a}"${sa} t="str"><f>${esc(v.f)}</f><v>${esc(v.v)}</v></c>`;
+                else data += `<c r="${a}"${sa}><f>${esc(v.f)}</f><v>${isFinite(v.v) ? v.v : 0}</v></c>`;
+            });
+            data += '</row>';
+        });
+        let cols = ''; const ck = Object.keys(this.cols).map(Number).sort((a, b) => a - b);
+        if (ck.length) cols = '<cols>' + ck.map(c => `<col min="${c + 1}" max="${c + 1}" width="${this.cols[c]}" customWidth="1"/>`).join('') + '</cols>';
+        let pane = '';
+        if (this.freezeAt) {
+            const [fr, fc] = this.freezeAt; const tl = ref(fr, fc);
+            const ap = fr && fc ? 'bottomRight' : fr ? 'bottomLeft' : 'topRight';
+            pane = `<pane${fc ? ` xSplit="${fc}"` : ''}${fr ? ` ySplit="${fr}"` : ''} topLeftCell="${tl}" activePane="${ap}" state="frozen"/><selection pane="${ap}"/>`;
+        }
+        const view = `<sheetViews><sheetView${this.grid ? '' : ' showGridLines="0"'} workbookViewId="0"${this.first ? ' tabSelected="1"' : ''}>${pane}</sheetView></sheetViews>`;
+        const pr = `<sheetPr>${this.tab ? `<tabColor rgb="FF${this.tab}"/>` : ''}<pageSetUpPr fitToPage="1"/></sheetPr>`;
+        const dim = `<dimension ref="A1:${ref(maxR, maxC)}"/>`;
+        const af = this.filterRng ? `<autoFilter ref="${ref(this.filterRng[0], this.filterRng[1])}:${ref(this.filterRng[2], this.filterRng[3])}"/>` : '';
+        const mg = this.merges.length ? `<mergeCells count="${this.merges.length}">${this.merges.map(m => `<mergeCell ref="${m}"/>`).join('')}</mergeCells>` : '';
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${pr}${dim}${view}<sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${data}</sheetData>${af}${mg}${this.cf.join('')}<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="${this.landscape ? 'landscape' : 'portrait'}" fitToWidth="1" fitToHeight="0"/>${hasDrawing ? '<drawing r:id="rId1"/>' : ''}</worksheet>`;
+    };
+
+    /* ---------- charts ---------- */
+    const PAL = ['2E86C1', 'C0392B', '27AE60', 'F39C12', '8E44AD', '16A085', 'D35400', '7F8C8D', '2C3E50', 'E84393'];
+    const txt = (sz, b, color) => `<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="${sz}" b="${b ? 1 : 0}">${color ? `<a:solidFill><a:srgbClr val="${color}"/></a:solidFill>` : ''}<a:latin typeface="Arial"/></a:defRPr></a:pPr><a:endParaRPr lang="en-US"/></a:p></c:txPr>`;
+    function strRef(f, vals) { return `<c:strRef><c:f>${esc(f)}</c:f><c:strCache><c:ptCount val="${vals.length}"/>${vals.map((v, i) => `<c:pt idx="${i}"><c:v>${esc(v)}</c:v></c:pt>`).join('')}</c:strCache></c:strRef>`; }
+    function numRef(f, vals, fmt) { return `<c:numRef><c:f>${esc(f)}</c:f><c:numCache><c:formatCode>${esc(fmt || 'General')}</c:formatCode><c:ptCount val="${vals.length}"/>${vals.map((v, i) => `<c:pt idx="${i}"><c:v>${isFinite(v) ? v : 0}</c:v></c:pt>`).join('')}</c:numCache></c:numRef>`; }
+    function dLbls(fmt, pos, extra) {
+        return `<c:dLbls><c:numFmt formatCode="${esc(fmt || 'General')}" sourceLinked="0"/><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>${txt(800, 0)}${pos ? `<c:dLblPos val="${pos}"/>` : ''}<c:showLegendKey val="0"/><c:showVal val="${extra && extra.pct ? 0 : 1}"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="${extra && extra.pct ? 1 : 0}"/><c:showBubbleSize val="0"/></c:dLbls>`;
+    }
+    function chartXml(sp) {
+        const kind = sp.kind, horiz = kind === 'bar', stacked = sp.stack; const isPie = kind === 'pie' || kind === 'doughnut', isLine = kind === 'line';
+        const sers = sp.series.map((s, i) => {
+            const color = s.color || PAL[i % PAL.length];
+            let x = `<c:ser><c:idx val="${i}"/><c:order val="${i}"/><c:tx>${strRef(s.nameRef, [s.name])}</c:tx>`;
+            if (isPie) {
+                x += (sp.cat.vals).map((_, k) => `<c:dPt><c:idx val="${k}"/><c:bubble3D val="0"/><c:spPr><a:solidFill><a:srgbClr val="${(sp.colors || PAL)[k % (sp.colors || PAL).length]}"/></a:solidFill><a:ln w="12700"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:dPt>`).join('');
+                x += dLbls('0.0%', 'bestFit', { pct: true });
+            } else if (isLine) {
+                x += `<c:spPr><a:ln w="28575" cap="rnd"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:round/></a:ln></c:spPr><c:marker><c:symbol val="circle"/><c:size val="6"/><c:spPr><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="${color}"/></a:solidFill></a:ln></c:spPr></c:marker>`;
+                if (s.labels) x += dLbls(s.fmt, 't');
+            } else {
+                x += `<c:spPr><a:solidFill><a:srgbClr val="${color}"/></a:solidFill></c:spPr><c:invertIfNegative val="0"/>`;
+                if (s.labels) x += dLbls(s.fmt, stacked ? 'ctr' : 'outEnd');
+            }
+            x += `<c:cat>${strRef(sp.cat.ref, sp.cat.vals)}</c:cat><c:val>${numRef(s.ref, s.vals, s.fmt)}</c:val>`;
+            if (isLine) x += '<c:smooth val="0"/>';
+            return x + '</c:ser>';
+        }).join('');
+        const ids = '<c:axId val="50010"/><c:axId val="50020"/>';
+        let plot;
+        if (isPie) plot = kind === 'pie' ? `<c:pieChart><c:varyColors val="1"/>${sers}<c:firstSliceAng val="0"/></c:pieChart>` : `<c:doughnutChart><c:varyColors val="1"/>${sers}<c:firstSliceAng val="0"/><c:holeSize val="55"/></c:doughnutChart>`;
+        else if (isLine) plot = `<c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>${sers}<c:marker val="1"/>${ids}</c:lineChart>`;
+        else plot = `<c:barChart><c:barDir val="${horiz ? 'bar' : 'col'}"/><c:grouping val="${stacked === 'percent' ? 'percentStacked' : stacked ? 'stacked' : 'clustered'}"/><c:varyColors val="0"/>${sers}<c:gapWidth val="${sp.gap || 70}"/>${stacked ? '<c:overlap val="100"/>' : ''}${ids}</c:barChart>`;
+        let axes = '';
+        if (!isPie) {
+            const vf = sp.axisFmt || (stacked === 'percent' ? '0%' : 'General');
+            axes = `<c:catAx><c:axId val="50010"/><c:scaling><c:orientation val="${horiz ? 'maxMin' : 'minMax'}"/></c:scaling><c:delete val="0"/><c:axPos val="${horiz ? 'l' : 'b'}"/><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="BFBFBF"/></a:solidFill></a:ln></c:spPr>${txt(800, 0)}<c:crossAx val="50020"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/><c:noMultiLvlLbl val="0"/></c:catAx>`
+                + `<c:valAx><c:axId val="50020"/><c:scaling><c:orientation val="minMax"/>${sp.max !== undefined ? `<c:max val="${sp.max}"/>` : ''}${sp.min !== undefined ? `<c:min val="${sp.min}"/>` : ''}</c:scaling><c:delete val="0"/><c:axPos val="${horiz ? 'b' : 'l'}"/><c:majorGridlines><c:spPr><a:ln w="6350"><a:solidFill><a:srgbClr val="E5E5E5"/></a:solidFill></a:ln></c:spPr></c:majorGridlines><c:numFmt formatCode="${esc(vf)}" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:spPr><a:ln><a:noFill/></a:ln></c:spPr>${txt(800, 0)}<c:crossAx val="50010"/><c:crosses val="${horiz ? 'max' : 'autoZero'}"/><c:crossBetween val="between"/></c:valAx>`;
+        }
+        const legend = (sp.series.length > 1 || isPie) ? `<c:legend><c:legendPos val="b"/><c:overlay val="0"/>${txt(800, 0)}</c:legend>` : '';
+        return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><c:roundedCorners val="0"/><c:chart><c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100" b="1"/></a:pPr><a:r><a:rPr lang="id-ID" sz="1100" b="1"><a:solidFill><a:srgbClr val="1F4E3D"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>${esc(sp.title)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title><c:autoTitleDeleted val="0"/><c:plotArea><c:layout/>${plot}${axes}</c:plotArea>${legend}<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart><c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="9525"><a:solidFill><a:srgbClr val="D0D0D0"/></a:solidFill></a:ln></c:spPr>${txt(900, 0)}</c:chartSpace>`;
+    }
+    function drawingXml(charts) {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' + charts.map((c, i) => {
+            const [c1, r1, c2, r2] = c.pos;
+            return `<xdr:twoCellAnchor><xdr:from><xdr:col>${c1}</xdr:col><xdr:colOff>38100</xdr:colOff><xdr:row>${r1}</xdr:row><xdr:rowOff>38100</xdr:rowOff></xdr:from><xdr:to><xdr:col>${c2}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r2}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${i + 2}" name="Grafik ${i + 1}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId${i + 1}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>`;
+        }).join('') + '</xdr:wsDr>';
+    }
+
+    Workbook.prototype.build = async function (JSZipLib) {
+        const Z = new JSZipLib(); const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+        let ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>';
+        let wbRels = '', sheetsXml = '', names = '', chartN = 0, drawN = 0;
+        this.sheets.forEach((s, i) => {
+            const n = i + 1; const hasD = s.charts.length > 0;
+            ct += `<Override PartName="/xl/worksheets/sheet${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`;
+            wbRels += `<Relationship Id="rId${n}" Type="${R}/worksheet" Target="worksheets/sheet${n}.xml"/>`;
+            sheetsXml += `<sheet name="${esc(s.name)}" sheetId="${n}" r:id="rId${n}"/>`;
+            if (s.filterRng) names += `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">${esc(range(s.name, ...s.filterRng))}</definedName>`;
+            if (hasD) {
+                drawN++; ct += `<Override PartName="/xl/drawings/drawing${drawN}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`;
+                Z.file(`xl/worksheets/_rels/sheet${n}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/drawing" Target="../drawings/drawing${drawN}.xml"/></Relationships>`);
+                let dr = '';
+                s.charts.forEach((c, k) => {
+                    chartN++; ct += `<Override PartName="/xl/charts/chart${chartN}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`;
+                    dr += `<Relationship Id="rId${k + 1}" Type="${R}/chart" Target="../charts/chart${chartN}.xml"/>`;
+                    Z.file(`xl/charts/chart${chartN}.xml`, chartXml(c));
+                });
+                Z.file(`xl/drawings/drawing${drawN}.xml`, drawingXml(s.charts));
+                Z.file(`xl/drawings/_rels/drawing${drawN}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${dr}</Relationships>`);
+            }
+            s.first = i === 0;
+            Z.file(`xl/worksheets/sheet${n}.xml`, s.xml(hasD));
+        });
+        const k = this.sheets.length;
+        wbRels += `<Relationship Id="rId${k + 1}" Type="${R}/styles" Target="styles.xml"/><Relationship Id="rId${k + 2}" Type="${R}/sharedStrings" Target="sharedStrings.xml"/>`;
+        Z.file('[Content_Types].xml', ct + '</Types>');
+        Z.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+        Z.file('xl/workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${R}"><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="28800" windowHeight="16000" activeTab="0"/></bookViews><sheets>${sheetsXml}</sheets>${names ? `<definedNames>${names}</definedNames>` : ''}<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
+        Z.file('xl/_rels/workbook.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${wbRels}</Relationships>`);
+        const nf = this.numFmts.length ? `<numFmts count="${this.numFmts.length}">${this.numFmts.map((f, i) => `<numFmt numFmtId="${164 + i}" formatCode="${esc(f)}"/>`).join('')}</numFmts>` : '';
+        Z.file('xl/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${nf}<fonts count="${this.fonts.length}">${this.fonts.join('')}</fonts><fills count="${this.fills.length}">${this.fills.join('')}</fills><borders count="${this.borders.length}">${this.borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${this.xfs.length}">${this.xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`);
+        Z.file('xl/sharedStrings.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${this.sst.length}" uniqueCount="${this.sst.length}">${this.sst.map(s => `<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`);
+        return Z;
+    };
+    root.XL = { Workbook, ref, aref, colL, range, q, PAL };
+    if (typeof module !== 'undefined') module.exports = root.XL;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+    <script>
+/* Laporan Excel Lengkap - Kesiswaan. Needs xl.js + JSZip. Input D = plain data (see adapter in app). */
+(function (root) {
+    'use strict';
+    const XL = root.XL || require('./xl.js');
+    const { ref, colL, range, q } = XL;
+    const DARK = '14463A', GREEN = '1F6F54', GOLD = 'C9A227', LIGHT = 'EAF4EF', RED = 'C0392B', LRED = 'FBEAE8', BLUE = '2E86C1', LBLUE = 'EAF2F8';
+    const KAT = { ringan: 'Ringan', sedang: 'Sedang', berat: 'Berat', kecil: 'Kecil', besar: 'Besar' };
+    const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const mLabel = mk => { const [y, m] = mk.split('-'); return BULAN[+m - 1] + ' ' + y; };
+    const serial = t => { if (!t) return null; const [y, m, d] = t.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000) + 25569; };
+    const nat = (a, b) => String(a).localeCompare(String(b), 'id', { numeric: true });
+    const attStatus = p => p === null ? '-' : p >= 95 ? 'Sangat Baik' : p >= 90 ? 'Baik' : p >= 80 ? 'Perlu Perhatian' : p >= 70 ? 'Perlu Pembinaan' : 'Perlu Tindak Lanjut';
+    const rankOf = (arr, v, asc) => 1 + arr.filter(x => typeof x === 'number' && (asc ? x < v : x > v)).length;
+
+    async function build(D, JSZipLib) {
+        const wb = new XL.Workbook(); const st = o => wb.st(o);
+        const S = {
+            title: st({ b: 1, sz: 18, color: 'FFFFFF', bg: DARK, indent: 1 }), sub: st({ sz: 10, color: 'F4E9B8', bg: DARK, indent: 1 }),
+            sec: st({ b: 1, sz: 12, color: DARK, bd: 'bottom', bdc: GOLD }),
+            h: st({ b: 1, color: 'FFFFFF', bg: GREEN, al: 'center', wrap: 1, bd: 1 }), hR: st({ b: 1, color: 'FFFFFF', bg: RED, al: 'center', wrap: 1, bd: 1 }), hB: st({ b: 1, color: 'FFFFFF', bg: BLUE, al: 'center', wrap: 1, bd: 1 }),
+            t: st({ bd: 1 }), tw: st({ bd: 1, wrap: 1 }), tc: st({ bd: 1, al: 'center' }), n: st({ bd: 1, al: 'center', fmt: '#,##0' }), p: st({ bd: 1, al: 'center', fmt: '0.0%' }), d1: st({ bd: 1, al: 'center', fmt: '0.0' }), d2: st({ bd: 1, al: 'center', fmt: '0.00' }), dt: st({ bd: 1, al: 'center', fmt: 'dd/mm/yyyy' }),
+            tT: st({ b: 1, bd: 1, bg: LIGHT }), tTc: st({ b: 1, bd: 1, bg: LIGHT, al: 'center' }), tTn: st({ b: 1, bd: 1, bg: LIGHT, al: 'center', fmt: '#,##0' }), tTp: st({ b: 1, bd: 1, bg: LIGHT, al: 'center', fmt: '0.0%' }), tTd: st({ b: 1, bd: 1, bg: LIGHT, al: 'center', fmt: '0.0' }),
+            note: st({ i: 1, color: '595959', wrap: 1, va: 'top' }), noteB: st({ b: 1, color: DARK }),
+            kL: st({ b: 1, sz: 9, color: '595959', bg: 'F7F7F7', al: 'center', bd: 1 }), kV: st({ b: 1, sz: 20, color: DARK, bg: 'F7F7F7', al: 'center', bd: 1, fmt: '#,##0' }),
+            kVp: st({ b: 1, sz: 20, color: DARK, bg: 'F7F7F7', al: 'center', bd: 1, fmt: '0.0%' }), kVd: st({ b: 1, sz: 20, color: DARK, bg: 'F7F7F7', al: 'center', bd: 1, fmt: '0.00' }),
+            sL: st({ b: 1, bd: 1, bg: LIGHT, wrap: 1 }), sV: st({ bd: 1, wrap: 1 })
+        };
+        const sub = `${D.sekolah}  •  Periode: ${D.periode}  •  Dicetak: ${D.printedAt}${D.printedBy ? '  •  Oleh: ' + D.printedBy : ''}`;
+        const banner = (ws, title, last) => { ws.merge(0, 0, 0, last, title, S.title); ws.merge(1, 0, 1, last, sub, S.sub); ws.height(0, 32); ws.height(1, 18); };
+        const hdr = (ws, r, c0, labels, s) => { labels.forEach((l, i) => ws.set(r, c0 + i, l, s || S.h)); ws.height(r, 34); };
+        const sec = (ws, r, c2, text) => ws.merge(r, 0, r, c2, text, S.sec);
+
+        /* ---------- aggregates ---------- */
+        const stu = new Map();
+        const getStu = (nis, nama, kelas) => { let o = stu.get(nis); if (!o) { o = { nis, nama: nama || '(tanpa nama)', kelas: kelas || '-', pel: 0, ringSed: 0, berat: 0, rew: 0, rewPts: 0, hari: 0, H: 0, T: 0, I: 0, S: 0, A: 0 }; stu.set(nis, o); } return o; };
+        D.siswa.forEach(s => getStu(s.nis, s.nama, s.kelas));
+        D.violations.forEach(v => { const o = getStu(v.nis, v.nama, v.kelas); o.pel++; if (v.kategori === 'berat') o.berat += v.poin || 0; else o.ringSed += v.poin || 0; });
+        D.rewards.forEach(v => { const o = getStu(v.nis, v.nama, v.kelas); o.rew++; o.rewPts += v.poin || 0; });
+        const attMonths = []; const clsAtt = {}, monAtt = {};
+        const z = () => ({ hari: 0, H: 0, T: 0, I: 0, S: 0, A: 0 });
+        D.absensi.slice().sort((a, b) => a.bulan.localeCompare(b.bulan)).forEach(m => {
+            attMonths.push(m.bulan); const ma = monAtt[m.bulan] = z();
+            m.rows.forEach(r => {
+                const o = getStu(r.nis, r.nama, r.kelas); const c = r.counts; const ca = clsAtt[r.kelas] = clsAtt[r.kelas] || z();
+                [o, ca, ma].forEach(t => { t.hari += r.hari; t.H += c.hadir || 0; t.T += c.telat || 0; t.I += c.izin || 0; t.S += c.sakit || 0; t.A += c.alfa || 0; });
+            });
+        });
+        const hasAtt = attMonths.length > 0;
+        const students = [...stu.values()];
+        const classes = [...new Set([...D.kelasList, ...students.map(s => s.kelas), ...D.violations.map(v => v.kelas), ...D.rewards.map(v => v.kelas)])].filter(k => k && k !== '-').sort(nat);
+        const nSis = {}; students.forEach(s => nSis[s.kelas] = (nSis[s.kelas] || 0) + 1);
+        const months = [...new Set([...D.violations.map(v => v.tanggal && v.tanggal.slice(0, 7)), ...D.rewards.map(v => v.tanggal && v.tanggal.slice(0, 7)), ...attMonths])].filter(Boolean).sort();
+        const cnt = {}; (D.lates || []).forEach(l => cnt[l.kelas] = (cnt[l.kelas] || 0) + 1);
+
+        const wsR = wb.sheet('Ringkasan', { tab: DARK }), wsK = wb.sheet('Kehadiran', { tab: BLUE }), wsAS = wb.sheet('Absensi Siswa', { tab: BLUE });
+        const wsP = wb.sheet('Pelanggaran', { tab: RED }), wsW = wb.sheet('Reward', { tab: '27AE60' }), wsC = wb.sheet('Perbandingan Kelas', { tab: GOLD });
+        const wsS = wb.sheet('Rekap Siswa', { tab: GREEN }), wsT = wb.sheet('Peringkat Siswa', { tab: GREEN }), wsB = wb.sheet('Tren Bulanan', { tab: GOLD });
+
+        /* ---------- event sheet (pelanggaran / reward) ---------- */
+        function eventSheet(ws, cfg) {
+            const list = cfg.list, cats = cfg.cats; banner(ws, cfg.title, 18);
+            const m = new Map();
+            list.forEach(e => { const n = e[cfg.nameKey] || '(tanpa nama)'; let o = m.get(n); if (!o) { o = { name: n, cat: e.kategori, poin: e.poin || 0, count: 0, total: 0, sis: new Set(), byCls: {} }; m.set(n, o); } o.count++; o.total += e.poin || 0; o.sis.add(e.nis); o.byCls[e.kelas] = (o.byCls[e.kelas] || 0) + 1; });
+            const types = [...m.values()].sort((a, b) => b.count - a.count || b.total - a.total || nat(a.name, b.name));
+            [14, 46, 14, 12, 13, 13, 12, 14].forEach((w, i) => ws.width(i, w)); for (let i = 8; i < 20; i++) ws.width(i, 10);
+            let r = 3; sec(ws, r, 7, cfg.secA); r++;
+            hdr(ws, r, 0, ['Peringkat', cfg.nameHdr, 'Kategori', 'Poin / Kejadian', 'Jumlah Kejadian', 'Siswa Terlibat', 'Total Poin', '% dari Seluruh Kejadian'], cfg.hs); r++;
+            const a0 = r, n = types.length, tr = a0 + Math.max(n, 1), E = c => `${c}${a0 + 1}:${c}${a0 + Math.max(n, 1)}`;
+            const totCount = list.length, totPts = list.reduce((s, e) => s + (e.poin || 0), 0), totSis = new Set(list.map(e => e.nis)).size;
+            if (!n) { ws.merge(a0, 0, a0, 7, 'Belum ada data pada periode ini.', S.note); }
+            types.forEach((t, i) => {
+                const rr = a0 + i; ws.set(rr, 0, i + 1, S.tc).set(rr, 1, t.name, S.t).set(rr, 2, KAT[t.cat] || t.cat || '-', S.tc).set(rr, 3, t.poin, S.n).set(rr, 4, t.count, S.n).set(rr, 5, t.sis.size, S.n).set(rr, 6, t.total, S.n)
+                    .set(rr, 7, { f: `IF($E$${tr + 1}=0,0,E${rr + 1}/$E$${tr + 1})`, v: totCount ? t.count / totCount : 0 }, S.p);
+            });
+            ws.merge(tr, 0, tr, 3, 'TOTAL', S.tT).set(tr, 4, n ? { f: `SUM(${E('E')})`, v: totCount } : 0, S.tTn).set(tr, 5, totSis, S.tTn).set(tr, 6, n ? { f: `SUM(${E('G')})`, v: totPts } : 0, S.tTn).set(tr, 7, n ? { f: `SUM(${E('H')})`, v: totCount ? 1 : 0 } : 0, S.tTp);
+            if (n) ws.bar(`E${a0 + 1}:E${a0 + n}`, cfg.color);
+            const top = types.slice(0, 10);
+            if (n) ws.chart({ kind: 'bar', title: cfg.chartTop, pos: [9, 3, 19, 25], cat: { ref: range(ws.name, a0, 1, a0 + top.length - 1, 1), vals: top.map(t => t.name) }, series: [{ name: 'Jumlah Kejadian', nameRef: range(ws.name, a0 - 1, 4, a0 - 1, 4), ref: range(ws.name, a0, 4, a0 + top.length - 1, 4), vals: top.map(t => t.count), color: cfg.color, labels: true }], gap: 50 });
+            // B: per kategori
+            r = Math.max(tr + 2, 27); sec(ws, r, 6, cfg.secB); r++;
+            hdr(ws, r, 0, ['#', 'Kategori', 'Jumlah Kejadian', '% Kejadian', 'Total Poin', 'Siswa Terlibat'], cfg.hs); r++;
+            const b0 = r; const bTot = b0 + cats.length;
+            cats.forEach((c, i) => {
+                const rows = list.filter(e => e.kategori === c.key); const rr = b0 + i;
+                ws.set(rr, 0, i + 1, S.tc).set(rr, 1, c.label, S.t).set(rr, 2, rows.length, S.n).set(rr, 3, { f: `IF($C$${bTot + 1}=0,0,C${rr + 1}/$C$${bTot + 1})`, v: totCount ? rows.length / totCount : 0 }, S.p).set(rr, 4, rows.reduce((s, e) => s + (e.poin || 0), 0), S.n).set(rr, 5, new Set(rows.map(e => e.nis)).size, S.n);
+            });
+            ws.merge(bTot, 0, bTot, 1, 'TOTAL', S.tT).set(bTot, 2, { f: `SUM(C${b0 + 1}:C${bTot})`, v: totCount }, S.tTn).set(bTot, 3, { f: `SUM(D${b0 + 1}:D${bTot})`, v: totCount ? 1 : 0 }, S.tTp).set(bTot, 4, { f: `SUM(E${b0 + 1}:E${bTot})`, v: totPts }, S.tTn).set(bTot, 5, totSis, S.tTn);
+            const catColors = cfg.catColors;
+            if (totCount) ws.chart({ kind: 'doughnut', title: cfg.chartCat, pos: [7, b0 - 2, 14, b0 + 14], cat: { ref: range(ws.name, b0, 1, bTot - 1, 1), vals: cats.map(c => c.label) }, colors: catColors, series: [{ name: 'Jumlah Kejadian', nameRef: range(ws.name, b0 - 1, 2, b0 - 1, 2), ref: range(ws.name, b0, 2, bTot - 1, 2), vals: cats.map(c => list.filter(e => e.kategori === c.key).length) }] });
+            // C: per kelas
+            r = Math.max(bTot + 2, b0 + 15); sec(ws, r, 10, cfg.secC); r++;
+            hdr(ws, r, 0, ['#', 'Kelas', ...cats.map(c => c.label), 'Total Kejadian', 'Total Poin', 'Jumlah Siswa', 'Kejadian per Siswa', 'Siswa Terlibat', '% Siswa Terlibat'], cfg.hs); r++;
+            const c0 = r, cTot = c0 + classes.length; const classRow = {}; const cdat = [];
+            classes.forEach((k, i) => {
+                const rows = list.filter(e => e.kelas === k); const rr = c0 + i; classRow[k] = rr; const per = cats.map(c => rows.filter(e => e.kategori === c.key).length);
+                const tot = rows.length, pts = rows.reduce((s, e) => s + (e.poin || 0), 0), ns = nSis[k] || 0, inv = new Set(rows.map(e => e.nis)).size; cdat.push({ k, tot, pts, ns, inv });
+                ws.set(rr, 0, i + 1, S.tc).set(rr, 1, k, S.t);
+                per.forEach((v, j) => ws.set(rr, 2 + j, v, S.n));
+                ws.set(rr, 5, { f: `SUM(C${rr + 1}:E${rr + 1})`, v: tot }, S.n).set(rr, 6, pts, S.n).set(rr, 7, ns, S.n).set(rr, 8, { f: `IF(H${rr + 1}=0,0,F${rr + 1}/H${rr + 1})`, v: ns ? tot / ns : 0 }, S.d2).set(rr, 9, inv, S.n).set(rr, 10, { f: `IF(H${rr + 1}=0,0,J${rr + 1}/H${rr + 1})`, v: ns ? inv / ns : 0 }, S.p);
+            });
+            const sumF = (c, v) => ({ f: `SUM(${c}${c0 + 1}:${c}${cTot})`, v });
+            const sc = i => list.filter(e => e.kategori === cats[i].key).length; const nsAll = cdat.reduce((s, x) => s + x.ns, 0), invAll = cdat.reduce((s, x) => s + x.inv, 0), totAllC = cdat.reduce((s, x) => s + x.tot, 0);
+            ws.merge(cTot, 0, cTot, 1, 'TOTAL', S.tT).set(cTot, 2, sumF('C', cdat.length ? classesCount(0) : 0), S.tTn).set(cTot, 3, sumF('D', classesCount(1)), S.tTn).set(cTot, 4, sumF('E', classesCount(2)), S.tTn)
+                .set(cTot, 5, sumF('F', totAllC), S.tTn).set(cTot, 6, sumF('G', cdat.reduce((s, x) => s + x.pts, 0)), S.tTn).set(cTot, 7, sumF('H', nsAll), S.tTn)
+                .set(cTot, 8, { f: `IF(H${cTot + 1}=0,0,F${cTot + 1}/H${cTot + 1})`, v: nsAll ? totAllC / nsAll : 0 }, S.tTd).set(cTot, 9, sumF('J', invAll), S.tTn).set(cTot, 10, { f: `IF(H${cTot + 1}=0,0,J${cTot + 1}/H${cTot + 1})`, v: nsAll ? invAll / nsAll : 0 }, S.tTp);
+            function classesCount(i) { return classes.reduce((s, k) => s + list.filter(e => e.kelas === k && e.kategori === cats[i].key).length, 0); }
+            if (classes.length) {
+                ws.scale(`I${c0 + 1}:I${cTot}`, cfg.scale); ws.scale(`K${c0 + 1}:K${cTot}`, cfg.scale);
+                const stackSeries = cats.map((c, i) => ({ name: c.label, nameRef: range(ws.name, c0 - 1, 2 + i, c0 - 1, 2 + i), ref: range(ws.name, c0, 2 + i, cTot - 1, 2 + i), vals: classes.map(k => list.filter(e => e.kelas === k && e.kategori === c.key).length), color: catColors[i], labels: true }));
+                ws.chart({ kind: 'col', stack: true, title: cfg.chartCls, pos: [0, cTot + 2, 6, cTot + 20], cat: { ref: range(ws.name, c0, 1, cTot - 1, 1), vals: classes }, series: stackSeries });
+                ws.chart({ kind: 'col', title: cfg.chartPer, pos: [6, cTot + 2, 12, cTot + 20], cat: { ref: range(ws.name, c0, 1, cTot - 1, 1), vals: classes }, series: [{ name: 'Kejadian per Siswa', nameRef: range(ws.name, c0 - 1, 8, c0 - 1, 8), ref: range(ws.name, c0, 8, cTot - 1, 8), vals: cdat.map(x => x.ns ? x.tot / x.ns : 0), color: cfg.color, labels: true, fmt: '0.00' }] });
+            }
+            // D: matrix
+            r = cTot + 22; sec(ws, r, 3 + classes.length, cfg.secD); r++;
+            hdr(ws, r, 0, ['Peringkat', cfg.nameHdr, ...classes, 'Total'], cfg.hs); r++;
+            const d0 = r; const topM = types.slice(0, 10);
+            topM.forEach((t, i) => {
+                const rr = d0 + i; ws.set(rr, 0, i + 1, S.tc).set(rr, 1, t.name, S.t);
+                classes.forEach((k, j) => ws.set(rr, 2 + j, t.byCls[k] || 0, S.n));
+                ws.set(rr, 2 + classes.length, { f: `SUM(C${rr + 1}:${colL(1 + classes.length)}${rr + 1})`, v: classes.reduce((s, k) => s + (t.byCls[k] || 0), 0) }, S.tTn);
+            });
+            if (topM.length && classes.length) ws.scale(`C${d0 + 1}:${colL(1 + classes.length)}${d0 + topM.length}`, ['FFFFFF', cfg.scale[1], cfg.scale[2]]);
+            ws.merge(d0 + topM.length + 1, 0, d0 + topM.length + 1, 9, cfg.noteD, S.note); ws.height(d0 + topM.length + 1, 30);
+            ws.freeze(2, 0);
+            return { types, a0, tr, classRow, catTot: cats.map((c, i) => sc(i)), totCount, totPts, cdat, c0, cTot };
+        }
+        const pelCats = [{ key: 'ringan', label: 'Ringan' }, { key: 'sedang', label: 'Sedang' }, { key: 'berat', label: 'Berat' }];
+        const rewCats = [{ key: 'kecil', label: 'Kebaikan Kecil' }, { key: 'sedang', label: 'Kebaikan Sedang' }, { key: 'besar', label: 'Kebaikan Besar' }];
+        const EP = eventSheet(wsP, { list: D.violations, nameKey: 'jenis', cats: pelCats, color: RED, hs: S.hR, scale: ['FFFFFF', 'FADBD8', 'E74C3C'], catColors: ['F1C40F', 'E67E22', 'C0392B'], title: 'REKAP PELANGGARAN SISWA', secA: 'A. Pelanggaran yang Paling Sering Dilakukan (diurutkan dari terbanyak)', nameHdr: 'Jenis Pelanggaran', chartTop: '10 Pelanggaran Paling Sering', secB: 'B. Komposisi Berdasarkan Kategori', chartCat: 'Komposisi Kategori Pelanggaran', secC: 'C. Pelanggaran per Kelas', chartCls: 'Pelanggaran per Kelas (per Kategori)', chartPer: 'Rata-rata Pelanggaran per Siswa', secD: 'D. Peta Panas: 10 Pelanggaran Teratas × Kelas', noteD: 'Semakin pekat warna merah, semakin sering pelanggaran tersebut terjadi di kelas itu.' });
+        const EW = eventSheet(wsW, { list: D.rewards, nameKey: 'bentuk', cats: rewCats, color: '27AE60', hs: st({ b: 1, color: 'FFFFFF', bg: '27AE60', al: 'center', wrap: 1, bd: 1 }), scale: ['FFFFFF', 'D5F5E3', '27AE60'], catColors: ['82E0AA', '2ECC71', '1E8449'], title: 'REKAP REWARD / KEBAIKAN SISWA', secA: 'A. Kebaikan yang Paling Sering Dilakukan (diurutkan dari terbanyak)', nameHdr: 'Bentuk Kebaikan', chartTop: '10 Kebaikan Paling Sering', secB: 'B. Komposisi Berdasarkan Kategori', chartCat: 'Komposisi Kategori Kebaikan', secC: 'C. Reward per Kelas', chartCls: 'Reward per Kelas (per Kategori)', chartPer: 'Rata-rata Reward per Siswa', secD: 'D. Peta Panas: 10 Kebaikan Teratas × Kelas', noteD: 'Semakin pekat warna hijau, semakin sering kebaikan tersebut dilakukan di kelas itu.' });
+
+        /* ---------- Kehadiran ---------- */
+        banner(wsK, 'REKAP KEHADIRAN SISWA', 14);
+        [16, 9, 12, 10, 10, 10, 10, 10, 11, 10, 10, 10, 10, 10, 18].forEach((w, i) => wsK.width(i, w));
+        sec(wsK, 3, 14, 'A. Rekap Kehadiran per Kelas'); hdr(wsK, 4, 0, ['Kelas', 'Jml Siswa', 'Total Kesempatan Hadir', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alfa', 'Belum Terisi', '% Hadir', '% Terlambat', '% Izin', '% Sakit', '% Alfa', 'Status'], S.hB);
+        const k0 = 5, kTot = k0 + classes.length; const kRow = {}; const kd = {};
+        classes.forEach((k, i) => {
+            const rr = k0 + i, a = clsAtt[k] || z(), R1 = rr + 1; kRow[k] = rr; const blank = a.hari - (a.H + a.T + a.I + a.S + a.A); const p = x => a.hari ? x / a.hari : 0;
+            kd[k] = { ...a, pHadir: a.hari ? (a.H + a.T) / a.hari : null };
+            wsK.set(rr, 0, k, S.t).set(rr, 1, nSis[k] || 0, S.n).set(rr, 2, a.hari, S.n).set(rr, 3, a.H, S.n).set(rr, 4, a.T, S.n).set(rr, 5, a.I, S.n).set(rr, 6, a.S, S.n).set(rr, 7, a.A, S.n)
+                .set(rr, 8, { f: `C${R1}-SUM(D${R1}:H${R1})`, v: blank }, S.n).set(rr, 9, { f: `IF(C${R1}=0,0,(D${R1}+E${R1})/C${R1})`, v: p(a.H + a.T) }, S.p);
+            [['E', 4], ['F', 5], ['G', 6], ['H', 7]].forEach(([c, j], x) => wsK.set(rr, 10 + x, { f: `IF($C${R1}=0,0,${c}${R1}/$C${R1})`, v: p([a.T, a.I, a.S, a.A][x]) }, S.p));
+            wsK.set(rr, 14, attStatus(a.hari ? p(a.H + a.T) * 100 : null), S.tc);
+        });
+        const at = Object.values(clsAtt).reduce((s, a) => { Object.keys(s).forEach(x => s[x] += a[x]); return s; }, z()); const aBlank = at.hari - (at.H + at.T + at.I + at.S + at.A); const tp = x => at.hari ? x / at.hari : 0; const T1 = kTot + 1;
+        wsK.set(kTot, 0, 'TOTAL', S.tT); ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].forEach((c, j) => wsK.set(kTot, 1 + j, { f: `SUM(${c}${k0 + 1}:${c}${kTot})`, v: j === 0 ? classes.reduce((s, k) => s + (nSis[k] || 0), 0) : [at.hari, at.H, at.T, at.I, at.S, at.A, aBlank][j - 1] }, S.tTn));
+        wsK.set(kTot, 9, { f: `IF(C${T1}=0,0,(D${T1}+E${T1})/C${T1})`, v: tp(at.H + at.T) }, S.tTp);
+        [['E', at.T], ['F', at.I], ['G', at.S], ['H', at.A]].forEach(([c, v], x) => wsK.set(kTot, 10 + x, { f: `IF($C${T1}=0,0,${c}${T1}/$C${T1})`, v: tp(v) }, S.tTp)); wsK.set(kTot, 14, attStatus(at.hari ? tp(at.H + at.T) * 100 : null), S.tTc);
+        wsK.set(kTot + 1, 0, 'Catatan: % Hadir = (Hadir + Terlambat) ÷ Total Kesempatan Hadir (hari efektif berjalan × siswa). "Belum Terisi" = hari efektif yang belum diabsen guru.', S.note); wsK.merge(kTot + 1, 0, kTot + 1, 14, 'Catatan: % Hadir = (Hadir + Terlambat) ÷ Total Kesempatan Hadir (hari efektif berjalan × siswa). "Belum Terisi" = hari efektif yang belum diabsen guru.', S.note); wsK.height(kTot + 1, 28);
+        if (hasAtt && classes.length) {
+            wsK.scale(`J${k0 + 1}:J${kTot}`, ['F8696B', 'FFEB84', '63BE7B']);
+            wsK.chart({ kind: 'col', title: '% Kehadiran per Kelas', pos: [0, kTot + 3, 7, kTot + 21], axisFmt: '0%', min: 0, max: 1, cat: { ref: range(wsK.name, k0, 0, kTot - 1, 0), vals: classes }, series: [{ name: '% Hadir', nameRef: range(wsK.name, 4, 9, 4, 9), ref: range(wsK.name, k0, 9, kTot - 1, 9), vals: classes.map(k => kd[k].pHadir || 0), color: BLUE, labels: true, fmt: '0.0%' }] });
+            wsK.chart({ kind: 'col', stack: 'percent', title: 'Komposisi Kehadiran per Kelas', pos: [7, kTot + 3, 15, kTot + 21], cat: { ref: range(wsK.name, k0, 0, kTot - 1, 0), vals: classes }, series: [['Hadir', 3, '27AE60'], ['Terlambat', 4, 'F1C40F'], ['Izin', 5, 'E67E22'], ['Sakit', 6, '8E44AD'], ['Alfa', 7, 'C0392B']].map(([nm, c, col]) => ({ name: nm, nameRef: range(wsK.name, 4, c, 4, c), ref: range(wsK.name, k0, c, kTot - 1, c), vals: classes.map(k => [0, 0, 0, kd[k].H, kd[k].T, kd[k].I, kd[k].S, kd[k].A][c]), color: col })) });
+        }
+        let r = kTot + 23; sec(wsK, r, 14, 'B. Tren Kehadiran per Bulan'); r++; hdr(wsK, r, 0, ['Bulan', '', 'Total Kesempatan Hadir', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alfa', 'Belum Terisi', '% Hadir'], S.hB); r++;
+        const m0 = r; const mAttRow = {};
+        attMonths.forEach((mk, i) => {
+            const a = monAtt[mk], rr = m0 + i, R1 = rr + 1; mAttRow[mk] = rr;
+            wsK.set(rr, 0, mLabel(mk), S.t).set(rr, 1, null, S.t).set(rr, 2, a.hari, S.n).set(rr, 3, a.H, S.n).set(rr, 4, a.T, S.n).set(rr, 5, a.I, S.n).set(rr, 6, a.S, S.n).set(rr, 7, a.A, S.n)
+                .set(rr, 8, { f: `C${R1}-SUM(D${R1}:H${R1})`, v: a.hari - (a.H + a.T + a.I + a.S + a.A) }, S.n).set(rr, 9, { f: `IF(C${R1}=0,0,(D${R1}+E${R1})/C${R1})`, v: a.hari ? (a.H + a.T) / a.hari : 0 }, S.p);
+        });
+        if (!attMonths.length) wsK.merge(m0, 0, m0, 9, 'Belum ada data absensi pada periode ini.', S.note);
+        if (attMonths.length > 1) wsK.chart({ kind: 'line', title: 'Tren % Kehadiran', pos: [10, m0 - 2, 15, m0 + 14], axisFmt: '0%', min: 0, max: 1, cat: { ref: range(wsK.name, m0, 0, m0 + attMonths.length - 1, 0), vals: attMonths.map(mLabel) }, series: [{ name: '% Hadir', nameRef: range(wsK.name, m0 - 1, 9, m0 - 1, 9), ref: range(wsK.name, m0, 9, m0 + attMonths.length - 1, 9), vals: attMonths.map(mk => monAtt[mk].hari ? (monAtt[mk].H + monAtt[mk].T) / monAtt[mk].hari : 0), color: BLUE, labels: true, fmt: '0.0%' }] });
+        wsK.freeze(2, 0);
+
+        /* ---------- Absensi Siswa ---------- */
+        banner(wsAS, 'REKAP KEHADIRAN PER SISWA', 12); [5, 14, 34, 9, 12, 9, 10, 8, 8, 8, 11, 10, 20].forEach((w, i) => wsAS.width(i, w));
+        hdr(wsAS, 3, 0, ['No', 'NIS', 'Nama Siswa', 'Kelas', 'Total Kesempatan Hadir', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alfa', 'Belum Terisi', '% Hadir', 'Status'], S.hB);
+        const sorted = students.slice().sort((a, b) => nat(a.kelas, b.kelas) || nat(a.nama, b.nama)); const as0 = 4;
+        sorted.forEach((s, i) => {
+            const rr = as0 + i, R1 = rr + 1; const p = s.hari ? (s.H + s.T) / s.hari : null;
+            wsAS.set(rr, 0, i + 1, S.tc).set(rr, 1, s.nis, S.tc).set(rr, 2, s.nama, S.t).set(rr, 3, s.kelas, S.tc).set(rr, 4, s.hari, S.n).set(rr, 5, s.H, S.n).set(rr, 6, s.T, S.n).set(rr, 7, s.I, S.n).set(rr, 8, s.S, S.n).set(rr, 9, s.A, S.n)
+                .set(rr, 10, { f: `E${R1}-SUM(F${R1}:J${R1})`, v: s.hari - (s.H + s.T + s.I + s.S + s.A) }, S.n).set(rr, 11, { f: `IF(E${R1}=0,"-",(F${R1}+G${R1})/E${R1})`, v: p === null ? '-' : p }, S.p).set(rr, 12, attStatus(p === null ? null : p * 100), S.tc);
+        });
+        if (sorted.length) { wsAS.filter(3, 0, as0 + sorted.length - 1, 12); wsAS.scale(`L${as0 + 1}:L${as0 + sorted.length}`, ['F8696B', 'FFEB84', '63BE7B']); wsAS.bar(`J${as0 + 1}:J${as0 + sorted.length}`, 'C0392B'); }
+        wsAS.freeze(4, 3);
+
+        /* ---------- Perbandingan Kelas ---------- */
+        banner(wsC, 'PERBANDINGAN ANTAR KELAS', 16); [14, 9, 12, 12, 13, 12, 12, 13, 14, 10, 8, 11, 11, 11, 11, 12, 12].forEach((w, i) => wsC.width(i, w));
+        sec(wsC, 3, 16, 'Perbandingan Disiplin, Kebaikan, dan Kehadiran'); hdr(wsC, 4, 0, ['Kelas', 'Jml Siswa', 'Pelanggaran (kejadian)', 'Poin Pelanggaran', 'Poin Pelanggaran per Siswa', 'Reward (kejadian)', 'Poin Reward', 'Poin Reward per Siswa', 'Selisih per Siswa (Reward − Pelanggaran)', '% Hadir', 'Alfa', 'Terlambat (absensi)', 'Peringkat Disiplin', 'Peringkat Kebaikan', 'Peringkat Kehadiran', 'Rata-rata Peringkat', 'Peringkat Akhir'], S.h);
+        wsC.height(4, 52);
+        const q0 = 5, qTot = q0 + classes.length; const qd = classes.map(k => { const cp = EP.cdat.find(x => x.k === k), cw = EW.cdat.find(x => x.k === k), ns = nSis[k] || 0; const a = kd[k]; return { k, ns, pc: cp.tot, pp: cp.pts, pps: ns ? cp.pts / ns : 0, rc: cw.tot, rp: cw.pts, rps: ns ? cw.pts / ns : 0, ph: a.hari ? (a.H + a.T) / a.hari : '-', alfa: a.A, tel: a.T }; });
+        const ranks = { d: qd.map(x => x.pps), b: qd.map(x => x.rps), h: qd.map(x => x.ph) };
+        const rn = qd.map(x => [rankOf(ranks.d, x.pps, true), rankOf(ranks.b, x.rps, false), typeof x.ph === 'number' ? rankOf(ranks.h, x.ph, false) : '-']); const avg = rn.map(a => { const v = a.filter(y => typeof y === 'number'); return v.reduce((s, y) => s + y, 0) / (v.length || 1); });
+        const qR = (c, a, b) => `${c}$${a}:${c}$${b}`;
+        qd.forEach((x, i) => {
+            const rr = q0 + i, R1 = rr + 1, k = x.k, pr = EP.classRow[k] + 1, wr = EW.classRow[k] + 1, kr = kRow[k] + 1;
+            wsC.set(rr, 0, k, S.t).set(rr, 1, x.ns, S.n)
+                .set(rr, 2, { f: `'${wsP.name}'!F${pr}`, v: x.pc }, S.n).set(rr, 3, { f: `'${wsP.name}'!G${pr}`, v: x.pp }, S.n).set(rr, 4, { f: `IF(B${R1}=0,0,D${R1}/B${R1})`, v: x.pps }, S.d2)
+                .set(rr, 5, { f: `'${wsW.name}'!F${wr}`, v: x.rc }, S.n).set(rr, 6, { f: `'${wsW.name}'!G${wr}`, v: x.rp }, S.n).set(rr, 7, { f: `IF(B${R1}=0,0,G${R1}/B${R1})`, v: x.rps }, S.d2).set(rr, 8, { f: `H${R1}-E${R1}`, v: x.rps - x.pps }, S.d2)
+                .set(rr, 9, { f: `IF('${wsK.name}'!C${kr}=0,"-",'${wsK.name}'!J${kr})`, v: x.ph }, S.p).set(rr, 10, { f: `'${wsK.name}'!H${kr}`, v: x.alfa }, S.n).set(rr, 11, { f: `'${wsK.name}'!E${kr}`, v: x.tel }, S.n)
+                .set(rr, 12, { f: `RANK(E${R1},${qR('E', q0 + 1, qTot)},1)`, v: rn[i][0] }, S.tc).set(rr, 13, { f: `RANK(H${R1},${qR('H', q0 + 1, qTot)},0)`, v: rn[i][1] }, S.tc)
+                .set(rr, 14, { f: `IF(ISNUMBER(J${R1}),RANK(J${R1},${qR('J', q0 + 1, qTot)},0),"-")`, v: rn[i][2] }, S.tc).set(rr, 15, { f: `AVERAGE(M${R1}:O${R1})`, v: avg[i] }, S.d2).set(rr, 16, { f: `RANK(P${R1},${qR('P', q0 + 1, qTot)},1)`, v: rankOf(avg, avg[i], true) }, st({ b: 1, bd: 1, al: 'center', bg: 'FFF2CC' }));
+        });
+        if (qd.length) {
+            wsC.scale(`E${q0 + 1}:E${qTot}`, ['63BE7B', 'FFEB84', 'F8696B']); wsC.scale(`H${q0 + 1}:H${qTot}`, ['F8696B', 'FFEB84', '63BE7B']); wsC.scale(`J${q0 + 1}:J${qTot}`, ['F8696B', 'FFEB84', '63BE7B']);
+            const cat = { ref: range(wsC.name, q0, 0, qTot - 1, 0), vals: classes };
+            wsC.chart({ kind: 'col', title: 'Poin per Siswa: Pelanggaran vs Reward', pos: [0, qTot + 3, 6, qTot + 21], cat, series: [{ name: 'Poin Pelanggaran per Siswa', nameRef: range(wsC.name, 4, 4, 4, 4), ref: range(wsC.name, q0, 4, qTot - 1, 4), vals: qd.map(x => x.pps), color: RED, labels: true, fmt: '0.0' }, { name: 'Poin Reward per Siswa', nameRef: range(wsC.name, 4, 7, 4, 7), ref: range(wsC.name, q0, 7, qTot - 1, 7), vals: qd.map(x => x.rps), color: '27AE60', labels: true, fmt: '0.0' }] });
+            wsC.chart({ kind: 'col', title: 'Kejadian: Pelanggaran vs Reward', pos: [6, qTot + 3, 12, qTot + 21], cat, series: [{ name: 'Pelanggaran (kejadian)', nameRef: range(wsC.name, 4, 2, 4, 2), ref: range(wsC.name, q0, 2, qTot - 1, 2), vals: qd.map(x => x.pc), color: RED, labels: true }, { name: 'Reward (kejadian)', nameRef: range(wsC.name, 4, 5, 4, 5), ref: range(wsC.name, q0, 5, qTot - 1, 5), vals: qd.map(x => x.rc), color: '27AE60', labels: true }] });
+            if (hasAtt) wsC.chart({ kind: 'col', title: '% Kehadiran per Kelas', pos: [12, qTot + 3, 17, qTot + 21], axisFmt: '0%', min: 0, max: 1, cat, series: [{ name: '% Hadir', nameRef: range(wsC.name, 4, 9, 4, 9), ref: range(wsC.name, q0, 9, qTot - 1, 9), vals: qd.map(x => typeof x.ph === 'number' ? x.ph : 0), color: BLUE, labels: true, fmt: '0.0%' }] });
+        }
+        wsC.merge(qTot + 1, 0, qTot + 1, 16, 'Cara membaca: Peringkat Disiplin (1 = poin pelanggaran per siswa terendah), Peringkat Kebaikan (1 = poin reward per siswa tertinggi), Peringkat Kehadiran (1 = % hadir tertinggi). Peringkat Akhir = urutan dari rata-rata ketiga peringkat (1 = kelas terbaik). Perbandingan memakai nilai per siswa agar adil untuk kelas berbeda jumlah siswa.', S.note); wsC.height(qTot + 1, 42);
+        wsC.freeze(5, 1);
+
+        /* ---------- Rekap Siswa ---------- */
+        banner(wsS, 'REKAP POIN & KEHADIRAN PER SISWA', 16); [5, 13, 32, 8, 11, 12, 10, 10, 10, 11, 15, 16, 12, 10, 10, 8, 10].forEach((w, i) => wsS.width(i, w));
+        hdr(wsS, 3, 0, ['No', 'NIS', 'Nama Siswa', 'Kelas', 'Jumlah Pelanggaran', 'Poin Ringan + Sedang', 'Poin Berat', 'Jumlah Reward', 'Poin Reward', 'Poin Efektif', 'Level Kebaikan', 'Status Surat Peringatan', 'Total Kesempatan Hadir', 'Hadir + Terlambat', '% Hadir', 'Alfa', 'Terlambat']);
+        const kb = D.kebaikan, sp = D.sp; const lvl = pt => pt >= kb.teladan ? 'Teladan' : pt >= kb.terbiasa ? 'Terbiasa' : pt >= kb.meningkat ? 'Meningkat' : pt >= kb.tumbuh ? 'Tumbuh' : 'Belum Tercapai';
+        const spl = e => e >= sp.sp3 ? 'SP 3' : e >= sp.sp2 ? 'SP 2' : e >= sp.sp1 ? 'SP 1' : e >= Math.ceil(sp.sp1 * 0.8) ? 'Peringatan Dini' : '-';
+        sorted.forEach(s => { s.efektif = Math.max(0, s.ringSed - s.rewPts) + s.berat; s.pH = s.hari ? (s.H + s.T) / s.hari : null; });
+        sorted.forEach((s, i) => {
+            const rr = as0 + i, R1 = rr + 1;
+            wsS.set(rr, 0, i + 1, S.tc).set(rr, 1, s.nis, S.tc).set(rr, 2, s.nama, S.t).set(rr, 3, s.kelas, S.tc).set(rr, 4, s.pel, S.n).set(rr, 5, s.ringSed, S.n).set(rr, 6, s.berat, S.n).set(rr, 7, s.rew, S.n).set(rr, 8, s.rewPts, S.n)
+                .set(rr, 9, { f: `MAX(0,F${R1}-I${R1})+G${R1}`, v: s.efektif }, st({ b: 1, bd: 1, al: 'center', fmt: '#,##0' })).set(rr, 10, lvl(s.rewPts), S.tc).set(rr, 11, spl(s.efektif), S.tc)
+                .set(rr, 12, s.hari, S.n).set(rr, 13, s.H + s.T, S.n).set(rr, 14, { f: `IF(M${R1}=0,"-",N${R1}/M${R1})`, v: s.pH === null ? '-' : s.pH }, S.p).set(rr, 15, s.A, S.n).set(rr, 16, s.T, S.n);
+        });
+        if (sorted.length) { const e = as0 + sorted.length; wsS.filter(3, 0, e - 1, 16); wsS.bar(`J${as0 + 1}:J${e}`, RED); wsS.bar(`I${as0 + 1}:I${e}`, '27AE60'); wsS.scale(`O${as0 + 1}:O${e}`, ['F8696B', 'FFEB84', '63BE7B']); }
+        wsS.set(as0 + sorted.length + 1, 0, 'Poin Efektif = (Poin Ringan + Sedang − Poin Reward, minimal 0) + Poin Berat — sama seperti aturan di aplikasi.', S.note);
+        wsS.freeze(4, 3);
+
+        /* ---------- Peringkat Siswa ---------- */
+        banner(wsT, 'PERINGKAT SISWA (10 TERATAS)', 11); [6, 30, 9, 12, 3, 6, 30, 9, 12, 3, 3, 3].forEach((w, i) => wsT.width(i, w));
+        const topTable = (r0, c0, title, hs, rows, valHdr, valFn, bar) => {
+            wsT.merge(r0, c0, r0, c0 + 3, title, S.sec); hdr(wsT, r0 + 1, c0, ['#', 'Nama Siswa', 'Kelas', valHdr], hs);
+            const arr = rows.slice(0, 10);
+            arr.forEach((s, i) => wsT.set(r0 + 2 + i, c0, i + 1, S.tc).set(r0 + 2 + i, c0 + 1, s.nama, S.t).set(r0 + 2 + i, c0 + 2, s.kelas, S.tc).set(r0 + 2 + i, c0 + 3, valFn(s), valHdr.startsWith('%') ? S.p : S.n));
+            if (!arr.length) wsT.merge(r0 + 2, c0, r0 + 2, c0 + 3, 'Belum ada data.', S.note);
+            else if (bar) wsT.bar(`${colL(c0 + 3)}${r0 + 3}:${colL(c0 + 3)}${r0 + 2 + arr.length}`, bar);
+        };
+        const by = (f, d) => students.filter(s => f(s) !== null).sort((a, b) => d * (f(b) - f(a)) || nat(a.nama, b.nama));
+        topTable(3, 0, 'Poin Efektif Tertinggi (perlu pembinaan)', S.hR, by(s => s.efektif > 0 ? s.efektif : null, 1), 'Poin Efektif', s => s.efektif, 'E74C3C');
+        topTable(3, 5, 'Poin Reward Tertinggi (teladan)', st({ b: 1, color: 'FFFFFF', bg: '27AE60', al: 'center', wrap: 1, bd: 1 }), by(s => s.rewPts > 0 ? s.rewPts : null, 1), 'Poin Reward', s => s.rewPts, '27AE60');
+        topTable(17, 0, 'Pelanggaran Terbanyak (jumlah kejadian)', S.hR, by(s => s.pel > 0 ? s.pel : null, 1), 'Kejadian', s => s.pel, 'E67E22');
+        topTable(17, 5, 'Alfa Terbanyak', S.hR, by(s => s.A > 0 ? s.A : null, 1), 'Alfa', s => s.A, 'E74C3C');
+        topTable(31, 0, 'Kehadiran Terendah', S.hB, by(s => s.pH !== null ? s.pH : null, -1), '% Hadir', s => s.pH, null);
+        topTable(31, 5, 'Kehadiran Tertinggi', S.hB, by(s => s.pH !== null ? s.pH : null, 1), '% Hadir', s => s.pH, null);
+
+        /* ---------- Tren Bulanan ---------- */
+        banner(wsB, 'TREN BULANAN', 10); [16, 13, 12, 13, 12, 14, 10, 10].forEach((w, i) => wsB.width(i, w));
+        hdr(wsB, 3, 0, ['Bulan', 'Pelanggaran (kejadian)', 'Poin Pelanggaran', 'Reward (kejadian)', 'Poin Reward', 'Total Kesempatan Hadir', '% Hadir', 'Alfa']);
+        const tb0 = 4; const td = months.map(mk => { const vs = D.violations.filter(v => (v.tanggal || '').slice(0, 7) === mk), rs = D.rewards.filter(v => (v.tanggal || '').slice(0, 7) === mk), a = monAtt[mk]; return { mk, pc: vs.length, pp: vs.reduce((s, v) => s + (v.poin || 0), 0), rc: rs.length, rp: rs.reduce((s, v) => s + (v.poin || 0), 0), hari: a ? a.hari : 0, ph: a && a.hari ? (a.H + a.T) / a.hari : '-', alfa: a ? a.A : 0 }; });
+        td.forEach((x, i) => {
+            const rr = tb0 + i; wsB.set(rr, 0, mLabel(x.mk), S.t).set(rr, 1, x.pc, S.n).set(rr, 2, x.pp, S.n).set(rr, 3, x.rc, S.n).set(rr, 4, x.rp, S.n);
+            if (mAttRow[x.mk] !== undefined) { const kr = mAttRow[x.mk] + 1; wsB.set(rr, 5, { f: `'${wsK.name}'!C${kr}`, v: x.hari }, S.n).set(rr, 6, { f: `'${wsK.name}'!J${kr}`, v: x.ph }, S.p).set(rr, 7, { f: `'${wsK.name}'!H${kr}`, v: x.alfa }, S.n); } else wsB.set(rr, 5, '-', S.tc).set(rr, 6, '-', S.tc).set(rr, 7, '-', S.tc);
+        });
+        if (td.length) {
+            const cat = { ref: range(wsB.name, tb0, 0, tb0 + td.length - 1, 0), vals: td.map(x => mLabel(x.mk)) }, e = tb0 + td.length - 1;
+            wsB.chart({ kind: 'line', title: 'Tren Kejadian: Pelanggaran vs Reward', pos: [0, tb0 + td.length + 2, 5, tb0 + td.length + 20], cat, series: [{ name: 'Pelanggaran', nameRef: range(wsB.name, 3, 1, 3, 1), ref: range(wsB.name, tb0, 1, e, 1), vals: td.map(x => x.pc), color: RED, labels: true }, { name: 'Reward', nameRef: range(wsB.name, 3, 3, 3, 3), ref: range(wsB.name, tb0, 3, e, 3), vals: td.map(x => x.rc), color: '27AE60', labels: true }] });
+            if (hasAtt) wsB.chart({ kind: 'line', title: 'Tren % Kehadiran', pos: [5, tb0 + td.length + 2, 10, tb0 + td.length + 20], axisFmt: '0%', min: 0, max: 1, cat, series: [{ name: '% Hadir', nameRef: range(wsB.name, 3, 6, 3, 6), ref: range(wsB.name, tb0, 6, e, 6), vals: td.map(x => typeof x.ph === 'number' ? x.ph : 0), color: BLUE, labels: true, fmt: '0.0%' }] });
+        }
+
+        /* ---------- Ringkasan ---------- */
+        banner(wsR, 'LAPORAN KESISWAAN — RINGKASAN', 11); for (let i = 0; i < 12; i++) wsR.width(i, 13.5);
+        const refCell = i => `${colL((i % 4) * 3)}${3 + (i >> 2) * 3 + 2}`;
+        const kpis = [
+            ['JUMLAH SISWA', { f: `'${wsK.name}'!B${kTot + 1}`, v: classes.reduce((s, k) => s + (nSis[k] || 0), 0) }, S.kV], ['KEJADIAN PELANGGARAN', { f: `'${wsP.name}'!E${EP.tr + 1}`, v: EP.totCount }, S.kV], ['TOTAL POIN PELANGGARAN', { f: `'${wsP.name}'!G${EP.tr + 1}`, v: EP.totPts }, S.kV], ['KEJADIAN KEBAIKAN', { f: `'${wsW.name}'!E${EW.tr + 1}`, v: EW.totCount }, S.kV],
+            ['TOTAL POIN REWARD', { f: `'${wsW.name}'!G${EW.tr + 1}`, v: EW.totPts }, S.kV], ['% KEHADIRAN SEKOLAH', hasAtt ? { f: `'${wsK.name}'!J${kTot + 1}`, v: tp(at.H + at.T) } : '-', S.kVp], ['TOTAL ALFA', { f: `'${wsK.name}'!H${kTot + 1}`, v: at.A }, S.kV], ['RASIO KEBAIKAN : PELANGGARAN', { f: `IF(${refCell(1)}=0,0,${refCell(3)}/${refCell(1)})`, v: EP.totCount ? EW.totCount / EP.totCount : 0 }, S.kVd]];
+        kpis.forEach(([lab, val, vs], i) => { const r0 = 3 + (i >> 2) * 3, c0 = (i % 4) * 3; wsR.merge(r0, c0, r0, c0 + 2, lab, S.kL); wsR.merge(r0 + 1, c0, r0 + 1, c0 + 2, val, vs); wsR.height(r0 + 1, 34); });
+        const best = (arr, f, d) => arr.length ? arr.slice().sort((a, b) => d * (f(b) - f(a)))[0] : null; const nm = x => x ? x.k : '-';
+        const hl = [
+            ['Pelanggaran yang paling sering', EP.types[0] ? `${EP.types[0].name} (${EP.types[0].count}× kejadian, ${EP.types[0].sis.size} siswa)` : 'Belum ada data'],
+            ['Kebaikan yang paling sering', EW.types[0] ? `${EW.types[0].name} (${EW.types[0].count}× kejadian, ${EW.types[0].sis.size} siswa)` : 'Belum ada data'],
+            ['Kelas dengan pelanggaran terbanyak (per siswa)', qd.length && EP.totCount ? `${nm(best(qd, x => x.pps, 1))} — ${best(qd, x => x.pps, 1).pps.toFixed(1)} poin/siswa` : '-'],
+            ['Kelas dengan kebaikan terbanyak (per siswa)', qd.length && EW.totCount ? `${nm(best(qd, x => x.rps, 1))} — ${best(qd, x => x.rps, 1).rps.toFixed(1)} poin/siswa` : '-'],
+            ['Kelas dengan kehadiran tertinggi', hasAtt ? (() => { const a = qd.filter(x => typeof x.ph === 'number'); const b = best(a, x => x.ph, 1); return b ? `${b.k} — ${(b.ph * 100).toFixed(1)}%` : '-'; })() : '-'],
+            ['Kelas dengan kehadiran terendah', hasAtt ? (() => { const a = qd.filter(x => typeof x.ph === 'number'); const b = best(a, x => x.ph, -1); return b ? `${b.k} — ${(b.ph * 100).toFixed(1)}%` : '-'; })() : '-'],
+            ['Kelas peringkat 1 (gabungan)', qd.length ? qd.map((x, i) => [x.k, rankOf(avg, avg[i], true)]).filter(x => x[1] === 1).map(x => x[0]).join(', ') : '-'],
+            ['Siswa dengan poin efektif tertinggi', (() => { const b = best(students.filter(s => s.efektif > 0), s => s.efektif, 1); return b ? `${b.nama} (${b.kelas}) — ${b.efektif} poin` : 'Belum ada'; })()],
+            ['Siswa dengan poin reward tertinggi', (() => { const b = best(students.filter(s => s.rewPts > 0), s => s.rewPts, 1); return b ? `${b.nama} (${b.kelas}) — ${b.rewPts} poin` : 'Belum ada'; })()],
+            ['Siswa SP 1 / SP 2 / SP 3', `${sorted.filter(s => spl(s.efektif) === 'SP 1').length} / ${sorted.filter(s => spl(s.efektif) === 'SP 2').length} / ${sorted.filter(s => spl(s.efektif) === 'SP 3').length} siswa`]
+        ];
+        sec(wsR, 9, 11, 'Sorotan Utama'); hl.forEach(([a, b], i) => { wsR.merge(10 + i, 0, 10 + i, 3, a, S.sL); wsR.merge(10 + i, 4, 10 + i, 11, b, S.sV); wsR.height(10 + i, 20); });
+        let gr = 10 + hl.length + 1; sec(wsR, gr, 11, 'Grafik Ringkas');
+        const cat = { ref: range(wsC.name, q0, 0, qTot - 1, 0), vals: classes };
+        if (qd.length) {
+            wsR.chart({ kind: 'col', title: 'Poin per Siswa: Pelanggaran vs Reward', pos: [0, gr + 1, 6, gr + 19], cat, series: [{ name: 'Pelanggaran', nameRef: range(wsC.name, 4, 4, 4, 4), ref: range(wsC.name, q0, 4, qTot - 1, 4), vals: qd.map(x => x.pps), color: RED, labels: true, fmt: '0.0' }, { name: 'Reward', nameRef: range(wsC.name, 4, 7, 4, 7), ref: range(wsC.name, q0, 7, qTot - 1, 7), vals: qd.map(x => x.rps), color: '27AE60', labels: true, fmt: '0.0' }] });
+            if (hasAtt) wsR.chart({ kind: 'col', title: '% Kehadiran per Kelas', pos: [6, gr + 1, 12, gr + 19], axisFmt: '0%', min: 0, max: 1, cat, series: [{ name: '% Hadir', nameRef: range(wsC.name, 4, 9, 4, 9), ref: range(wsC.name, q0, 9, qTot - 1, 9), vals: qd.map(x => typeof x.ph === 'number' ? x.ph : 0), color: BLUE, labels: true, fmt: '0.0%' }] });
+        }
+        const t5 = (E, nameCol) => E.types.slice(0, 5);
+        if (EP.types.length) wsR.chart({ kind: 'bar', title: '5 Pelanggaran Paling Sering', pos: [0, gr + 20, 6, gr + 38], cat: { ref: range(wsP.name, EP.a0, 1, EP.a0 + t5(EP).length - 1, 1), vals: t5(EP).map(t => t.name) }, series: [{ name: 'Jumlah Kejadian', nameRef: range(wsP.name, EP.a0 - 1, 4, EP.a0 - 1, 4), ref: range(wsP.name, EP.a0, 4, EP.a0 + t5(EP).length - 1, 4), vals: t5(EP).map(t => t.count), color: RED, labels: true }], gap: 50 });
+        if (EW.types.length) wsR.chart({ kind: 'bar', title: '5 Kebaikan Paling Sering', pos: [6, gr + 20, 12, gr + 38], cat: { ref: range(wsW.name, EW.a0, 1, EW.a0 + t5(EW).length - 1, 1), vals: t5(EW).map(t => t.name) }, series: [{ name: 'Jumlah Kejadian', nameRef: range(wsW.name, EW.a0 - 1, 4, EW.a0 - 1, 4), ref: range(wsW.name, EW.a0, 4, EW.a0 + t5(EW).length - 1, 4), vals: t5(EW).map(t => t.count), color: '27AE60', labels: true }], gap: 50 });
+        const nr = gr + 40; wsR.merge(nr, 0, nr, 11, 'Panduan sheet: Kehadiran • Absensi Siswa • Pelanggaran (jenis terbanyak, kategori, per kelas, peta panas) • Reward • Perbandingan Kelas • Rekap Siswa • Peringkat Siswa • Tren Bulanan • Detail data. Semua angka total/persentase memakai rumus Excel sehingga ikut berubah bila data diedit; sheet Detail dapat dijadikan PivotTable.', S.note); wsR.height(nr, 44);
+
+        /* ---------- Detail sheets ---------- */
+        const detail = (name, tab, hs, list, nameHdr, nameKey, extra) => {
+            const ws = wb.sheet(name, { tab }); banner(ws, name.toUpperCase(), 8); [12, 13, 30, 9, 44, 12, 8, 18].forEach((w, i) => ws.width(i, w)); ws.width(8, 40);
+            hdr(ws, 3, 0, ['Tanggal', 'NIS', 'Nama Siswa', 'Kelas', nameHdr, 'Kategori', 'Poin', 'Dicatat Oleh', ...(extra ? ['Catatan'] : [])], hs);
+            const rows = list.slice().sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || '') || nat(a.nama, b.nama));
+            rows.forEach((v, i) => { const rr = 4 + i; ws.set(rr, 0, serial(v.tanggal), S.dt).set(rr, 1, v.nis, S.tc).set(rr, 2, v.nama, S.t).set(rr, 3, v.kelas, S.tc).set(rr, 4, v[nameKey] || '-', S.t).set(rr, 5, KAT[v.kategori] || v.kategori || '-', S.tc).set(rr, 6, v.poin || 0, S.n).set(rr, 7, v.guru || '-', S.t); if (extra) ws.set(rr, 8, v.catatan || '', S.t); });
+            if (rows.length) ws.filter(3, 0, 3 + rows.length, extra ? 8 : 7); ws.freeze(4, 0); return ws;
+        };
+        detail('Detail Pelanggaran', RED, S.hR, D.violations, 'Jenis Pelanggaran', 'jenis', true);
+        detail('Detail Reward', '27AE60', st({ b: 1, color: 'FFFFFF', bg: '27AE60', al: 'center', wrap: 1, bd: 1 }), D.rewards, 'Bentuk Kebaikan', 'bentuk', false);
+
+        /* ---------- Matriks absensi harian ---------- */
+        if (D.matrix && D.matrix.rows.length) {
+            const M = D.matrix, ws = wb.sheet('Absensi Harian', { tab: BLUE }); const nd = M.totalDays; banner(ws, 'MATRIKS ABSENSI HARIAN — ' + mLabel(M.monthKey).toUpperCase(), 3 + nd + 5);
+            ws.width(0, 5).width(1, 30).width(2, 8); for (let d = 0; d < nd; d++) ws.width(3 + d, 4.2); for (let j = 0; j < 5; j++) ws.width(3 + nd + j, 8);
+            const days = []; for (let d = 1; d <= nd; d++) days.push(d);
+            hdr(ws, 3, 0, ['No', 'Nama Siswa', 'Kelas', ...days, 'H', 'T', 'I', 'S', 'A'], S.hB);
+            const cs = { H: st({ bd: 1, al: 'center', b: 1, color: '1E8449', bg: 'D5F5E3' }), T: st({ bd: 1, al: 'center', b: 1, color: '9A7D0A', bg: 'FCF3CF' }), I: st({ bd: 1, al: 'center', b: 1, color: 'B9770E', bg: 'FDEBD0' }), S: st({ bd: 1, al: 'center', b: 1, color: '6C3483', bg: 'E8DAEF' }), A: st({ bd: 1, al: 'center', b: 1, color: 'FFFFFF', bg: 'C0392B' }), L: st({ bd: 1, al: 'center', color: '999999', bg: 'EEEEEE' }), '': st({ bd: 1, al: 'center' }) };
+            M.rows.forEach((r, i) => {
+                const rr = 4 + i, R1 = rr + 1; ws.set(rr, 0, i + 1, S.tc).set(rr, 1, r.nama, S.t).set(rr, 2, r.kelas, S.tc);
+                r.days.forEach((c, d) => ws.set(rr, 3 + d, c, cs[c] || cs['']));
+                ['H', 'T', 'I', 'S', 'A'].forEach((c, j) => ws.set(rr, 3 + nd + j, { f: `COUNTIF(${colL(3)}${R1}:${colL(2 + nd)}${R1},"${c}")`, v: r.days.filter(x => x === c).length }, S.n));
+            });
+            ws.filter(3, 0, 3 + M.rows.length, 2 + nd + 5); ws.freeze(4, 3);
+            ws.merge(4 + M.rows.length + 1, 0, 4 + M.rows.length + 1, 20, 'Keterangan: H = Hadir, T = Terlambat, I = Izin, S = Sakit, A = Alfa (tanpa keterangan), L = Libur / akhir pekan.', S.note);
+        }
+        wsR.first = true;
+        return wb;
+    }
+    root.LaporanXLSX = { build, mLabel };
+    if (typeof module !== 'undefined') module.exports = root.LaporanXLSX;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
     <style>
         /* ===== RESET & VARIABEL ===== */
         * {
@@ -2243,7 +2744,7 @@
                             <select id="rekapFilterClass"><option value="">Semua Kelas</option><option value="7A">7A</option><option value="7B">7B</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option></select>
                             <select id="rekapFilterMonth"></select>
                             <button class="btn btn-sm btn-outline" id="clearRekapFilters"><i class="fas fa-undo"></i> Reset</button>
-                            <button class="btn btn-sm export-btn" id="exportRekapBtn"><i class="fas fa-file-excel"></i> Download Rekap</button>
+                            <button class="btn btn-sm export-btn" id="exportRekapBtn"><i class="fas fa-file-excel"></i> Laporan Excel Lengkap</button>
                         </div>
                         <div class="table-wrap">
                             <table>
@@ -4997,30 +5498,47 @@ Wassalamu'alaikum warahmatullahi wabarakatuh.
             document.getElementById('rekapFilterMonth').value = '';
             loadRekapSiswa();
         });
-        document.getElementById('exportRekapBtn').addEventListener('click', function() {
-            const data = window.__rekapSiswa || getRekapData();
-            if (!data.length) { showToast('Tidak ada data untuk diekspor.', 'error'); return; }
-            const monthSel = document.getElementById('rekapFilterMonth');
-            const monthKey = monthSel ? monthSel.value : '';
-            const periodeLabel = monthKeyLabel(monthKey || null);
-            const headers = ['No', 'NIS', 'Nama', 'Kelas', 'Poin Pelanggaran', 'Jumlah Pelanggaran', 'Poin Reward',
-                'Jumlah Reward', 'Poin Efektif', 'Level Kebaikan'
-            ];
-            const rows = data.map((s, i) => [i + 1, s.nis, s.nama, s.kelas || '-', s.poinPelanggaran, s.jmlPelanggaran,
-                s.poinReward, s.jmlReward, s.poinEfektif, s.levelKebaikan.label
-            ]);
-            const csv = [[`Rekap Siswa - ${periodeLabel}`], headers, ...rows].map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join(
-            '\r\n');
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `rekap-siswa-${monthKey || 'semua-waktu'}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Rekap siswa berhasil diunduh!');
+        document.getElementById('exportRekapBtn').addEventListener('click', async function() {
+            const btn = this; const oldHtml = btn.innerHTML;
+            if (!Object.keys(siswaCache || {}).length) { showToast('Belum ada data siswa.', 'error'); return; }
+            if (typeof JSZip === 'undefined' || !window.LaporanXLSX) { showToast('Pustaka Excel belum termuat. Periksa koneksi internet lalu coba lagi.', 'error'); return; }
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyusun laporan...';
+            try {
+                const monthSel = document.getElementById('rekapFilterMonth');
+                const monthKey = monthSel ? (monthSel.value || '') : '';
+                const inP = t => !monthKey || (t && t.slice(0, 7) === monthKey);
+                const lbl = k => profileKelasLabel(k, '-');
+                const clsOf = (nis, k) => siswaCache[nis] ? lbl(siswaCache[nis].kelas) : lbl(k);
+                const siswa = Object.entries(siswaCache).map(([nis, s]) => ({ nis: s.nis || nis, nama: s.nama, kelas: lbl(s.kelas) })).filter(s => s.nama);
+                const violations = Object.values(violationsCache || {}).filter(v => inP(v.tanggal)).map(v => ({ nis: v.nis, nama: v.nama, kelas: clsOf(v.nis, v.kelas), jenis: v.pelanggaran, kategori: v.kategori, poin: v.poin || 0, guru: v.guru, tanggal: v.tanggal, catatan: v.catatan || '' }));
+                const rewards = Object.values(rewardsCache || {}).filter(r => !r.isMoneyReward && inP(r.tanggal)).map(r => ({ nis: r.nis, nama: r.nama, kelas: clsOf(r.nis, r.kelas), bentuk: r.bentuk, kategori: r.kategori, poin: r.poin || 0, guru: r.guru, tanggal: r.tanggal }));
+                const lates = Object.values(latesCache || {}).filter(l => inP(l.tanggal)).map(l => ({ kelas: clsOf(l.nis, l.kelas) }));
+                const attRecs = Object.values(absensiCache || {}).filter(a => a.tanggal && inP(a.tanggal));
+                const attMonths = [...new Set(attRecs.map(a => a.tanggal.slice(0, 7)))].sort();
+                const matrixRows = (mk) => {
+                    const set = new Set(Object.values(absensiCache || {}).filter(a => a.tanggal && a.tanggal.slice(0, 7) === mk).map(a => normalizeKelas(a.kelas)));
+                    return buildAbsensiMatrixRows('', mk).rows.filter(r => set.has(normalizeKelas(r.kelas)));
+                };
+                const absensi = attMonths.map(mk => ({ bulan: mk, rows: matrixRows(mk).map(r => ({ nis: r.nis, nama: r.nama, kelas: lbl(r.kelas), hari: r.hariBerjalan, counts: r.counts })) }));
+                let matrix = null;
+                const mkM = monthKey || attMonths[attMonths.length - 1];
+                if (mkM && attMonths.includes(mkM)) {
+                    const rows = matrixRows(mkM).map(r => ({ nama: r.nama, kelas: lbl(r.kelas), days: r.days.map(d => d.libur ? 'L' : d.code) })).sort((a, b) => a.kelas.localeCompare(b.kelas, 'id', { numeric: true }) || a.nama.localeCompare(b.nama));
+                    matrix = { monthKey: mkM, totalDays: daysInMonth(mkM), rows };
+                }
+                const D = { sekolah: "SMP TahfizhPreneur Cahaya Qur'an", periode: monthKeyLabel(monthKey || null), printedAt: formatDate(today()), printedBy: currentUser ? currentUser.name : '', kelasList: [...new Set(siswa.map(s => s.kelas))], siswa, violations, rewards, absensi, lates, kebaikan: kebaikanThresholdsCache, sp: spThresholdsCache, matrix };
+                const wb = await window.LaporanXLSX.build(D, JSZip);
+                const Z = await wb.build(JSZip);
+                const blob = await Z.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', compression: 'DEFLATE' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `laporan-kesiswaan-${monthKey || 'semua-waktu'}.xlsx`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                showToast('Laporan Excel lengkap berhasil diunduh!');
+            } catch (err) {
+                console.error(err); showToast('Gagal membuat laporan: ' + err.message, 'error');
+            } finally { btn.disabled = false; btn.innerHTML = oldHtml; }
         });
 
         // ============================================================
