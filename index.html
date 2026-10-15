@@ -747,6 +747,20 @@
             font-weight: 600;
             color: var(--primary);
         }
+        .bulk-picker {
+            border: 1px solid #e3ddce;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 14px;
+            background: #fdfcf9;
+        }
+        [data-theme="dark"] .bulk-picker { background: transparent; border-color: rgba(255,255,255,.12); }
+        .bulk-picker .bulk-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .bulk-picker .bulk-tools select { flex: 0 0 auto; min-width: 130px; }
+        .bulk-picker .bulk-tools input[type="text"] { flex: 1 1 160px; min-width: 120px; }
+        .bulk-picker .multi-check-list { max-height: 300px; background: transparent; }
+        .bulk-picker .bulk-count { font-weight: 700; color: var(--primary); }
+        .bulk-hint { font-size: 0.8rem; color: var(--text-light); margin: 0 0 8px; }
         .badge-gold {
             background: var(--gold);
             color: #fff;
@@ -2596,7 +2610,10 @@
                     <div class="page-header"><h2><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</h2><p>Ketik nama siswa, pilih jenis pelanggaran.</p></div>
                     <div class="card">
                         <form id="recordForm">
-                            <div class="form-row">
+                            <div class="form-group">
+                                <label class="multi-toggle-label"><input type="checkbox" id="recBulkToggle" /> Catat untuk banyak siswa sekaligus</label>
+                            </div>
+                            <div id="recSingleStudent" class="form-row">
                                 <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
                                     <input type="text" id="recStudentInput" list="siswaDatalist" placeholder="Ketik nama siswa..." autocomplete="off" />
@@ -2605,6 +2622,7 @@
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="recClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
+                            <div id="recBulkStudents" class="bulk-picker hidden"></div>
                             <div class="form-group">
                                 <label class="multi-toggle-label"><input type="checkbox" id="recMultiToggle" /> Catat lebih dari satu pelanggaran sekaligus</label>
                             </div>
@@ -2637,7 +2655,10 @@
                     <div class="page-header"><h2><i class="fas fa-star" style="color:var(--success);"></i> Catat Reward (Kebaikan)</h2><p>Ketik nama siswa, pilih bentuk kebaikan. <span class="badge badge-success">Reward akan mengurangi poin ringan/sedang!</span></p></div>
                     <div class="card">
                         <form id="rewardForm">
-                            <div class="form-row">
+                            <div class="form-group">
+                                <label class="multi-toggle-label"><input type="checkbox" id="rewardBulkToggle" /> Beri reward untuk banyak siswa sekaligus</label>
+                            </div>
+                            <div id="rewardSingleStudent" class="form-row">
                                 <div class="form-group">
                                     <label>Siswa <span class="text-muted">*</span></label>
                                     <input type="text" id="rewardStudentInput" list="siswaDatalist" placeholder="Ketik nama siswa..." autocomplete="off" />
@@ -2645,6 +2666,7 @@
                                 </div>
                                 <div class="form-group"><label>Kelas</label><input type="text" id="rewardClass" readonly style="background:#f4f1ea;" /></div>
                             </div>
+                            <div id="rewardBulkStudents" class="bulk-picker hidden"></div>
                             <div class="form-group">
                                 <label class="multi-toggle-label"><input type="checkbox" id="rewardMultiToggle" /> Catat lebih dari satu kebaikan sekaligus</label>
                             </div>
@@ -4001,37 +4023,157 @@
         // Dipanggil setiap kali ada pelanggaran/reward baru tersimpan untuk seorang siswa.
         // Mengecek apakah poin siswa sudah melewati ambang batas yang diatur admin,
         // dan hanya mengirim WA sekali per ambang batas (tidak spam berulang).
-        function buildPesanWaPelanggaran(nama, kelasText, poin, ambang) {
-            return `🌿 Assalamu'alaikum warahmatullahi wabarakatuh
-Bapak/Ibu Orang Tua/Wali Ananda ${nama} (Kelas ${kelasText}) yang kami hormati,
-Kami ingin menyampaikan informasi terkait perkembangan kedisiplinan ananda di sekolah. Berdasarkan catatan pembinaan yang ada, saat ini poin pelanggaran ananda telah mencapai ${poin} poin, sementara ambang batas pemberitahuan kepada orang tua adalah ${ambang} poin.
-Pemberitahuan ini kami sampaikan bukan semata-mata sebagai bentuk teguran, tetapi sebagai ikhtiar bersama untuk membantu ananda memperbaiki sikap, kedisiplinan, dan tanggung jawabnya. Kami meyakini bahwa pembentukan karakter anak akan jauh lebih kuat apabila sekolah dan orang tua dapat berjalan bersama.
-Kami sangat berharap Bapak/Ibu dapat memberikan perhatian, nasihat, serta pendampingan kepada ananda di rumah, sekaligus mengingatkan kembali pentingnya menaati tata tertib, menghargai guru dan teman, menjaga adab, serta bertanggung jawab terhadap setiap amanah yang diberikan.
-InsyaAllah, dari pihak sekolah kami juga akan terus melakukan pembinaan dan pendampingan kepada ananda agar setiap pelanggaran dapat menjadi bahan evaluasi dan kesempatan untuk belajar menjadi pribadi yang lebih baik.
-🤝 Mari kita bersama-sama membantu ananda.
-Karena tujuan kita bukan sekadar agar ananda terhindar dari pelanggaran, tetapi agar tumbuh menjadi anak yang beradab, disiplin, bertanggung jawab, dan memiliki akhlak yang baik.
-Mohon kiranya informasi ini dapat menjadi perhatian Bapak/Ibu dan dapat ditindaklanjuti dengan komunikasi serta pendampingan kepada ananda.
-Jazakumullahu khairan atas perhatian, kepedulian, dan kerja sama Bapak/Ibu.
-Wassalamu'alaikum warahmatullahi wabarakatuh.
-🏫 SMP TahfizhPreneur Cahaya Qur'an`;
+        // Rincian yang ikut dikirim ke wali murid: daftar pelanggaran / kebaikan yang tercatat,
+        // dikelompokkan per jenis (jumlah kejadian + poin). Memakai data yang sama dengan hitungan poin.
+        function buildRincianWa(nis, jenis, stats) {
+            const isViol = jenis === 'pelanggaran';
+            const src = Object.values((isViol ? violationsCache : rewardsCache) || {})
+                .filter(r => r && r.nis === nis && !r.isMoneyReward);
+            const map = new Map();
+            src.forEach(r => {
+                const nama = String((isViol ? r.pelanggaran : r.bentuk) || '').trim() || '(tanpa keterangan)';
+                const o = map.get(nama) || { nama, n: 0, poin: 0 };
+                o.n += 1; o.poin += (r.poin || 0);
+                map.set(nama, o);
+            });
+            const items = Array.from(map.values()).sort((a, b) => b.poin - a.poin || b.n - a.n || a.nama.localeCompare(b.nama, 'id'));
+            if (!items.length) return '';
+            const MAX = 15;
+            const lines = items.slice(0, MAX).map(o => `• ${o.nama} — ${o.n}x (${isViol ? '' : '+'}${o.poin} poin)`);
+            if (items.length > MAX) lines.push(`• dan ${items.length - MAX} jenis lainnya`);
+            const head = isViol ? '📋 Rincian pelanggaran yang tercatat:' : '🌟 Kebaikan yang telah ananda lakukan:';
+            let out = head + '\n' + lines.join('\n');
+            if (isViol && stats && stats.lightMed > 0 && stats.rewardPts > 0) {
+                out += `\n(Poin pelanggaran ringan/sedang sudah dikurangi ${Math.min(stats.lightMed, stats.rewardPts)} poin dari kebaikan ananda.)`;
+            }
+            return out;
         }
 
-        function buildPesanWaKebaikan(nama, kelasText, poin) {
-            return `🌿 Assalamu'alaikum warahmatullahi wabarakatuh
-Bapak/Ibu Orang Tua/Wali Ananda ${nama} (Kelas ${kelasText}) yang kami hormati,
-Alhamdulillah, kami ingin menyampaikan kabar baik mengenai perkembangan ananda. 🌟
-Berdasarkan catatan pembiasaan dan penilaian karakter di sekolah, saat ini ananda telah berhasil mengumpulkan ✨ ${poin} Poin Kebaikan ✨.
-Poin tersebut merupakan bentuk apresiasi atas berbagai sikap positif, kedisiplinan, tanggung jawab, adab, kepedulian, serta kebiasaan baik yang ananda tunjukkan selama berada di lingkungan sekolah.
-💚 Kami sangat mengapresiasi usaha dan perkembangan ananda.
-Hal-hal kecil seperti datang tepat waktu, menjaga kebersihan, membantu teman, menghormati guru, melaksanakan tugas dengan baik, menjaga adab, dan melakukan kebaikan lainnya merupakan proses penting dalam membentuk karakter seorang anak.
-Kami juga berharap Bapak/Ibu dapat terus memberikan apresiasi dan motivasi kepada ananda di rumah. Sampaikan bahwa setiap kebaikan yang dilakukan memiliki nilai dan manfaat, serta teruslah mendampingi ananda agar kebiasaan baik tersebut menjadi karakter yang melekat dalam dirinya.
-🤝 Sekolah dan keluarga memiliki peran yang sama dalam membentuk pribadi ananda.
-Semoga poin kebaikan ini bukan hanya menjadi angka, tetapi menjadi gambaran dari tumbuhnya akhlak, kedisiplinan, tanggung jawab, dan kepedulian dalam diri ananda.
-🌱 Terus bertumbuh, terus berbuat baik, dan terus menjadi versi terbaik dari diri sendiri.
-Semoga Allah ﷻ senantiasa membimbing dan memberkahi setiap langkah kebaikan ananda.
-Jazakumullahu khairan atas dukungan dan kerja sama Bapak/Ibu dalam mendampingi perkembangan ananda.
-Wassalamu'alaikum warahmatullahi wabarakatuh.
-🏫 SMP TahfizhPreneur Cahaya Qur'an`;
+        // Dipakai untuk pesan buatan AI: rincian disisipkan di sisi aplikasi (tidak dikirim ke AI),
+        // tepat sebelum salam penutup.
+        function sisipkanRincianWa(pesan, rincian) {
+            if (!rincian) return pesan;
+            let idx = String(pesan).toLowerCase().lastIndexOf('wassalam');
+            if (idx < 0) idx = String(pesan).lastIndexOf('🏫');
+            if (idx < 0) return pesan + '\n\n' + rincian;
+            return pesan.slice(0, idx).replace(/\s*$/, '') + '\n\n' + rincian + '\n\n' + pesan.slice(idx);
+        }
+
+        // ------------------------------------------------------------
+        // VARIASI PESAN WA ORANG TUA
+        // Pesan disusun dari beberapa bagian; tiap bagian punya beberapa versi kalimat.
+        // Versi dipilih acak, dan versi yang sama dengan pesan terakhir ke siswa itu dihindari,
+        // sehingga pesan tidak selalu sama (antar siswa maupun untuk siswa yang sama).
+        // ------------------------------------------------------------
+        const WA_VARIASI = {
+            pelanggaran: [
+                // 0. Salam & sapaan
+                [
+                    d => `🌿 Assalamu'alaikum warahmatullahi wabarakatuh\nBapak/Ibu Orang Tua/Wali Ananda ${d.nama} (Kelas ${d.kelasText}) yang kami hormati,`,
+                    d => `🌿 Assalamu'alaikum warahmatullahi wabarakatuh\nYth. Bapak/Ibu Orang Tua/Wali dari Ananda ${d.nama} (Kelas ${d.kelasText}),`,
+                    d => `🌿 Assalamu'alaikum warahmatullahi wabarakatuh\nSemoga Bapak/Ibu Orang Tua/Wali Ananda ${d.nama} (Kelas ${d.kelasText}) senantiasa dalam lindungan Allah ﷻ.`
+                ],
+                // 1. Informasi poin (rincian ditempel di akhir bagian ini)
+                [
+                    d => `Kami ingin menyampaikan informasi terkait perkembangan kedisiplinan ananda di sekolah. Berdasarkan catatan pembinaan yang ada, saat ini poin pelanggaran ananda telah mencapai ${d.poin} poin, sementara ambang batas pemberitahuan kepada orang tua adalah ${d.ambang} poin.`,
+                    d => `Melalui pesan ini, kami hendak memberi kabar tentang kedisiplinan ananda di sekolah. Dari catatan pembinaan yang tersedia, poin pelanggaran ananda kini ada di angka ${d.poin} poin, dan angka tersebut telah mencapai ambang pemberitahuan kepada orang tua, yaitu ${d.ambang} poin.`,
+                    d => `Kami mohon izin menyampaikan perkembangan sikap dan kedisiplinan ananda. Sesuai catatan pembinaan di sekolah, total poin pelanggaran ananda saat ini ${d.poin} poin, telah mencapai batas pemberitahuan kepada orang tua sebesar ${d.ambang} poin.`,
+                    d => `Ada hal yang ingin kami sampaikan mengenai kedisiplinan ananda. Berdasarkan pencatatan di sekolah, poin pelanggaran ananda sekarang berjumlah ${d.poin} poin (ambang pemberitahuan kepada orang tua: ${d.ambang} poin).`
+                ],
+                // 2. Tujuan pembinaan
+                [
+                    d => `Pemberitahuan ini kami sampaikan bukan semata-mata sebagai bentuk teguran, tetapi sebagai ikhtiar bersama untuk membantu ananda memperbaiki sikap, kedisiplinan, dan tanggung jawabnya. Kami meyakini bahwa pembentukan karakter anak akan jauh lebih kuat apabila sekolah dan orang tua dapat berjalan bersama.`,
+                    d => `Kami menyampaikannya bukan untuk menyalahkan, melainkan karena kami percaya bahwa ananda bisa tumbuh lebih baik jika sekolah dan rumah saling menguatkan. Pembinaan karakter akan lebih berhasil bila dilakukan bersama-sama.`,
+                    d => `Informasi ini adalah bagian dari pembinaan, bukan vonis. Harapan kami sederhana: ananda dapat memperbaiki sikap dan tanggung jawabnya dengan dukungan dari sekolah dan keluarga yang sejalan.`
+                ],
+                // 3. Harapan kepada orang tua
+                [
+                    d => `Kami sangat berharap Bapak/Ibu dapat memberikan perhatian, nasihat, serta pendampingan kepada ananda di rumah, sekaligus mengingatkan kembali pentingnya menaati tata tertib, menghargai guru dan teman, menjaga adab, serta bertanggung jawab terhadap setiap amanah yang diberikan.`,
+                    d => `Besar harapan kami Bapak/Ibu berkenan berbincang dengan ananda di rumah dengan tenang dan penuh kasih, mengingatkan kembali pentingnya tata tertib, adab kepada guru dan teman, serta tanggung jawab atas amanah yang diberikan.`,
+                    d => `Kami memohon bantuan Bapak/Ibu untuk mendampingi ananda di rumah: ajak ia mengenali kekeliruannya, ingatkan tentang tata tertib dan adab, dan dorong ia agar lebih bertanggung jawab.`
+                ],
+                // 4. Komitmen sekolah & ajakan
+                [
+                    d => `InsyaAllah, dari pihak sekolah kami juga akan terus melakukan pembinaan dan pendampingan kepada ananda agar setiap pelanggaran dapat menjadi bahan evaluasi dan kesempatan untuk belajar menjadi pribadi yang lebih baik.\n🤝 Mari kita bersama-sama membantu ananda.\nKarena tujuan kita bukan sekadar agar ananda terhindar dari pelanggaran, tetapi agar tumbuh menjadi anak yang beradab, disiplin, bertanggung jawab, dan memiliki akhlak yang baik.\nMohon kiranya informasi ini dapat menjadi perhatian Bapak/Ibu dan dapat ditindaklanjuti dengan komunikasi serta pendampingan kepada ananda.`,
+                    d => `Dari sisi sekolah, InsyaAllah kami akan terus membina dan mendampingi ananda, agar setiap kekeliruan menjadi pelajaran dan langkah menuju pribadi yang lebih baik.\n🤝 Kita tempuh bersama, Bapak/Ibu.\nTujuan kita bukan hanya menghindarkan ananda dari pelanggaran, tetapi menumbuhkannya menjadi anak yang beradab, disiplin, dan berakhlak baik.\nJika Bapak/Ibu ingin berdiskusi, kami terbuka untuk berkomunikasi dengan pihak sekolah.`,
+                    d => `Kami di sekolah berkomitmen melanjutkan pembinaan kepada ananda, sehingga pelanggaran yang terjadi dapat menjadi bahan evaluasi dan pembelajaran.\n🤝 Semoga dengan kerja sama yang baik, ananda tumbuh menjadi pribadi yang beradab, disiplin, dan bertanggung jawab.\nBila ada hal yang ingin Bapak/Ibu tanyakan atau diskusikan, silakan hubungi pihak sekolah kapan saja.`
+                ],
+                // 5. Penutup
+                [
+                    d => `Jazakumullahu khairan atas perhatian, kepedulian, dan kerja sama Bapak/Ibu.\nWassalamu'alaikum warahmatullahi wabarakatuh.`,
+                    d => `Terima kasih atas perhatian dan kerja sama Bapak/Ibu. Jazakumullahu khairan.\nWassalamu'alaikum warahmatullahi wabarakatuh.`,
+                    d => `Semoga Allah ﷻ memudahkan langkah kita bersama dalam mendidik ananda. Jazakumullahu khairan.\nWassalamu'alaikum warahmatullahi wabarakatuh.`
+                ]
+            ],
+            kebaikan: [
+                // 0. Salam & sapaan
+                [
+                    d => `🌿 Assalamu'alaikum warahmatullahi wabarakatuh\nBapak/Ibu Orang Tua/Wali Ananda ${d.nama} (Kelas ${d.kelasText}) yang kami hormati,`,
+                    d => `🌿 Assalamu'alaikum warahmatullahi wabarakatuh\nYth. Bapak/Ibu Orang Tua/Wali dari Ananda ${d.nama} (Kelas ${d.kelasText}),`,
+                    d => `🌿 Assalamu'alaikum warahmatullahi wabarakatuh\nSemoga Bapak/Ibu Orang Tua/Wali Ananda ${d.nama} (Kelas ${d.kelasText}) senantiasa diberi kesehatan dan keberkahan.`
+                ],
+                // 1. Informasi poin (rincian ditempel di akhir bagian ini)
+                [
+                    d => `Alhamdulillah, kami ingin menyampaikan kabar baik mengenai perkembangan ananda. 🌟\nBerdasarkan catatan pembiasaan dan penilaian karakter di sekolah, saat ini ananda telah berhasil mengumpulkan ✨ ${d.poin} Poin Kebaikan ✨.`,
+                    d => `Alhamdulillah, ada kabar menggembirakan dari sekolah untuk Bapak/Ibu. 🌟\nSesuai catatan pembiasaan dan karakter, ananda kini telah mengumpulkan ✨ ${d.poin} Poin Kebaikan ✨.`,
+                    d => `Dengan rasa syukur, kami sampaikan perkembangan positif ananda di sekolah. 🌟\nDari catatan karakter dan pembiasaan, total poin kebaikan ananda sekarang mencapai ✨ ${d.poin} Poin ✨.`,
+                    d => `Kami senang dapat berbagi kabar baik tentang ananda. 🌟\nBerdasarkan pencatatan di sekolah, ananda telah meraih ✨ ${d.poin} Poin Kebaikan ✨.`
+                ],
+                // 2. Makna poin
+                [
+                    d => `Poin tersebut merupakan bentuk apresiasi atas berbagai sikap positif, kedisiplinan, tanggung jawab, adab, kepedulian, serta kebiasaan baik yang ananda tunjukkan selama berada di lingkungan sekolah.`,
+                    d => `Poin ini menjadi penghargaan atas sikap baik yang ananda tunjukkan di sekolah, seperti disiplin, tanggung jawab, adab, dan kepedulian kepada sesama.`,
+                    d => `Angka ini mencerminkan kebiasaan-kebiasaan baik ananda di sekolah: sikap positif, tanggung jawab, adab, dan kepeduliannya terhadap orang lain.`
+                ],
+                // 3. Apresiasi
+                [
+                    d => `💚 Kami sangat mengapresiasi usaha dan perkembangan ananda.\nHal-hal kecil seperti datang tepat waktu, menjaga kebersihan, membantu teman, menghormati guru, melaksanakan tugas dengan baik, menjaga adab, dan melakukan kebaikan lainnya merupakan proses penting dalam membentuk karakter seorang anak.`,
+                    d => `💚 Kami bangga dengan usaha ananda.\nKebaikan-kebaikan kecil, seperti membantu teman, menjaga kebersihan, menghormati guru, dan mengerjakan tugas dengan baik, adalah batu bata dari karakter yang kuat.`,
+                    d => `💚 Terima kasih kepada ananda atas ikhtiarnya.\nSetiap kebaikan kecil yang dilakukan berulang-ulang, dari datang tepat waktu sampai menolong teman, sedang membentuk pribadi yang baik.`
+                ],
+                // 4. Harapan kepada orang tua
+                [
+                    d => `Kami juga berharap Bapak/Ibu dapat terus memberikan apresiasi dan motivasi kepada ananda di rumah. Sampaikan bahwa setiap kebaikan yang dilakukan memiliki nilai dan manfaat, serta teruslah mendampingi ananda agar kebiasaan baik tersebut menjadi karakter yang melekat dalam dirinya.\n🤝 Sekolah dan keluarga memiliki peran yang sama dalam membentuk pribadi ananda.`,
+                    d => `Kami berharap Bapak/Ibu berkenan memberi pujian dan semangat kepada ananda di rumah, agar ia tahu bahwa kebaikannya dihargai dan kebiasaan baik itu terus melekat.\n🤝 Sekolah dan keluarga berjalan beriringan dalam mendidik ananda.`,
+                    d => `Besar harapan kami Bapak/Ibu dapat menyampaikan apresiasi kepada ananda dan terus mendampinginya, supaya kebaikan yang ia lakukan menjadi kebiasaan dan akhlak yang tertanam.\n🤝 Bersama, sekolah dan keluarga membentuk pribadi ananda.`
+                ],
+                // 5. Doa & penutup
+                [
+                    d => `Semoga poin kebaikan ini bukan hanya menjadi angka, tetapi menjadi gambaran dari tumbuhnya akhlak, kedisiplinan, tanggung jawab, dan kepedulian dalam diri ananda.\n🌱 Terus bertumbuh, terus berbuat baik, dan terus menjadi versi terbaik dari diri sendiri.\nSemoga Allah ﷻ senantiasa membimbing dan memberkahi setiap langkah kebaikan ananda.\nJazakumullahu khairan atas dukungan dan kerja sama Bapak/Ibu dalam mendampingi perkembangan ananda.\nWassalamu'alaikum warahmatullahi wabarakatuh.`,
+                    d => `Semoga poin ini menjadi cerminan akhlak yang terus tumbuh dalam diri ananda.\n🌱 Teruslah berbuat baik, Nak, dan jadilah versi terbaik dirimu.\nSemoga Allah ﷻ memberkahi setiap kebaikan ananda.\nJazakumullahu khairan atas dukungan Bapak/Ibu.\nWassalamu'alaikum warahmatullahi wabarakatuh.`,
+                    d => `Semoga kebaikan ananda menjadi bekal akhlak yang kokoh dan bermanfaat bagi sesama.\n🌱 Terus semangat berbuat baik dan bertumbuh.\nSemoga Allah ﷻ membimbing dan memberkahi langkah ananda.\nTerima kasih atas kerja sama dan doa Bapak/Ibu. Jazakumullahu khairan.\nWassalamu'alaikum warahmatullahi wabarakatuh.`
+                ]
+            ]
+        };
+
+        // Pilih versi acak per bagian; hindari versi yang sama dengan pesan terakhir ke siswa ini (jenis yang sama).
+        function pilihVariasiWa(nis, jenis) {
+            const pools = WA_VARIASI[jenis] || [];
+            const last = ((waNotifStateCache[nis] || {})['variasi_' + jenis]) || [];
+            return pools.map((pool, i) => {
+                const choices = pool.map((_, k) => k).filter(k => k !== last[i]);
+                const list = choices.length ? choices : [0];
+                return list[Math.floor(Math.random() * list.length)];
+            });
+        }
+
+        function susunPesanWa(jenis, d, pick) {
+            const pools = WA_VARIASI[jenis];
+            const parts = pools.map((pool, i) => {
+                const idx = (pick && Number.isInteger(pick[i]) ? pick[i] : 0) % pool.length;
+                let t = pool[idx](d);
+                if (i === 1 && d.rincian) t += '\n' + d.rincian;
+                return t;
+            });
+            return parts.join('\n') + "\n🏫 SMP TahfizhPreneur Cahaya Qur'an";
+        }
+
+        function buildPesanWaPelanggaran(nama, kelasText, poin, ambang, rincian, pick) {
+            return susunPesanWa('pelanggaran', { nama, kelasText, poin, ambang, rincian }, pick);
+        }
+
+        function buildPesanWaKebaikan(nama, kelasText, poin, rincian, pick) {
+            return susunPesanWa('kebaikan', { nama, kelasText, poin, rincian }, pick);
         }
 
         function checkAndSendWaNotif(nis) {
@@ -8297,6 +8439,7 @@ ATURAN WAJIB
 
         document.getElementById('recordForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (document.getElementById('recBulkToggle').checked) { submitBulkViolation(this); return; }
             const nis = document.getElementById('recStudent').value;
             const note = document.getElementById('recNote').value.trim();
             const isMulti = document.getElementById('recMultiToggle').checked;
@@ -8393,6 +8536,7 @@ ATURAN WAJIB
         // FORM REWARD
         document.getElementById('rewardForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (document.getElementById('rewardBulkToggle').checked) { submitBulkReward(this); return; }
             const nis = document.getElementById('rewardStudent').value;
             const isMulti = document.getElementById('rewardMultiToggle').checked;
 
@@ -8487,6 +8631,220 @@ ATURAN WAJIB
                 resetRewardForm();
             }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
         });
+
+
+        // ============================================================
+        // INPUT MASSAL: BANYAK SISWA SEKALIGUS (Pelanggaran & Reward)
+        // ============================================================
+        const bulkSelected = { rec: new Set(), reward: new Set() };
+
+        function bulkStudentList() {
+            return Object.entries(siswaCache || {})
+                .map(([key, st]) => ({ nis: st.nis || key, nama: st.nama, kelas: st.kelas || '', status: st.status }))
+                .filter(st => st.nama && st.status !== 'lulus' && String(st.kelas).toUpperCase() !== 'LULUS')
+                .sort((a, b) => String(a.kelas).localeCompare(String(b.kelas), 'id', { numeric: true }) || a.nama.localeCompare(b.nama, 'id'));
+        }
+
+        function buildBulkPicker(prefix) {
+            const box = document.getElementById(prefix + 'BulkStudents');
+            if (!box) return;
+            const all = bulkStudentList();
+            const kelasMap = new Map();
+            all.forEach(st => { const k = normalizeKelas(st.kelas); if (!kelasMap.has(k)) kelasMap.set(k, st.kelas || '(Tanpa Kelas)'); });
+            const kelasOpts = Array.from(kelasMap.entries())
+                .sort((a, b) => a[1].localeCompare(b[1], 'id', { numeric: true }))
+                .map(([k, label]) => `<option value="${escapeHtml(k)}">${escapeHtml(label)}</option>`).join('');
+            box.innerHTML = `
+                <p class="bulk-hint">Pilih kelas atau cari nama, lalu centang siswa. Pilihan tetap tersimpan saat Anda berpindah kelas, jadi bisa mengumpulkan siswa dari beberapa kelas.</p>
+                <div class="bulk-tools">
+                    <select id="${prefix}BulkKelas"><option value="">Semua kelas</option>${kelasOpts}</select>
+                    <input type="text" id="${prefix}BulkSearch" placeholder="Cari nama siswa..." autocomplete="off" />
+                    <button type="button" class="btn btn-sm btn-outline" id="${prefix}BulkAll">Pilih semua yang tampil</button>
+                    <button type="button" class="btn btn-sm btn-outline" id="${prefix}BulkClear">Kosongkan</button>
+                </div>
+                <div class="multi-check-list" id="${prefix}BulkList"></div>
+                <div class="multi-summary-bar"><span class="bulk-count" id="${prefix}BulkCount">0 siswa dipilih</span><span id="${prefix}BulkShown"></span></div>`;
+            const render = () => renderBulkList(prefix);
+            document.getElementById(prefix + 'BulkKelas').addEventListener('change', render);
+            document.getElementById(prefix + 'BulkSearch').addEventListener('input', render);
+            document.getElementById(prefix + 'BulkAll').addEventListener('click', () => {
+                document.querySelectorAll(`#${prefix}BulkList .bulk-cb`).forEach(cb => { cb.checked = true; bulkSelected[prefix].add(cb.value); });
+                updateBulkCount(prefix);
+            });
+            document.getElementById(prefix + 'BulkClear').addEventListener('click', () => {
+                bulkSelected[prefix].clear();
+                document.querySelectorAll(`#${prefix}BulkList .bulk-cb`).forEach(cb => { cb.checked = false; });
+                updateBulkCount(prefix);
+            });
+            document.getElementById(prefix + 'BulkList').addEventListener('change', (e) => {
+                if (!e.target.classList.contains('bulk-cb')) return;
+                if (e.target.checked) bulkSelected[prefix].add(e.target.value); else bulkSelected[prefix].delete(e.target.value);
+                updateBulkCount(prefix);
+            });
+            renderBulkList(prefix);
+        }
+
+        function renderBulkList(prefix) {
+            const listEl = document.getElementById(prefix + 'BulkList');
+            if (!listEl) return;
+            const kelas = document.getElementById(prefix + 'BulkKelas').value;
+            const q = document.getElementById(prefix + 'BulkSearch').value.trim().toLowerCase();
+            const rows = bulkStudentList().filter(st =>
+                (!kelas || normalizeKelas(st.kelas) === kelas) && (!q || st.nama.toLowerCase().includes(q)));
+            listEl.innerHTML = rows.length ? rows.map(st => `
+                <label class="multi-check-item">
+                    <input type="checkbox" class="bulk-cb" value="${escapeHtml(st.nis)}" ${bulkSelected[prefix].has(st.nis) ? 'checked' : ''} />
+                    <span class="mci-name">${escapeHtml(st.nama)}</span>
+                    <span class="mci-poin">${escapeHtml(st.kelas || '-')}</span>
+                </label>`).join('') : '<p class="text-muted" style="font-size:0.85rem;padding:6px;">Tidak ada siswa yang cocok.</p>';
+            const shown = document.getElementById(prefix + 'BulkShown');
+            if (shown) shown.textContent = `Tampil: ${rows.length} siswa`;
+            updateBulkCount(prefix);
+        }
+
+        function updateBulkCount(prefix) {
+            const el = document.getElementById(prefix + 'BulkCount');
+            if (el) el.textContent = `${bulkSelected[prefix].size} siswa dipilih`;
+        }
+
+        function setBulkMode(prefix, on) {
+            const single = document.getElementById(prefix === 'rec' ? 'recSingleStudent' : 'rewardSingleStudent');
+            const box = document.getElementById(prefix + 'BulkStudents');
+            if (on) {
+                single.classList.add('hidden');
+                box.classList.remove('hidden');
+                buildBulkPicker(prefix);
+            } else {
+                single.classList.remove('hidden');
+                box.classList.add('hidden');
+            }
+        }
+        document.getElementById('recBulkToggle').addEventListener('change', function() { setBulkMode('rec', this.checked); });
+        document.getElementById('rewardBulkToggle').addEventListener('change', function() { setBulkMode('reward', this.checked); });
+
+        function bulkNames(nisList, max) {
+            const names = nisList.map(n => siswaCache[n] && siswaCache[n].nama).filter(Boolean);
+            return names.length > max ? names.slice(0, max).join(', ') + ` dan ${names.length - max} lainnya` : names.join(', ');
+        }
+
+        function submitBulkViolation(form) {
+            const nisList = Array.from(bulkSelected.rec).filter(n => siswaCache[n]);
+            if (!nisList.length) { showToast('Centang minimal satu siswa!', 'error'); return; }
+            const note = document.getElementById('recNote').value.trim();
+            const isMulti = document.getElementById('recMultiToggle').checked;
+            let typeIds;
+            if (isMulti) {
+                typeIds = getMultiSelectedIds('recMultiList');
+                if (!typeIds.length) { showToast('Pilih minimal satu jenis pelanggaran!', 'error'); return; }
+            } else {
+                const typeId = document.getElementById('recType').value;
+                if (!typeId) { showToast('Pilih jenis pelanggaran!', 'error'); return; }
+                const qty = Math.max(1, parseInt(document.getElementById('recQty').value, 10) || 1);
+                typeIds = Array(qty).fill(typeId);
+            }
+            if (typeIds.some(id => !violationTypesCache[id])) { showToast('Data jenis pelanggaran tidak valid!', 'error'); return; }
+            const label = Array.from(new Set(typeIds.map(id => violationTypesCache[id].nama))).join(', ');
+            if (!confirm(`Catat pelanggaran "${label}" untuk ${nisList.length} siswa?\n\n${bulkNames(nisList, 8)}`)) return;
+
+            const now = Date.now(), tgl = today();
+            const updates = {}, records = [];
+            nisList.forEach(nis => {
+                const s = siswaCache[nis];
+                typeIds.forEach(typeId => {
+                    const t = violationTypesCache[typeId];
+                    const record = {
+                        nis, nama: s.nama, kelas: s.kelas, typeId,
+                        pelanggaran: t.nama, kategori: t.kategori, poin: t.poin,
+                        konsekuensi: t.konsekuensi || '-', catatan: note,
+                        guru: currentUser.name, tanggal: tgl, createdAt: now
+                    };
+                    updates['violations/' + genId()] = record;
+                    records.push(record);
+                });
+            });
+            db.ref().update(updates).then(() => {
+                const totalPoin = records.reduce((sum, r) => sum + (r.poin || 0), 0);
+                showToast(`Pelanggaran dicatat untuk ${nisList.length} siswa (${records.length} catatan, total ${totalPoin} poin)`);
+                saveNotif('violation', '⚠️ Pelanggaran',
+                    `${nisList.length} siswa (${bulkNames(nisList, 3)}) - ${label} oleh ${currentUser.name}`);
+                sendBrowserNotification('⚠️ Pelanggaran Baru', `${nisList.length} siswa - ${label}`);
+                autoLogLateFromViolation(records);
+                nisList.forEach((nis, i) => setTimeout(() => checkAndSendWaNotif(nis), 1500 + i * 400));
+                form.reset();
+                document.getElementById('recMultiToggle').checked = false;
+                document.getElementById('recSingleFields').classList.remove('hidden');
+                document.getElementById('recMultiFields').classList.add('hidden');
+                document.getElementById('recCategory').value = 'ringan';
+                document.getElementById('recQty').value = 1;
+                renderRecTypeOptions();
+                bulkSelected.rec.clear();
+                document.getElementById('recBulkToggle').checked = true;
+                setBulkMode('rec', true);
+                loadViolations();
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        }
+
+        function submitBulkReward(form) {
+            const nisList = Array.from(bulkSelected.reward).filter(n => siswaCache[n]);
+            if (!nisList.length) { showToast('Centang minimal satu siswa!', 'error'); return; }
+            const isMulti = document.getElementById('rewardMultiToggle').checked;
+            let typeIds;
+            if (isMulti) {
+                typeIds = getMultiSelectedIds('rewardMultiList');
+                if (!typeIds.length) { showToast('Pilih minimal satu bentuk kebaikan!', 'error'); return; }
+            } else {
+                const typeId = document.getElementById('rewardType').value;
+                if (!typeId) { showToast('Pilih bentuk kebaikan!', 'error'); return; }
+                const qty = Math.max(1, parseInt(document.getElementById('rewardQty').value, 10) || 1);
+                typeIds = Array(qty).fill(typeId);
+            }
+            if (typeIds.some(id => !rewardTypesCache[id])) { showToast('Data bentuk kebaikan tidak valid!', 'error'); return; }
+            const label = Array.from(new Set(typeIds.map(id => rewardTypesCache[id].nama))).join(', ');
+            if (!confirm(`Beri reward "${label}" untuk ${nisList.length} siswa?\n\n${bulkNames(nisList, 8)}`)) return;
+
+            const now = Date.now(), tgl = today();
+            const updates = {}, records = [], newPts = {};
+            nisList.forEach(nis => {
+                const s = siswaCache[nis];
+                typeIds.forEach(typeId => {
+                    const t = rewardTypesCache[typeId];
+                    const record = {
+                        nis, nama: s.nama, kelas: s.kelas, typeId,
+                        bentuk: t.nama, kategori: t.kategori, poin: t.poin,
+                        guru: currentUser.name, tanggal: tgl, createdAt: now
+                    };
+                    updates['rewards/' + genId()] = record;
+                    records.push(record);
+                    newPts[nis] = (newPts[nis] || 0) + (t.poin || 0);
+                });
+            });
+            const oldPts = {};
+            Object.values(rewardsCache || {}).forEach(r => { if (newPts[r.nis] !== undefined) oldPts[r.nis] = (oldPts[r.nis] || 0) + (r.poin || 0); });
+
+            db.ref().update(updates).then(() => {
+                const totalPoin = records.reduce((sum, r) => sum + (r.poin || 0), 0);
+                showToast(`Reward diberikan ke ${nisList.length} siswa (${records.length} catatan, total +${totalPoin} poin)`);
+                saveNotif('reward', '⭐ Reward Kebaikan',
+                    `${nisList.length} siswa (${bulkNames(nisList, 3)}) - ${label} oleh ${currentUser.name}`);
+                sendBrowserNotification('⭐ Reward Baru', `${nisList.length} siswa - ${label}`);
+                nisList.forEach((nis, i) => {
+                    const s = siswaCache[nis];
+                    checkAndAwardMoney(nis, s.nama, s.kelas, (oldPts[nis] || 0) + newPts[nis]);
+                    setTimeout(() => checkAndSendWaNotif(nis), 1500 + i * 400);
+                });
+                form.reset();
+                document.getElementById('rewardMultiToggle').checked = false;
+                document.getElementById('rewardSingleFields').classList.remove('hidden');
+                document.getElementById('rewardMultiFields').classList.add('hidden');
+                document.getElementById('rewardCategory').value = 'kecil';
+                document.getElementById('rewardQty').value = 1;
+                renderRewardTypeOptions();
+                bulkSelected.reward.clear();
+                document.getElementById('rewardBulkToggle').checked = true;
+                setBulkMode('reward', true);
+                setTimeout(loadRewardsList, 500);
+            }).catch(err => showToast('Gagal menyimpan: ' + err.message, 'error'));
+        }
 
         // ============================================================
         // ABSENSI
@@ -9160,9 +9518,16 @@ ATURAN WAJIB
         }
         async function sendWaNotifSmart(jenis, s, kelasText, stats, ambang) {
             const poin = jenis === 'pelanggaran' ? stats.totalEffective : stats.rewardPts;
-            let pesan = jenis === 'pelanggaran' ? buildPesanWaPelanggaran(s.nama, kelasText, poin, ambang) : buildPesanWaKebaikan(s.nama, kelasText, poin);
+            const rincian = buildRincianWa(s.nis, jenis, stats);
+            const pick = pilihVariasiWa(s.nis, jenis);
+            let pesan = jenis === 'pelanggaran' ? buildPesanWaPelanggaran(s.nama, kelasText, poin, ambang, rincian, pick) : buildPesanWaKebaikan(s.nama, kelasText, poin, rincian, pick);
+            // Catat versi yang dipakai agar pesan berikutnya ke siswa ini memakai kalimat yang berbeda.
+            try {
+                db.ref('waNotifState/' + s.nis).update({ ['variasi_' + jenis]: pick });
+                waNotifStateCache[s.nis] = Object.assign({}, waNotifStateCache[s.nis] || {}, { ['variasi_' + jenis]: pick });
+            } catch (e) { console.warn('Gagal mencatat variasi pesan WA:', e); }
             if (aiSharedConfig && aiSharedConfig.waPersonalize && aiDirectMode()) {
-                try { pesan = await buildPesanWaAi(jenis, aiWaFacts(s.nis, stats, ambang), s.nama, kelasText); }
+                try { pesan = sisipkanRincianWa(await buildPesanWaAi(jenis, aiWaFacts(s.nis, stats, ambang), s.nama, kelasText), rincian); }
                 catch (err) { console.warn('Pesan WA AI dilewati, memakai template:', err.message); }
             }
             return sendWaNotif(s.noWaOrtu, pesan);
@@ -9172,7 +9537,7 @@ ATURAN WAJIB
             box.style.display = 'block'; box.textContent = 'Menyusun pratinjau...';
             const sample = { poin_efektif: 52, poin_kebaikan: 0, ambang: 50, pelanggaran_30_hari: 4, pelanggaran_berat_30_hari: 0,
                 tren_poin_pelanggaran_dibanding_30_hari_sebelumnya: 'naik', persen_kehadiran_30_hari: 94.0, alfa_30_hari: 0, terlambat_30_hari: 3 };
-            try { box.textContent = await buildPesanWaAi('pelanggaran', sample, 'Ananda Contoh', '8 Banin'); }
+            try { box.textContent = sisipkanRincianWa(await buildPesanWaAi('pelanggaran', sample, 'Ananda Contoh', '8 Banin'), '📋 Rincian pelanggaran yang tercatat:\n• (contoh) Terlambat masuk sekolah — 3x (6 poin)\n• (contoh) Seragam tidak lengkap — 1x (5 poin)'); }
             catch (err) { box.textContent = 'Pratinjau gagal: ' + err.message; }
         }
 
