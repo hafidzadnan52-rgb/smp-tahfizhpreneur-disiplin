@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran · v2026.10.03</title>
+    <title>SMP Tahfizh Preneur · Pencatatan Pelanggaran · v2026.10.22</title>
     <!-- App identity / favicon / PWA -->
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=6" />
     <link rel="shortcut icon" type="image/png" href="./icon-192.png?v=6" />
@@ -2357,7 +2357,65 @@
         .ai-chat-composer textarea { flex:1; resize:vertical; min-height:46px; max-height:160px; }
         [data-theme="dark"] .ai-quick-card { background:var(--card); }
         @media (max-width:700px) { .ai-chat-composer { flex-direction:column; align-items:stretch; } .ai-chat-composer .btn { justify-content:center; } .ai-msg { max-width:95%; } }
-</style>
+
+        /* ---- Laporan Tahfizh ---- */
+        .tf-student { background:#fff; border:1px solid #e3dccb; border-radius:12px; padding:14px; margin-bottom:12px; }
+        .tf-student-name { font-weight:700; margin-bottom:10px; }
+        .tf-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+        .tf-grid .form-group { margin:0; }
+        .tf-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+        .tf-members-list { max-height:55vh; overflow:auto; }
+        .tf-member { display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid #eee; cursor:pointer; }
+    
+        /* ---- Efek animasi (bisa dimatikan admin / pengguna dengan reduced-motion) ---- */
+        @keyframes tfFadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+        @keyframes tfPop { from { opacity:0; transform:translateY(12px) scale(.94); } to { opacity:1; transform:none; } }
+        @keyframes tfNavIn { from { opacity:0; transform:translateX(-14px); } to { opacity:1; transform:none; } }
+        @keyframes tfFade { from { opacity:0; } to { opacity:1; } }
+        @keyframes tfModal { from { opacity:0; transform:translateY(18px) scale(.96); } to { opacity:1; transform:none; } }
+        @media (prefers-reduced-motion: no-preference) {
+            html:not(.no-motion) .page-section { animation: none; }
+            html:not(.no-motion) .page-section.active > * { animation: tfFadeUp .5s cubic-bezier(.2,.7,.2,1) backwards; }
+            html:not(.no-motion) .page-section.active > *:nth-child(2) { animation-delay: .05s; }
+            html:not(.no-motion) .page-section.active > *:nth-child(3) { animation-delay: .10s; }
+            html:not(.no-motion) .page-section.active > *:nth-child(4) { animation-delay: .15s; }
+            html:not(.no-motion) .page-section.active > *:nth-child(5) { animation-delay: .20s; }
+            html:not(.no-motion) .page-section.active > *:nth-child(6) { animation-delay: .25s; }
+            html:not(.no-motion) .page-section.active > *:nth-child(n+7) { animation-delay: .30s; }
+            html:not(.no-motion) .page-section.active .stat-card { animation: tfPop .5s cubic-bezier(.2,.9,.3,1.1) backwards; }
+            html:not(.no-motion) .page-section.active .stat-card:nth-child(2) { animation-delay: .06s; }
+            html:not(.no-motion) .page-section.active .stat-card:nth-child(3) { animation-delay: .12s; }
+            html:not(.no-motion) .page-section.active .stat-card:nth-child(4) { animation-delay: .18s; }
+            html:not(.no-motion) .page-section.active .stat-card:nth-child(5) { animation-delay: .24s; }
+            html:not(.no-motion) .page-section.active .stat-card:nth-child(6) { animation-delay: .30s; }
+            html:not(.no-motion) .page-section.active .stat-card:nth-child(n+7) { animation-delay: .36s; }
+            html:not(.no-motion) .sidebar .nav-item { animation: tfNavIn .4s ease backwards; animation-delay: var(--d, 0ms); }
+            html:not(.no-motion) .sidebar .nav-item:hover { transform: translateX(4px); }
+            html:not(.no-motion) .sidebar .nav-item i { transition: transform .25s ease; }
+            html:not(.no-motion) .sidebar .nav-item:hover i { transform: scale(1.18); }
+            html:not(.no-motion) .btn:not(:disabled):hover { transform: translateY(-1px); }
+            html:not(.no-motion) .btn:not(:disabled):active { transform: scale(.97); }
+            html:not(.no-motion) .stat-icon-circle { transition: transform .3s ease; }
+            html:not(.no-motion) .stat-card:hover .stat-icon-circle { transform: scale(1.12) rotate(-6deg); }
+            html:not(.no-motion) .modal-overlay.show { animation: tfFade .2s ease; }
+            html:not(.no-motion) .modal-overlay.show .modal { animation: tfModal .3s cubic-bezier(.2,.9,.3,1.15) backwards; }
+            html:not(.no-motion) .login-card { animation: tfFadeUp .6s cubic-bezier(.2,.7,.2,1) backwards; }
+            html:not(.no-motion) .table-wrap tbody tr { transition: background-color .2s ease; }
+            html:not(.no-motion) .table-wrap tbody tr:hover { background-color: rgba(201,162,39,.07); }
+        }
+
+        /* ---- Pengaturan tampilan menu (admin) ---- */
+        .tg-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 4px; border-bottom:1px solid #eee; cursor:pointer; }
+        .tg-row i.fas { width:22px; text-align:center; color:var(--text-light); margin-right:8px; }
+        .tg-switch { position:relative; width:44px; height:24px; flex:0 0 auto; }
+        .tg-switch input { position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:2; }
+        .tg-slider { position:absolute; inset:0; background:#cfc8b6; border-radius:24px; transition:background .25s ease; }
+        .tg-slider::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .25s ease; }
+        .tg-switch input:checked + .tg-slider { background:var(--success); }
+        .tg-switch input:checked + .tg-slider::after { transform:translateX(20px); }
+        .sidebar .nav-item.nav-hidden-admin { opacity:.55; }
+        .sidebar .nav-item.nav-hidden-admin::after { content:'\f070'; font-family:'Font Awesome 6 Free'; font-weight:900; margin-left:auto; font-size:.72rem; }
+    </style>
 </head>
 <body>
     <!-- LOGIN PAGE -->
@@ -2448,7 +2506,7 @@
                 <div class="login-value-item"><span class="login-value-icon"><i class="fas fa-users"></i></span>Mandiri<br>&amp; Kreatif</div>
                 <div class="login-value-item"><span class="login-value-icon"><i class="fas fa-heart"></i></span>Bermanfaat<br>untuk Umat</div>
             </div>
-            <div class="login-footer">© 2026 SMP TahfizhPreneur Cahaya Qur'an<br>Sistem Kesiswaan v2026.10.03</div>
+            <div class="login-footer">© 2026 SMP TahfizhPreneur Cahaya Qur'an<br>Sistem Kesiswaan v2026.10.22</div>
         </div>
     </div>
 
@@ -2495,6 +2553,7 @@
                 </div>
                 <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
                 <a class="nav-item" data-page="absensi"><i class="fas fa-calendar-check"></i> Absensi</a>
+                <a class="nav-item" data-page="tahfizh"><i class="fas fa-book-quran"></i> Laporan Tahfizh</a>
                 <a class="nav-item" data-page="record"><i class="fas fa-pen-to-square"></i> Catat Pelanggaran</a>
                 <a class="nav-item" data-page="reward"><i class="fas fa-star"></i> Catat Reward</a>
                 <a class="nav-item" data-page="violations"><i class="fas fa-list"></i> Data Pelanggaran</a>
@@ -3030,6 +3089,36 @@
                 </section>
 
                 <!-- LATE -->
+                <section class="page-section" id="page-tahfizh">
+                    <div class="page-header"><h2><i class="fas fa-book-quran"></i> Laporan Tahfizh</h2><p>Isi capaian hafalan santri halaqah Anda per pekan, lalu salin laporannya untuk dikirim ke grup wali murid.</p></div>
+                    <div class="card">
+                        <div class="form-row">
+                            <div class="form-group"><label>Halaqah</label><select id="tfHalaqah"></select></div>
+                            <div class="form-group"><label>Pekan tersimpan</label><select id="tfWeekSelect"></select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Pekan ke-</label><input type="number" id="tfPekan" min="1" placeholder="13" /></div>
+                            <div class="form-group"><label>Tanggal mulai</label><input type="date" id="tfStart" /></div>
+                            <div class="form-group"><label>Tanggal selesai</label><input type="date" id="tfEnd" /></div>
+                        </div>
+                        <div id="tfNotice"></div>
+                    </div>
+                    <div class="card" id="tfFormCard">
+                        <div class="card-header"><h3><i class="fas fa-user-graduate"></i> Capaian Santri</h3></div>
+                        <div class="form-row" style="align-items:flex-end;margin-bottom:12px;">
+                            <div class="form-group" style="flex:1 1 260px;"><label>Isi Tilawah untuk semua santri <span class="text-muted">(opsional)</span></label>
+                                <input type="text" id="tfBulkTilawah" placeholder="Qs. Al-Ma'idah: 50" /></div>
+                            <div class="form-group" style="flex:0 0 auto;"><button type="button" class="btn btn-sm btn-outline" id="tfBulkTilawahBtn"><i class="fas fa-arrow-down"></i> Terapkan ke semua</button></div>
+                        </div>
+                        <div id="tfStudents"></div>
+                        <div class="tf-actions">
+                            <button type="button" class="btn btn-success" id="tfSaveBtn"><i class="fas fa-save"></i> Simpan</button>
+                            <button type="button" class="btn btn-gold" id="tfCopyBtn"><i class="fab fa-whatsapp"></i> Salin untuk WhatsApp</button>
+                            <button type="button" class="btn btn-outline" id="tfCopyAllBtn" style="display:none;"><i class="fas fa-layer-group"></i> Salin Gabungan Kelas</button>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="page-section" id="page-late">
                     <div class="page-header"><h2><i class="fas fa-clock"></i> Keterlambatan Siswa</h2><p>Catat siswa yang datang terlambat.</p></div>
                     <div class="card">
@@ -3186,6 +3275,31 @@
                         </div>
                         <div class="accordion-body open" id="accFeedback">
                             <div id="feedbackList"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada saran.</p></div></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accTampilan">
+                            <span><i class="fas fa-eye" style="color:var(--gold);"></i> Tampilan & Menu Aplikasi</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accTampilan">
+                            <div class="text-muted" style="font-size:0.82rem;margin-bottom:10px;"><strong>Menu untuk guru.</strong> Matikan saklar untuk menyembunyikan menu dari akun guru. Admin tetap melihat semua menu (yang disembunyikan tampil redup dengan ikon mata dicoret).</div>
+                            <div id="menuToggleList"></div>
+                            <div class="text-muted" style="font-size:0.82rem;margin:16px 0 6px;"><strong>Efek animasi.</strong> Matikan jika aplikasi terasa berat di HP lama. Berlaku untuk semua pengguna.</div>
+                            <div id="motionToggleBox"></div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-section">
+                        <div class="accordion-header" data-target="accHalaqah">
+                            <span><i class="fas fa-book-quran" style="color:var(--gold);"></i> Halaqah Tahfizh</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="accHalaqah">
+                            <div class="text-muted" style="font-size:0.82rem;margin-bottom:10px;">Atur halaqah per kelas, guru tahfizh (akun) yang mengisi laporan, dan anggota santri tiap halaqah.</div>
+                            <div style="margin-bottom:12px;"><button class="btn btn-sm btn-gold" id="addHalaqahBtn"><i class="fas fa-plus"></i> Tambah Halaqah</button></div>
+                            <div class="table-wrap"><table><thead><tr><th>Kelas</th><th>Halaqah</th><th>Guru (akun)</th><th>Santri</th><th>Aksi</th></tr></thead><tbody id="halaqahTable"></tbody></table></div>
                         </div>
                     </div>
 
@@ -3798,6 +3912,26 @@
         let rewardsCache = {};
         let usersCache = {};
         let guruCache = {};
+        let halaqahCache = {};
+        let halaqahSiswaCache = {};
+        const MENU_TOGGLEABLE = [
+            { page: 'absensi', label: 'Absensi', icon: 'fa-calendar-check' },
+            { page: 'tahfizh', label: 'Laporan Tahfizh', icon: 'fa-book-quran' },
+            { page: 'record', label: 'Catat Pelanggaran', icon: 'fa-pen-to-square' },
+            { page: 'reward', label: 'Catat Reward', icon: 'fa-star' },
+            { page: 'violations', label: 'Data Pelanggaran', icon: 'fa-list' },
+            { page: 'leaderboard', label: 'Papan Peringkat', icon: 'fa-trophy' },
+            { page: 'rekap', label: 'Rekap Siswa', icon: 'fa-file-download' },
+            { page: 'student-profile', label: 'Profil Siswa', icon: 'fa-id-card' },
+            { page: 'analytics', label: 'Analitik', icon: 'fa-chart-line' },
+            { page: 'ai', label: 'AI Kesiswaan', icon: 'fa-robot' },
+            { page: 'sp-letter', label: 'Surat Peringatan', icon: 'fa-file-signature' },
+            { page: 'late', label: 'Keterlambatan', icon: 'fa-clock' },
+            { page: 'bk', label: 'BK (Konseling)', icon: 'fa-hand-holding-heart' },
+            { page: 'feedback', label: 'Kirim Saran', icon: 'fa-comment' }
+        ];
+        let menuHiddenCache = {};
+        let animasiOffCache = false;
         let passwordHistoryCache = {};
         let notificationsCache = {};
         let feedbackCache = {};
@@ -4366,6 +4500,7 @@
 
             setupRealtimeListeners();
             populateSiswaDatalist();
+            applyMenuVisibility();
 
             const lateDate = document.getElementById('lateDate');
             if (lateDate) lateDate.value = today();
@@ -4459,6 +4594,18 @@
             });
             db.ref('guru').on('value', (snap) => { guruCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel(); });
+            db.ref('halaqah').on('value', (snap) => { halaqahCache = snap.val() || {};
+                if (isPageActive('admin')) renderHalaqahTable();
+                if (isPageActive('tahfizh') && !tahfizhDirty) tfRenderHalaqahSelect((document.getElementById('tfHalaqah') || {}).value || ''); });
+            db.ref('halaqahSiswa').on('value', (snap) => { halaqahSiswaCache = snap.val() || {};
+                if (isPageActive('admin')) renderHalaqahTable();
+                if (isPageActive('tahfizh') && !tahfizhDirty) tfRenderHalaqahSelect((document.getElementById('tfHalaqah') || {}).value || ''); });
+            db.ref('settings/menuHidden').on('value', (snap) => { menuHiddenCache = snap.val() || {};
+                applyMenuVisibility();
+                if (isPageActive('admin')) renderMenuToggles(); });
+            db.ref('settings/animasiOff').on('value', (snap) => { animasiOffCache = !!snap.val();
+                applyMotionSetting();
+                if (isPageActive('admin')) renderMenuToggles(); });
             db.ref('passwordHistory').on('value', (snap) => { passwordHistoryCache = snap.val() || {};
                 if (isPageActive('admin')) loadAdminPanel(); });
             db.ref('notifications').on('value', (snap) => { notificationsCache = snap.val() || {};
@@ -4519,7 +4666,8 @@
             ['violations', 'rewards', 'siswa', 'violationTypes', 'rewardTypes', 'users', 'guru', 'passwordHistory',
                 'notifications', 'moneyRewardRules', 'feedback', 'bk', 'userProfiles', 'lates', 'absensi',
                 'settings/spThresholds', 'settings/lateLetterThreshold', 'settings/kebaikanThresholds', 'settings/waNotifThresholds',
-                'lateLetterAlertState', 'waNotifState', 'settings/aiConfig'
+                'lateLetterAlertState', 'waNotifState', 'settings/aiConfig',
+                'halaqah', 'halaqahSiswa', 'settings/menuHidden', 'settings/animasiOff'
             ].forEach(r => db.ref(r).off());
         }
 
@@ -4799,6 +4947,7 @@
         // ============================================================
         function navigateTo(page) {
             if (page === 'ai-settings' && !isAdmin()) { showToast('Pengaturan AI hanya untuk admin!', 'error'); return; }
+            if (!isAdmin() && menuHiddenCache[page]) { showToast('Menu ini dinonaktifkan oleh admin.', 'error'); if (page !== 'dashboard') return; }
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             const target = document.getElementById('page-' + page);
             if (target) target.classList.add('active');
@@ -4831,6 +4980,7 @@
             if (page === 'ai') initAiAssistantPage();
             if (page === 'ai-settings') initOpenRouterSettings();
             if (page === 'sp-letter') loadSpLetterList();
+            if (page === 'tahfizh') initTahfizhPage();
         }
 
         document.querySelector('.sidebar').addEventListener('click', function(e) {
@@ -7394,6 +7544,8 @@ ATURAN WAJIB
             renderRewardTypesTable();
             renderUsersTable();
             renderGuruTable();
+            renderHalaqahTable();
+            renderMenuToggles();
             renderManageStudentsTable();
             renderGenderSiswaTable();
             renderWaOrtuTable();
@@ -9612,6 +9764,538 @@ ATURAN WAJIB
         });
 
         console.log('🔥 Aplikasi siap! Login dengan admin/admin123');
+    
+        // ============================================================
+        // LAPORAN TAHFIZH MINGGUAN
+        // Data: halaqah/{id}, halaqahSiswa/{nis}=halaqahId, tahfizhLaporan/{halaqahId}/{weekKey}
+        // ============================================================
+        const TAHFIZH_STATUS = [
+            { val: 'Melampaui', icon: '✅' },
+            { val: 'Tercapai', icon: '✅' },
+            { val: 'Belum Tercapai', icon: '❌' }
+        ];
+        const TAHFIZH_BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        let tahfizhWeeks = {};
+        let tahfizhCurrentKey = '';
+        let tahfizhDirty = false;
+        let tahfizhLoadSeq = 0;
+
+        function tfEl(id) { return document.getElementById(id); }
+
+        function tahfizhKelasRoman(kelas) {
+            const m = String(kelas || '').match(/^(\d+)\s*(.*)$/);
+            if (!m) return kelas || '';
+            const rom = { 7: 'VII', 8: 'VIII', 9: 'IX' }[parseInt(m[1], 10)] || m[1];
+            return (rom + ' ' + m[2]).trim();
+        }
+
+        function tahfizhKelasList() {
+            const set = new Set(Object.values(siswaCache || {}).map(s => s.kelas).filter(Boolean));
+            return [...set].sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+        }
+
+        function tahfizhFormatRange(a, b) {
+            if (!a) return '';
+            const [ya, ma, da] = a.split('-').map(Number);
+            if (!b || b === a) return `${da} ${TAHFIZH_BULAN[ma - 1]} ${ya}`;
+            const [yb, mb, dEnd] = b.split('-').map(Number);
+            if (ya === yb && ma === mb) return `${da}-${dEnd} ${TAHFIZH_BULAN[ma - 1]} ${ya}`;
+            if (ya === yb) return `${da} ${TAHFIZH_BULAN[ma - 1]} - ${dEnd} ${TAHFIZH_BULAN[mb - 1]} ${ya}`;
+            return `${da} ${TAHFIZH_BULAN[ma - 1]} ${ya} - ${dEnd} ${TAHFIZH_BULAN[mb - 1]} ${yb}`;
+        }
+
+        function tfFmtDate(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        // Default: Senin pekan ini s/d Rabu (sesuai contoh laporan), bisa diubah di form.
+        function tfDefaultDates() {
+            const d = new Date();
+            d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+            const start = tfFmtDate(d);
+            d.setDate(d.getDate() + 2);
+            return [start, tfFmtDate(d)];
+        }
+
+        function tahfizhMyHalaqah() {
+            const list = Object.entries(halaqahCache || {}).map(([id, h]) => ({ id, ...h }));
+            const mine = isAdmin() ? list : list.filter(h => currentUser && h.guruUid === currentUser.id);
+            return mine.sort((a, b) => (a.kelas || '').localeCompare(b.kelas || '', 'id', { numeric: true }) ||
+                (a.nama || '').localeCompare(b.nama || '', 'id'));
+        }
+
+        function tahfizhStudents(halaqahId) {
+            const h = (halaqahCache || {})[halaqahId];
+            if (!h) return [];
+            return Object.values(siswaCache || {})
+                .filter(s => (halaqahSiswaCache || {})[s.nis] === halaqahId && s.kelas === h.kelas)
+                .sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'));
+        }
+
+        // ---------- Halaman guru ----------
+        function initTahfizhPage() {
+            tfRenderHalaqahSelect('');
+        }
+
+        function tfRenderHalaqahSelect(keepId) {
+            const sel = tfEl('tfHalaqah');
+            const notice = tfEl('tfNotice');
+            const formCard = tfEl('tfFormCard');
+            if (!sel) return;
+            const list = tahfizhMyHalaqah();
+            if (!list.length) {
+                sel.innerHTML = '';
+                formCard.style.display = 'none';
+                notice.innerHTML = `<div class="empty-state"><i class="fas fa-book-quran"></i><p>${isAdmin()
+                    ? 'Belum ada halaqah. Buat dulu di Panel Admin → Halaqah Tahfizh.'
+                    : 'Akun Anda belum ditetapkan sebagai guru halaqah. Silakan hubungi admin.'}</p></div>`;
+                return;
+            }
+            notice.innerHTML = '';
+            formCard.style.display = '';
+            sel.innerHTML = list.map(h => `<option value="${escapeHtml(h.id)}">${kelasIcon(h.kelas)}${escapeHtml(h.kelas)} · Halaqah ${escapeHtml(h.nama)}</option>`).join('');
+            if (keepId && list.some(h => h.id === keepId)) sel.value = keepId;
+            tfOnHalaqahChange();
+        }
+
+        function tfOnHalaqahChange() {
+            const hid = tfEl('tfHalaqah').value;
+            const seq = ++tahfizhLoadSeq;
+            if (!hid) return;
+            const h = halaqahCache[hid];
+            const sibs = Object.values(halaqahCache || {}).filter(x => h && x.kelas === h.kelas).length;
+            tfEl('tfCopyAllBtn').style.display = sibs > 1 ? '' : 'none';
+            db.ref('tahfizhLaporan/' + hid).once('value').then(snap => {
+                if (seq !== tahfizhLoadSeq) return;
+                tahfizhWeeks = snap.val() || {};
+                const dflt = tfDefaultDates()[0];
+                const k = Object.keys(tahfizhWeeks).find(x => tahfizhWeeks[x].tglMulai === dflt) || '';
+                tfRenderWeekSelect(k);
+                tfLoadWeek(k);
+            }).catch(() => showToast('Gagal memuat laporan tahfizh.', 'error'));
+        }
+
+        function tfRenderWeekSelect(selectedKey) {
+            const sel = tfEl('tfWeekSelect');
+            const keys = Object.keys(tahfizhWeeks).sort((a, b) => (tahfizhWeeks[b].tglMulai || '').localeCompare(tahfizhWeeks[a].tglMulai || ''));
+            sel.innerHTML = '<option value="">➕ Pekan baru</option>' + keys.map(k => {
+                const w = tahfizhWeeks[k];
+                return `<option value="${escapeHtml(k)}">Pekan ${escapeHtml(w.pekan)} · ${escapeHtml(tahfizhFormatRange(w.tglMulai, w.tglSelesai))}</option>`;
+            }).join('');
+            sel.value = selectedKey || '';
+        }
+
+        function tfLoadWeek(key) {
+            tahfizhCurrentKey = key || '';
+            const w = key ? tahfizhWeeks[key] : null;
+            let pekan = '', start, end, entries = {};
+            if (w) {
+                pekan = w.pekan; start = w.tglMulai; end = w.tglSelesai; entries = w.entries || {};
+            } else {
+                [start, end] = tfDefaultDates();
+                const last = Math.max(0, ...Object.values(tahfizhWeeks).map(x => parseInt(x.pekan, 10) || 0));
+                pekan = last ? last + 1 : '';
+            }
+            tfEl('tfPekan').value = pekan;
+            tfEl('tfStart').value = start || '';
+            tfEl('tfEnd').value = end || '';
+            tfEl('tfWeekSelect').value = key || '';
+            tfRenderStudents(entries);
+            tahfizhDirty = false;
+        }
+
+        function tfRenderStudents(entries) {
+            const wrap = tfEl('tfStudents');
+            const hid = tfEl('tfHalaqah').value;
+            const list = tahfizhStudents(hid);
+            if (!list.length) {
+                wrap.innerHTML = '<div class="empty-state"><i class="fas fa-user-slash"></i><p>Belum ada santri di halaqah ini. Admin dapat mengaturnya di Panel Admin → Halaqah Tahfizh.</p></div>';
+                return;
+            }
+            wrap.innerHTML = list.map((s, i) => {
+                const e = entries[s.nis] || {};
+                return `<div class="tf-student" data-nis="${escapeHtml(s.nis)}">
+                    <div class="tf-student-name">${i + 1}. ${escapeHtml(s.nama)}</div>
+                    <div class="tf-grid">
+                        <div class="form-group"><label>Ziyadah</label><input type="text" data-f="z" value="${escapeHtml(e.z || '')}" placeholder="Qs. Al-Fath: 16-21" /></div>
+                        <div class="form-group"><label>Muroja'ah</label><input type="text" data-f="m" value="${escapeHtml(e.m || '')}" placeholder="Qs. Al-Haqqah s/d Nuh" /></div>
+                        <div class="form-group"><label>Tilawah</label><input type="text" data-f="t" value="${escapeHtml(e.t || '')}" placeholder="Qs. Al-Ma'idah: 50" /></div>
+                        <div class="form-group"><label>Status</label>
+                            <select data-f="s"><option value="">— Pilih —</option>${TAHFIZH_STATUS.map(st => `<option value="${st.val}" ${e.s === st.val ? 'selected' : ''}>${st.val} ${st.icon}</option>`).join('')}</select>
+                        </div>
+                        <div class="form-group"><label>Target Pekan Depan</label><input type="text" data-f="g" value="${escapeHtml(e.g || '')}" placeholder="Qs. Al-Fath: 22-26" /></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function tfCollect() {
+            const entries = {};
+            document.querySelectorAll('#tfStudents .tf-student').forEach(card => {
+                const o = {};
+                card.querySelectorAll('[data-f]').forEach(inp => { o[inp.dataset.f] = (inp.value || '').trim(); });
+                entries[card.dataset.nis] = o;
+            });
+            return entries;
+        }
+
+        function tfSave(silent) {
+            const hid = tfEl('tfHalaqah').value;
+            const pekan = parseInt(tfEl('tfPekan').value, 10);
+            const start = tfEl('tfStart').value;
+            const end = tfEl('tfEnd').value;
+            if (!hid) return Promise.resolve(false);
+            if (!pekan || !start || !end) { showToast('Isi pekan, tanggal mulai, dan tanggal selesai dulu.', 'error'); return Promise.resolve(false); }
+            if (end < start) { showToast('Tanggal selesai tidak boleh sebelum tanggal mulai.', 'error'); return Promise.resolve(false); }
+            const key = tahfizhCurrentKey || ('w' + start.replace(/-/g, ''));
+            if (!tahfizhCurrentKey && tahfizhWeeks[key]) {
+                if (!confirm('Laporan dengan tanggal mulai yang sama sudah tersimpan. Timpa dengan isian ini?')) return Promise.resolve(false);
+            }
+            const payload = {
+                pekan, tglMulai: start, tglSelesai: end, entries: tfCollect(),
+                updatedAt: Date.now(), updatedBy: currentUser ? currentUser.name : ''
+            };
+            return db.ref(`tahfizhLaporan/${hid}/${key}`).set(payload).then(() => {
+                tahfizhWeeks[key] = payload;
+                tahfizhCurrentKey = key;
+                tahfizhDirty = false;
+                tfRenderWeekSelect(key);
+                if (!silent) showToast('Laporan tahfizh disimpan.');
+                return true;
+            }).catch(() => { showToast('Gagal menyimpan laporan.', 'error'); return false; });
+        }
+
+        function tfBuildSection(h, students, entries) {
+            const emoji = (h.kelas || '').indexOf('Banin') !== -1 ? '👳🏻‍♂️' : '🧕🏻';
+            let out = `${emoji}*Halaqah ${h.nama}*\n\n`;
+            students.forEach((s, i) => {
+                const e = entries[s.nis] || {};
+                const st = TAHFIZH_STATUS.find(x => x.val === e.s);
+                out += `${i + 1}. *${s.nama}*\n` +
+                    `* Ziyadah : ${e.z || ''}\n` +
+                    `* Muroja'ah : ${e.m || ''}\n` +
+                    `* Tilawah : ${e.t || ''}\n` +
+                    `* Status : ${st ? st.val + ' ' + st.icon : ''}\n` +
+                    `* Target Pekan Depan : ${e.g || ''}\n\n`;
+            });
+            return out.trimEnd();
+        }
+
+        function tfBuildMessage(kelas, pekan, tanggal, sections) {
+            const head = `📃 *LAPORAN PERKEMBANGAN PRESTASI KUADRAN TAHFIZH*
+
+Kelas : ${tahfizhKelasRoman(kelas)}
+Tanggal : ${tanggal}
+Pekan : ${pekan}
+
+بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
+السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللّٰهِ وَبَرَكَاتُهُ
+
+Ayah dan Bunda wali murid SMP Tahfizhpreneur Cahaya Qur'an yang dirahmati Allah ﷻ.
+
+Berikut kami sampaikan Laporan Pencapaian Tahfizh sebagai bentuk informasi dan evaluasi perkembangan hafalan ananda`;
+            const foot = `🌿 Jazakumullahu Khairan atas segala doa, perhatian, dan pendampingan Ayah dan Bunda kepada ananda di rumah.
+
+Mari bersama-sama terus membimbing ananda di rumah agar senantiasa Istiqamah bersama Al-Qur'an.
+
+Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
+اللهم آمين يا رب العالمين
+بارك الله فيكم والسلام عليكم ورحمة الله وبركاته`;
+            return [head, sections.join('\n\n'), foot].join('\n\n');
+        }
+
+        function tfCopyText(text) {
+            if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+            return new Promise((resolve, reject) => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy') ? resolve() : reject(new Error('copy failed')); } catch (err) { reject(err); }
+                document.body.removeChild(ta);
+            });
+        }
+
+        function tfCopyCurrent() {
+            const hid = tfEl('tfHalaqah').value;
+            const h = halaqahCache[hid];
+            const pekan = tfEl('tfPekan').value;
+            const start = tfEl('tfStart').value;
+            const end = tfEl('tfEnd').value;
+            if (!h) return;
+            if (!pekan || !start || !end) { showToast('Isi pekan dan tanggal dulu.', 'error'); return; }
+            const text = tfBuildMessage(h.kelas, pekan, tahfizhFormatRange(start, end),
+                [tfBuildSection(h, tahfizhStudents(hid), tfCollect())]);
+            tfSave(true)
+                .then(() => tfCopyText(text))
+                .then(() => showToast('Laporan disalin. Tempel di grup WhatsApp wali murid.'))
+                .catch(() => showToast('Gagal menyalin. Coba lagi.', 'error'));
+        }
+
+        // Gabungan seluruh halaqah satu kelas (format seperti contoh: beberapa halaqah dalam satu pesan).
+        async function tfCopyAll() {
+            const hid = tfEl('tfHalaqah').value;
+            const h = halaqahCache[hid];
+            const pekan = tfEl('tfPekan').value;
+            const start = tfEl('tfStart').value;
+            const end = tfEl('tfEnd').value;
+            if (!h) return;
+            if (!pekan || !start || !end) { showToast('Isi pekan dan tanggal dulu.', 'error'); return; }
+            await tfSave(true);
+            const key = tahfizhCurrentKey;
+            if (!key) { showToast('Laporan belum tersimpan, gabungan tidak bisa dibuat.', 'error'); return; }
+            const sibs = Object.entries(halaqahCache || {}).filter(([, x]) => x.kelas === h.kelas)
+                .sort((a, b) => (a[1].nama || '').localeCompare(b[1].nama || '', 'id'));
+            const sections = [], missing = [];
+            try {
+                for (const [id, x] of sibs) {
+                    let entries;
+                    if (id === hid) entries = tfCollect();
+                    else {
+                        const snap = await db.ref(`tahfizhLaporan/${id}/${key}`).once('value');
+                        const r = snap.val();
+                        entries = r && r.entries;
+                    }
+                    if (!entries) { missing.push(x.nama); continue; }
+                    sections.push(tfBuildSection(x, tahfizhStudents(id), entries));
+                }
+                const text = tfBuildMessage(h.kelas, pekan, tahfizhFormatRange(start, end), sections);
+                await tfCopyText(text);
+                showToast(missing.length
+                    ? `Gabungan disalin. Belum ada laporan: ${missing.map(n => 'Halaqah ' + n).join(', ')}.`
+                    : 'Laporan gabungan kelas disalin.');
+            } catch (err) {
+                showToast('Gagal membuat laporan gabungan.', 'error');
+            }
+        }
+
+        (function bindTahfizhPage() {
+            const on = (id, ev, fn) => { const el = tfEl(id); if (el) el.addEventListener(ev, fn); };
+            on('tfHalaqah', 'change', () => {
+                if (tahfizhDirty && !confirm('Ada isian yang belum disimpan. Tetap pindah halaqah?')) return;
+                tfOnHalaqahChange();
+            });
+            on('tfWeekSelect', 'change', function () {
+                if (tahfizhDirty && !confirm('Ada isian yang belum disimpan. Tetap pindah pekan?')) { tfEl('tfWeekSelect').value = tahfizhCurrentKey || ''; return; }
+                tfLoadWeek(this.value);
+            });
+            ['tfPekan', 'tfStart', 'tfEnd'].forEach(id => on(id, 'input', () => { tahfizhDirty = true; }));
+            on('tfStudents', 'input', () => { tahfizhDirty = true; });
+            on('tfStudents', 'change', () => { tahfizhDirty = true; });
+            on('tfBulkTilawahBtn', 'click', () => {
+                const v = (tfEl('tfBulkTilawah').value || '').trim();
+                if (!v) { showToast('Isi dulu tilawah yang ingin diterapkan.', 'error'); return; }
+                document.querySelectorAll('#tfStudents [data-f="t"]').forEach(inp => { inp.value = v; });
+                tahfizhDirty = true;
+                showToast('Tilawah diterapkan ke semua santri.');
+            });
+            on('tfSaveBtn', 'click', () => { tfSave(false); });
+            on('tfCopyBtn', 'click', tfCopyCurrent);
+            on('tfCopyAllBtn', 'click', tfCopyAll);
+            on('addHalaqahBtn', 'click', () => openHalaqahModal(null));
+        })();
+
+        // ---------- Panel Admin: kelola halaqah ----------
+        function renderHalaqahTable() {
+            const tbody = tfEl('halaqahTable');
+            if (!tbody) return;
+            const entries = Object.entries(halaqahCache || {}).sort((a, b) =>
+                (a[1].kelas || '').localeCompare(b[1].kelas || '', 'id', { numeric: true }) ||
+                (a[1].nama || '').localeCompare(b[1].nama || '', 'id'));
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">Belum ada halaqah.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = entries.map(([id, h]) => `
+                <tr>
+                    <td>${kelasIcon(h.kelas)}${escapeHtml(h.kelas)}</td>
+                    <td>Halaqah ${escapeHtml(h.nama)}</td>
+                    <td>${h.guruNama ? escapeHtml(h.guruNama) : '<span class="text-muted">— belum dipilih —</span>'}</td>
+                    <td>${tahfizhStudents(id).length}</td>
+                    <td class="actions">
+                        <button class="btn btn-xs btn-outline" data-hq-members="${escapeHtml(id)}" title="Atur santri"><i class="fas fa-users"></i></button>
+                        <button class="btn btn-xs btn-outline" data-hq-edit="${escapeHtml(id)}" title="Ubah"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-xs btn-danger" data-hq-del="${escapeHtml(id)}" title="Hapus"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+            tbody.querySelectorAll('[data-hq-members]').forEach(b => b.addEventListener('click', function () { openHalaqahMembersModal(this.getAttribute('data-hq-members')); }));
+            tbody.querySelectorAll('[data-hq-edit]').forEach(b => b.addEventListener('click', function () { openHalaqahModal(this.getAttribute('data-hq-edit')); }));
+            tbody.querySelectorAll('[data-hq-del]').forEach(b => b.addEventListener('click', function () { deleteHalaqah(this.getAttribute('data-hq-del')); }));
+        }
+
+        function openHalaqahModal(id) {
+            if (!isAdmin()) return;
+            const h = id ? (halaqahCache[id] || {}) : { nama: '', kelas: '', guruUid: '' };
+            const kelasOpts = tahfizhKelasList();
+            const users = Object.entries(usersCache || {}).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || '', 'id'));
+            openModal(id ? 'Ubah Halaqah' : 'Tambah Halaqah', `
+                <div class="form-group"><label>Kelas</label>
+                    <select id="mHqKelas" ${id ? 'disabled' : ''}>
+                        <option value="">— Pilih kelas —</option>
+                        ${kelasOpts.map(k => `<option value="${escapeHtml(k)}" ${k === h.kelas ? 'selected' : ''}>${escapeHtml(k)}</option>`).join('')}
+                    </select>
+                    ${id ? '<div class="text-muted" style="font-size:0.78rem;margin-top:4px;">Kelas tidak bisa diubah. Untuk kelas lain, buat halaqah baru.</div>' : ''}
+                </div>
+                <div class="form-group"><label>Nama Halaqah <span class="text-muted">(tampil setelah kata "Halaqah", contoh: Usth Syifa)</span></label>
+                    <input type="text" id="mHqNama" value="${escapeHtml(h.nama || '')}" placeholder="Usth Syifa" /></div>
+                <div class="form-group"><label>Guru Tahfizh <span class="text-muted">(akun yang mengisi laporan halaqah ini)</span></label>
+                    <select id="mHqGuru">
+                        <option value="">— Pilih akun —</option>
+                        ${users.map(([uid, u]) => `<option value="${escapeHtml(uid)}" ${uid === h.guruUid ? 'selected' : ''}>${escapeHtml(u.name)}${u.jabatan ? ' · ' + escapeHtml(u.jabatan) : ''}</option>`).join('')}
+                    </select>
+                </div>
+                <button type="button" class="btn btn-gold" id="mHqSaveBtn" style="width:100%;justify-content:center;margin-top:8px;">Simpan</button>
+            `);
+            tfEl('mHqSaveBtn').addEventListener('click', () => {
+                const kelas = id ? h.kelas : tfEl('mHqKelas').value;
+                const nama = tfEl('mHqNama').value.trim();
+                const guruUid = tfEl('mHqGuru').value;
+                if (!kelas || !nama) { showToast('Lengkapi kelas dan nama halaqah!', 'error'); return; }
+                const guruNama = guruUid && usersCache[guruUid] ? usersCache[guruUid].name : '';
+                db.ref('halaqah/' + (id || genId())).set({ kelas, nama, guruUid, guruNama }).then(() => {
+                    showToast('Halaqah disimpan.');
+                    closeModal();
+                });
+            });
+        }
+
+        function openHalaqahMembersModal(id) {
+            if (!isAdmin()) return;
+            const h = halaqahCache[id];
+            if (!h) return;
+            const students = Object.values(siswaCache || {}).filter(s => s.kelas === h.kelas)
+                .sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'));
+            if (!students.length) { showToast('Belum ada siswa di kelas ini.', 'error'); return; }
+            const rows = students.map(s => {
+                const cur = halaqahSiswaCache[s.nis];
+                const other = cur && cur !== id && halaqahCache[cur] && halaqahCache[cur].kelas === h.kelas ? halaqahCache[cur].nama : '';
+                return `<label class="tf-member"><input type="checkbox" value="${escapeHtml(s.nis)}" ${cur === id ? 'checked' : ''} />
+                    <span>${escapeHtml(s.nama)}${other ? ` <span class="badge">sekarang: Halaqah ${escapeHtml(other)}</span>` : ''}</span></label>`;
+            }).join('');
+            openModal(`Santri · Halaqah ${h.nama} (${h.kelas})`, `
+                <div class="text-muted" style="font-size:0.82rem;margin-bottom:8px;">Centang santri yang masuk halaqah ini. Santri yang tadinya di halaqah lain otomatis pindah ke sini.</div>
+                <div class="tf-members-list">${rows}</div>
+                <button type="button" class="btn btn-gold" id="mHqMembersSave" style="width:100%;justify-content:center;margin-top:12px;">Simpan</button>
+            `);
+            tfEl('mHqMembersSave').addEventListener('click', () => {
+                const updates = {};
+                modalBody.querySelectorAll('.tf-members-list input[type="checkbox"]').forEach(cb => {
+                    if (cb.checked) updates[cb.value] = id;
+                    else if (halaqahSiswaCache[cb.value] === id) updates[cb.value] = null;
+                });
+                db.ref('halaqahSiswa').update(updates).then(() => {
+                    showToast('Anggota halaqah disimpan.');
+                    closeModal();
+                });
+            });
+        }
+
+        function deleteHalaqah(id) {
+            if (!isAdmin()) return;
+            const h = halaqahCache[id];
+            if (!h) return;
+            if (!confirm(`Hapus Halaqah ${h.nama} (${h.kelas})? Seluruh laporan tahfizh halaqah ini ikut terhapus dan tidak bisa dikembalikan.`)) return;
+            const updates = {};
+            updates['halaqah/' + id] = null;
+            updates['tahfizhLaporan/' + id] = null;
+            Object.keys(halaqahSiswaCache || {}).forEach(nis => { if (halaqahSiswaCache[nis] === id) updates['halaqahSiswa/' + nis] = null; });
+            db.ref().update(updates).then(() => showToast('Halaqah dihapus.'));
+        }
+    
+        // ============================================================
+        // TAMPILAN: SEMBUNYIKAN MENU (ADMIN) & EFEK ANIMASI
+        // Data: settings/menuHidden/{page}=true, settings/animasiOff=true
+        // ============================================================
+
+        function activePageKey() {
+            const el = document.querySelector('.page-section.active');
+            return el ? el.id.replace(/^page-/, '') : '';
+        }
+
+        function applyMenuVisibility() {
+            if (!currentUser) return;
+            const admin = isAdmin();
+            const known = new Set(MENU_TOGGLEABLE.map(m => m.page));
+            const apply = (el, page) => {
+                if (!known.has(page)) return;
+                const hidden = !!menuHiddenCache[page];
+                el.style.display = (hidden && !admin) ? 'none' : '';
+                el.classList.toggle('nav-hidden-admin', hidden && admin);
+            };
+            document.querySelectorAll('.sidebar .nav-item[data-page]').forEach(a => apply(a, a.dataset.page));
+            document.querySelectorAll('.bottom-nav-item[data-bottom-page]').forEach(a => apply(a, a.dataset.bottomPage));
+            const cur = activePageKey();
+            if (!admin && cur && menuHiddenCache[cur]) {
+                showToast('Menu ini dinonaktifkan oleh admin.', 'error');
+                navigateTo('dashboard');
+            }
+        }
+
+        function applyMotionSetting() {
+            document.documentElement.classList.toggle('no-motion', !!animasiOffCache);
+        }
+
+        function renderMenuToggles() {
+            const box = document.getElementById('menuToggleList');
+            if (!box || !isAdmin()) return;
+            box.innerHTML = MENU_TOGGLEABLE.map(m => `
+                <label class="tg-row"><span><i class="fas ${m.icon}"></i>${escapeHtml(m.label)}</span>
+                    <span class="tg-switch"><input type="checkbox" data-menu="${m.page}" ${menuHiddenCache[m.page] ? '' : 'checked'} /><i class="tg-slider"></i></span>
+                </label>`).join('');
+            box.querySelectorAll('input[data-menu]').forEach(cb => cb.addEventListener('change', function () {
+                const page = this.dataset.menu;
+                const label = (MENU_TOGGLEABLE.find(m => m.page === page) || {}).label || page;
+                const op = this.checked ? db.ref('settings/menuHidden/' + page).remove() : db.ref('settings/menuHidden/' + page).set(true);
+                op.then(() => showToast(this.checked ? `${label} ditampilkan untuk guru.` : `${label} disembunyikan dari guru.`))
+                    .catch(() => showToast('Gagal menyimpan pengaturan.', 'error'));
+            }));
+            const mbox = document.getElementById('motionToggleBox');
+            if (mbox) {
+                mbox.innerHTML = `<label class="tg-row"><span><i class="fas fa-wand-magic-sparkles"></i>Efek animasi aktif</span>
+                    <span class="tg-switch"><input type="checkbox" id="motionToggle" ${animasiOffCache ? '' : 'checked'} /><i class="tg-slider"></i></span></label>`;
+                document.getElementById('motionToggle').addEventListener('change', function () {
+                    const op = this.checked ? db.ref('settings/animasiOff').remove() : db.ref('settings/animasiOff').set(true);
+                    op.then(() => showToast(this.checked ? 'Efek animasi diaktifkan.' : 'Efek animasi dimatikan.'))
+                        .catch(() => showToast('Gagal menyimpan pengaturan.', 'error'));
+                });
+            }
+        }
+
+        // Jeda stagger menu samping + efek hitung naik pada angka statistik dashboard
+        (function initMotion() {
+            document.querySelectorAll('.sidebar .nav-item').forEach((a, i) => a.style.setProperty('--d', (i * 28) + 'ms'));
+            const reduce = () => document.documentElement.classList.contains('no-motion') ||
+                (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            const parse = (t) => {
+                const m = String(t || '').trim().match(/^(Rp)?(\d[\d.]*)$/);
+                if (!m) return null;
+                const n = parseInt(m[2].replace(/\./g, ''), 10);
+                return isNaN(n) ? null : { prefix: m[1] || '', n, grouped: !!m[1] || m[2].indexOf('.') !== -1 };
+            };
+            const show = (p, v) => p.prefix + (p.grouped ? v.toLocaleString('id-ID') : String(v));
+            document.querySelectorAll('.stat-number').forEach(el => {
+                new MutationObserver(() => {
+                    if (el.__tfSelf !== undefined && el.textContent === el.__tfSelf) return;
+                    const p = parse(el.textContent);
+                    if (!p) return;
+                    const from = el.__tfLast === undefined ? 0 : el.__tfLast;
+                    el.__tfLast = p.n;
+                    if (el.__tfRaf) cancelAnimationFrame(el.__tfRaf);
+                    if (reduce() || from === p.n) return;
+                    const t0 = performance.now(), dur = 650;
+                    const step = (now) => {
+                        const k = Math.min(1, (now - t0) / dur);
+                        const v = Math.round(from + (p.n - from) * (1 - Math.pow(1 - k, 3)));
+                        el.__tfSelf = show(p, v);
+                        el.textContent = el.__tfSelf;
+                        if (k < 1) el.__tfRaf = requestAnimationFrame(step);
+                    };
+                    el.__tfRaf = requestAnimationFrame(step);
+                }).observe(el, { childList: true, characterData: true, subtree: true });
+            });
+        })();
     </script>
     <script>
       if ('serviceWorker' in navigator) {
