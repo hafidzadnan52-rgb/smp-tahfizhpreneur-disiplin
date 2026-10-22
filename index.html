@@ -2431,6 +2431,17 @@
         .tf-chip.no { background:rgba(198,40,40,.15); }
         .tf-preview { white-space:pre-wrap; word-break:break-word; unicode-bidi:plaintext; background:rgba(128,128,128,.12); border-radius:10px; padding:14px; font-family:inherit; font-size:.88rem; line-height:1.55; max-height:55vh; overflow:auto; margin:0 0 12px; }
         @media (max-width:640px) { .tf-hist-item { flex-wrap:wrap; } .tf-hist-actions { width:100%; justify-content:flex-start; } }
+        /* ---- Status Sakit, banner mode, gabungan admin ---- */
+        .tf-chip.sick { background:rgba(245,124,0,.18); }
+        .tf-student.is-sakit { background:rgba(245,124,0,.08); border-color:rgba(245,124,0,.55); }
+        .tf-student.is-sakit .tf-student-name::after { content:' 🤒 Tidak masuk'; font-weight:600; font-size:.78rem; color:#e65100; }
+        .tf-mode { padding:10px 12px; border-radius:10px; font-size:.84rem; margin-bottom:12px; line-height:1.45; }
+        .tf-mode.new { background:rgba(46,125,50,.12); }
+        .tf-mode.edit { background:rgba(245,124,0,.15); }
+        .tf-mg-row { display:flex; align-items:center; gap:10px; padding:9px 10px; border:1px solid var(--border-color,#e3dccb); border-radius:10px; margin-bottom:8px; cursor:pointer; }
+        .tf-mg-row.missing { opacity:.6; cursor:default; }
+        .tf-mg-row .tf-mg-meta { font-size:.78rem; color:var(--text-light); }
+        .tf-mg-text { width:100%; min-height:240px; resize:vertical; line-height:1.5; font-size:.88rem; unicode-bidi:plaintext; }
     </style>
 </head>
 <body>
@@ -3121,6 +3132,7 @@
                     </div>
                     <div class="card" id="tfFormCard">
                         <div class="card-header"><h3><i class="fas fa-user-graduate"></i> Capaian Santri</h3></div>
+                        <div id="tfModeBanner" class="tf-mode new"></div>
                         <div class="form-row" style="align-items:flex-end;margin-bottom:12px;">
                             <div class="form-group" style="flex:1 1 260px;"><label>Isi Tilawah untuk semua santri <span class="text-muted">(opsional)</span></label>
                                 <input type="text" id="tfBulkTilawah" placeholder="Qs. Al-Ma'idah: 50" /></div>
@@ -3129,6 +3141,7 @@
                         <div id="tfStudents"></div>
                         <div class="tf-actions">
                             <button type="button" class="btn btn-success" id="tfSaveBtn"><i class="fas fa-save"></i> Simpan</button>
+                            <button type="button" class="btn btn-outline" id="tfNewBtn"><i class="fas fa-plus"></i> Laporan Pekan Baru</button>
                             <button type="button" class="btn btn-gold" id="tfCopyBtn"><i class="fab fa-whatsapp"></i> Salin untuk WhatsApp</button>
                             <button type="button" class="btn btn-outline" id="tfCopyAllBtn" style="display:none;"><i class="fas fa-layer-group"></i> Salin Gabungan Kelas</button>
                         </div>
@@ -3137,6 +3150,25 @@
                         <div class="card-header"><h3><i class="fas fa-clock-rotate-left"></i> Riwayat Laporan</h3></div>
                         <div class="text-muted" style="font-size:0.82rem;margin-bottom:12px;">Daftar laporan pekan yang sudah tersimpan untuk halaqah yang dipilih di atas. Klik <strong>Lihat</strong> untuk membaca laporannya.</div>
                         <div id="tfHistory"></div>
+                    </div>
+
+                    <div class="card" id="tfAdminMergeCard" style="display:none;">
+                        <div class="card-header"><h3><i class="fas fa-layer-group"></i> Gabungan Laporan Kelas <span class="tf-chip">Admin</span></h3></div>
+                        <div class="text-muted" style="font-size:0.82rem;margin-bottom:12px;">Pilih kelas dan pekan untuk melihat laporan semua halaqah di kelas tersebut, lalu gabungkan menjadi satu pesan untuk dibagikan ke wali murid.</div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Kelas</label><select id="tfMgKelas"></select></div>
+                            <div class="form-group"><label>Pekan</label><select id="tfMgPekan"></select></div>
+                        </div>
+                        <div id="tfMgHalaqah"></div>
+                        <div class="form-group">
+                            <label>Pratinjau pesan gabungan <span class="text-muted">(boleh diedit sebelum dibagikan)</span></label>
+                            <textarea id="tfMgText" class="tf-mg-text" rows="16" placeholder="Pilih pekan untuk menampilkan laporan gabungan."></textarea>
+                        </div>
+                        <div class="tf-actions">
+                            <button type="button" class="btn btn-gold" id="tfMgCopy"><i class="fab fa-whatsapp"></i> Salin untuk WhatsApp</button>
+                            <button type="button" class="btn btn-outline" id="tfMgShare"><i class="fas fa-share-nodes"></i> Bagikan</button>
+                            <button type="button" class="btn btn-outline" id="tfMgReload"><i class="fas fa-rotate"></i> Muat ulang</button>
+                        </div>
                     </div>
                 </section>
 
@@ -9793,7 +9825,8 @@ ATURAN WAJIB
         const TAHFIZH_STATUS = [
             { val: 'Melampaui', icon: '✅' },
             { val: 'Tercapai', icon: '✅' },
-            { val: 'Belum Tercapai', icon: '❌' }
+            { val: 'Belum Tercapai', icon: '❌' },
+            { val: 'Sakit', icon: '🤒' }
         ];
         const TAHFIZH_BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         let tahfizhWeeks = {};
@@ -9856,6 +9889,7 @@ ATURAN WAJIB
         // ---------- Halaman guru ----------
         function initTahfizhPage() {
             tfRenderHalaqahSelect('');
+            tfMgInit();
         }
 
         function tfRenderHalaqahSelect(keepId) {
@@ -9926,6 +9960,7 @@ ATURAN WAJIB
             tfRenderStudents(entries);
             tahfizhDirty = false;
             tfRenderHistory();
+            tfUpdateModeBanner();
         }
 
         function tfRenderStudents(entries) {
@@ -9938,7 +9973,7 @@ ATURAN WAJIB
             }
             wrap.innerHTML = list.map((s, i) => {
                 const e = entries[s.nis] || {};
-                return `<div class="tf-student" data-nis="${escapeHtml(s.nis)}">
+                return `<div class="tf-student${e.s === 'Sakit' ? ' is-sakit' : ''}" data-nis="${escapeHtml(s.nis)}">
                     <div class="tf-student-name">${i + 1}. ${escapeHtml(s.nama)}</div>
                     <div class="tf-grid">
                         <div class="form-group"><label>Ziyadah</label><input type="text" data-f="z" value="${escapeHtml(e.z || '')}" placeholder="Qs. Al-Fath: 16-21" /></div>
@@ -9971,9 +10006,23 @@ ATURAN WAJIB
             if (!hid) return Promise.resolve(false);
             if (!pekan || !start || !end) { showToast('Isi pekan, tanggal mulai, dan tanggal selesai dulu.', 'error'); return Promise.resolve(false); }
             if (end < start) { showToast('Tanggal selesai tidak boleh sebelum tanggal mulai.', 'error'); return Promise.resolve(false); }
-            const key = tahfizhCurrentKey || ('w' + start.replace(/-/g, ''));
-            if (!tahfizhCurrentKey && tahfizhWeeks[key]) {
-                if (!confirm('Laporan dengan tanggal mulai yang sama sudah tersimpan. Timpa dengan isian ini?')) return Promise.resolve(false);
+            const samePekanKey = (exceptKey) => Object.keys(tahfizhWeeks).find(k => k !== exceptKey && parseInt(tahfizhWeeks[k].pekan, 10) === pekan);
+            let key = tahfizhCurrentKey;
+            if (key) {
+                // Sedang mengubah laporan yang sudah tersimpan
+                if (samePekanKey(key)) { showToast(`Pekan ${pekan} sudah dipakai laporan lain di halaqah ini. Gunakan nomor pekan yang berbeda.`, 'error'); return Promise.resolve(false); }
+            } else {
+                // Laporan baru: tidak boleh menimpa laporan lain secara diam-diam
+                const dup = samePekanKey('');
+                if (dup) {
+                    if (!confirm(`Laporan Pekan ${pekan} sudah ada di halaqah ini. Timpa dengan isian ini?\n\nKlik Batal kalau ini laporan baru, lalu ganti nomor pekannya.`)) return Promise.resolve(false);
+                    key = dup;
+                } else {
+                    const base = 'w' + start.replace(/-/g, '');
+                    key = base;
+                    let n = 2;
+                    while (tahfizhWeeks[key]) key = base + '_' + (n++);
+                }
             }
             const payload = {
                 pekan, tglMulai: start, tglSelesai: end, entries: tfCollect(),
@@ -9985,9 +10034,30 @@ ATURAN WAJIB
                 tahfizhDirty = false;
                 tfRenderWeekSelect(key);
                 tfRenderHistory();
-                if (!silent) showToast('Laporan tahfizh disimpan.');
+                tfUpdateModeBanner();
+                if (!silent) {
+                    showToast(`Laporan Pekan ${pekan} tersimpan. Form dikosongkan untuk laporan berikutnya.`);
+                    tfLoadWeek('');
+                }
+                tfMgRefreshIfOpen();
                 return true;
             }).catch(() => { showToast('Gagal menyimpan laporan.', 'error'); return false; });
+        }
+
+        function tfUpdateModeBanner() {
+            const el = tfEl('tfModeBanner');
+            if (!el) return;
+            const w = tahfizhCurrentKey ? tahfizhWeeks[tahfizhCurrentKey] : null;
+            el.className = 'tf-mode ' + (w ? 'edit' : 'new');
+            el.innerHTML = w
+                ? `<i class="fas fa-pen"></i> Sedang mengubah laporan <strong>Pekan ${escapeHtml(w.pekan)}</strong> yang sudah tersimpan. Untuk membuat laporan baru, klik <strong>Laporan Pekan Baru</strong>.`
+                : `<i class="fas fa-plus"></i> <strong>Laporan baru</strong> — akan disimpan sebagai laporan terpisah, tidak menimpa laporan sebelumnya.`;
+        }
+
+        function tfNewWeek() {
+            if (tahfizhDirty && !confirm('Ada isian yang belum disimpan. Tetap mulai laporan baru?')) return;
+            tfLoadWeek('');
+            tfEl('tfStudents').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function tfBuildSection(h, students, entries) {
@@ -9996,10 +10066,11 @@ ATURAN WAJIB
             students.forEach((s, i) => {
                 const e = entries[s.nis] || {};
                 const st = TAHFIZH_STATUS.find(x => x.val === e.s);
+                const kosong = e.s === 'Sakit' ? '-' : '';
                 out += `${i + 1}. *${s.nama}*\n` +
-                    `* Ziyadah : ${e.z || ''}\n` +
-                    `* Muroja'ah : ${e.m || ''}\n` +
-                    `* Tilawah : ${e.t || ''}\n` +
+                    `* Ziyadah : ${e.z || kosong}\n` +
+                    `* Muroja'ah : ${e.m || kosong}\n` +
+                    `* Tilawah : ${e.t || kosong}\n` +
                     `* Status : ${st ? st.val + ' ' + st.icon : ''}\n` +
                     `* Target Pekan Depan : ${e.g || ''}\n\n`;
             });
@@ -10063,14 +10134,12 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
         async function tfCopyAll() {
             const hid = tfEl('tfHalaqah').value;
             const h = halaqahCache[hid];
-            const pekan = tfEl('tfPekan').value;
+            const pekan = parseInt(tfEl('tfPekan').value, 10);
             const start = tfEl('tfStart').value;
             const end = tfEl('tfEnd').value;
             if (!h) return;
             if (!pekan || !start || !end) { showToast('Isi pekan dan tanggal dulu.', 'error'); return; }
-            await tfSave(true);
-            const key = tahfizhCurrentKey;
-            if (!key) { showToast('Laporan belum tersimpan, gabungan tidak bisa dibuat.', 'error'); return; }
+            if (!(await tfSave(true))) return;
             const sibs = Object.entries(halaqahCache || {}).filter(([, x]) => x.kelas === h.kelas)
                 .sort((a, b) => (a[1].nama || '').localeCompare(b[1].nama || '', 'id'));
             const sections = [], missing = [];
@@ -10079,9 +10148,9 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
                     let entries;
                     if (id === hid) entries = tfCollect();
                     else {
-                        const snap = await db.ref(`tahfizhLaporan/${id}/${key}`).once('value');
-                        const r = snap.val();
-                        entries = r && r.entries;
+                        const snap = await db.ref('tahfizhLaporan/' + id).once('value');
+                        const w = tfPickByPekan(snap.val() || {}, pekan);
+                        entries = w && w.entries;
                     }
                     if (!entries) { missing.push(x.nama); continue; }
                     sections.push(tfBuildSection(x, tahfizhStudents(id), entries));
@@ -10096,6 +10165,14 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
             }
         }
 
+        // Cari laporan dengan nomor pekan tertentu dari kumpulan laporan satu halaqah
+        function tfPickByPekan(weeks, pekan) {
+            const ks = Object.keys(weeks || {}).filter(k => parseInt(weeks[k].pekan, 10) === pekan);
+            if (!ks.length) return null;
+            ks.sort((a, b) => (weeks[b].updatedAt || 0) - (weeks[a].updatedAt || 0));
+            return weeks[ks[0]];
+        }
+
         (function bindTahfizhPage() {
             const on = (id, ev, fn) => { const el = tfEl(id); if (el) el.addEventListener(ev, fn); };
             on('tfHalaqah', 'change', () => {
@@ -10108,15 +10185,28 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
             });
             ['tfPekan', 'tfStart', 'tfEnd'].forEach(id => on(id, 'input', () => { tahfizhDirty = true; }));
             on('tfStudents', 'input', () => { tahfizhDirty = true; });
-            on('tfStudents', 'change', () => { tahfizhDirty = true; });
+            on('tfStudents', 'change', (ev) => {
+                tahfizhDirty = true;
+                const t = ev.target;
+                if (t && t.matches && t.matches('select[data-f="s"]')) {
+                    const card = t.closest('.tf-student');
+                    if (card) card.classList.toggle('is-sakit', t.value === 'Sakit');
+                }
+            });
             on('tfBulkTilawahBtn', 'click', () => {
                 const v = (tfEl('tfBulkTilawah').value || '').trim();
                 if (!v) { showToast('Isi dulu tilawah yang ingin diterapkan.', 'error'); return; }
-                document.querySelectorAll('#tfStudents [data-f="t"]').forEach(inp => { inp.value = v; });
+                document.querySelectorAll('#tfStudents .tf-student').forEach(card => {
+                    const st = card.querySelector('[data-f="s"]');
+                    if (st && st.value === 'Sakit') return;
+                    const inp = card.querySelector('[data-f="t"]');
+                    if (inp) inp.value = v;
+                });
                 tahfizhDirty = true;
-                showToast('Tilawah diterapkan ke semua santri.');
+                showToast('Tilawah diterapkan ke semua santri (yang sakit dilewati).');
             });
             on('tfSaveBtn', 'click', () => { tfSave(false); });
+            on('tfNewBtn', 'click', tfNewWeek);
             on('tfCopyBtn', 'click', tfCopyCurrent);
             on('tfCopyAllBtn', 'click', tfCopyAll);
             on('addHalaqahBtn', 'click', () => openHalaqahModal(null));
@@ -10326,7 +10416,7 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
         function tfWeekSummary(hid, w) {
             const students = tahfizhStudents(hid);
             const entries = w.entries || {};
-            const c = { 'Melampaui': 0, 'Tercapai': 0, 'Belum Tercapai': 0 };
+            const c = { 'Melampaui': 0, 'Tercapai': 0, 'Belum Tercapai': 0, 'Sakit': 0 };
             let terisi = 0;
             students.forEach(s => {
                 const e = entries[s.nis] || {};
@@ -10360,7 +10450,7 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
                     <div class="tf-hist-info">
                         <div class="tf-hist-date">${escapeHtml(tahfizhFormatRange(w.tglMulai, w.tglSelesai))}</div>
                         <div>
-                            <span class="tf-chip ok">✅ Melampaui ${sm.c['Melampaui']}</span><span class="tf-chip ok">✅ Tercapai ${sm.c['Tercapai']}</span><span class="tf-chip no">❌ Belum ${sm.c['Belum Tercapai']}</span>
+                            <span class="tf-chip ok">✅ Melampaui ${sm.c['Melampaui']}</span><span class="tf-chip ok">✅ Tercapai ${sm.c['Tercapai']}</span><span class="tf-chip no">❌ Belum ${sm.c['Belum Tercapai']}</span><span class="tf-chip sick">🤒 Sakit ${sm.c['Sakit']}</span>
                         </div>
                         <div class="tf-hist-meta">${sm.terisi}/${sm.total} santri terisi${w.updatedBy ? ' · oleh ' + escapeHtml(w.updatedBy) : ''}${upd ? ' · ' + upd : ''}</div>
                     </div>
@@ -10420,6 +10510,141 @@ Semoga Allah ﷻ menjadikan putra-putri kita sebagai Ahlul Qur'an.
                 showToast('Laporan dihapus.');
             }).catch(() => showToast('Gagal menghapus laporan.', 'error'));
         }
+
+        // ---------- Admin: gabungan laporan halaqah satu kelas ----------
+        let tfMgData = { kelas: '', hs: [], reports: {} };
+        let tfMgSeq = 0;
+
+        function tfMgInit() {
+            const card = tfEl('tfAdminMergeCard');
+            if (!card) return;
+            if (!isAdmin() || !Object.keys(halaqahCache || {}).length) { card.style.display = 'none'; return; }
+            card.style.display = '';
+            const sel = tfEl('tfMgKelas');
+            const prev = sel.value;
+            const kelasList = [...new Set(Object.values(halaqahCache).map(h => h.kelas).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'id', { numeric: true }));
+            sel.innerHTML = kelasList.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+            if (prev && kelasList.includes(prev)) sel.value = prev;
+            tfMgLoadKelas();
+        }
+
+        function tfMgRefreshIfOpen() {
+            const card = tfEl('tfAdminMergeCard');
+            if (card && card.style.display !== 'none') tfMgLoadKelas(true);
+        }
+
+        async function tfMgLoadKelas(keepPekan) {
+            const kelas = tfEl('tfMgKelas').value;
+            if (!kelas) return;
+            const seq = ++tfMgSeq;
+            const prevPekan = keepPekan ? tfEl('tfMgPekan').value : '';
+            const hs = Object.entries(halaqahCache || {}).filter(([, h]) => h.kelas === kelas)
+                .sort((a, b) => (a[1].nama || '').localeCompare(b[1].nama || '', 'id'));
+            tfEl('tfMgHalaqah').innerHTML = '<div class="text-muted" style="font-size:.85rem;">Memuat laporan...</div>';
+            const reports = {};
+            try {
+                const snaps = await Promise.all(hs.map(([id]) => db.ref('tahfizhLaporan/' + id).once('value')));
+                if (seq !== tfMgSeq) return;
+                hs.forEach(([id], i) => { reports[id] = snaps[i].val() || {}; });
+            } catch (err) {
+                showToast('Gagal memuat laporan kelas.', 'error');
+                return;
+            }
+            tfMgData = { kelas, hs, reports };
+            const pekanMap = new Map();
+            Object.values(reports).forEach(r => Object.values(r).forEach(w => {
+                const p = parseInt(w.pekan, 10);
+                if (!p) return;
+                const cur = pekanMap.get(p) || { start: w.tglMulai, end: w.tglSelesai, n: 0 };
+                if (w.tglMulai && (!cur.start || w.tglMulai < cur.start)) cur.start = w.tglMulai;
+                if (w.tglSelesai && (!cur.end || w.tglSelesai > cur.end)) cur.end = w.tglSelesai;
+                pekanMap.set(p, cur);
+            }));
+            const pekanSel = tfEl('tfMgPekan');
+            const list = [...pekanMap.keys()].sort((a, b) => b - a);
+            if (!list.length) {
+                pekanSel.innerHTML = '<option value="">— belum ada laporan —</option>';
+                tfEl('tfMgHalaqah').innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>Belum ada laporan tersimpan untuk kelas ini.</p></div>';
+                tfEl('tfMgText').value = '';
+                return;
+            }
+            pekanSel.innerHTML = list.map(p => {
+                const have = hs.filter(([id]) => tfPickByPekan(reports[id], p)).length;
+                const info = pekanMap.get(p);
+                return `<option value="${p}">Pekan ${p} · ${escapeHtml(tahfizhFormatRange(info.start, info.end))} (${have}/${hs.length} halaqah)</option>`;
+            }).join('');
+            pekanSel.value = (prevPekan && list.includes(parseInt(prevPekan, 10))) ? prevPekan : String(list[0]);
+            tfMgRenderPekan();
+        }
+
+        function tfMgRenderPekan() {
+            const pekan = parseInt(tfEl('tfMgPekan').value, 10);
+            const { kelas, hs, reports } = tfMgData;
+            const box = tfEl('tfMgHalaqah');
+            if (!pekan) { box.innerHTML = ''; tfEl('tfMgText').value = ''; return; }
+            box.innerHTML = hs.map(([id, h]) => {
+                const w = tfPickByPekan(reports[id], pekan);
+                if (!w) {
+                    return `<label class="tf-mg-row missing"><input type="checkbox" disabled />
+                        <div><strong>Halaqah ${escapeHtml(h.nama)}</strong><div class="tf-mg-meta">Belum ada laporan pekan ini${h.guruNama ? ' · guru: ' + escapeHtml(h.guruNama) : ''}</div></div></label>`;
+                }
+                const sm = tfWeekSummary(id, w);
+                const upd = w.updatedAt ? new Date(w.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                return `<label class="tf-mg-row"><input type="checkbox" data-mg-hid="${escapeHtml(id)}" checked />
+                    <div><strong>Halaqah ${escapeHtml(h.nama)}</strong>
+                    <div class="tf-mg-meta">${sm.terisi}/${sm.total} santri terisi · 🤒 ${sm.c['Sakit']} sakit${w.updatedBy ? ' · oleh ' + escapeHtml(w.updatedBy) : ''}${upd ? ' · ' + upd : ''}</div></div></label>`;
+            }).join('');
+            box.querySelectorAll('input[data-mg-hid]').forEach(cb => cb.addEventListener('change', tfMgBuildText));
+            tfMgBuildText();
+        }
+
+        function tfMgBuildText() {
+            const pekan = parseInt(tfEl('tfMgPekan').value, 10);
+            const { kelas, hs, reports } = tfMgData;
+            const ids = [...document.querySelectorAll('#tfMgHalaqah input[data-mg-hid]:checked')].map(cb => cb.getAttribute('data-mg-hid'));
+            if (!pekan || !ids.length) { tfEl('tfMgText').value = ''; return; }
+            let start = '', end = '';
+            const sections = [];
+            hs.forEach(([id, h]) => {
+                if (!ids.includes(id)) return;
+                const w = tfPickByPekan(reports[id], pekan);
+                if (!w) return;
+                if (w.tglMulai && (!start || w.tglMulai < start)) start = w.tglMulai;
+                if (w.tglSelesai && (!end || w.tglSelesai > end)) end = w.tglSelesai;
+                sections.push(tfBuildSection(h, tahfizhStudents(id), w.entries || {}));
+            });
+            tfEl('tfMgText').value = tfBuildMessage(kelas, pekan, tahfizhFormatRange(start, end), sections);
+        }
+
+        function tfMgCopy() {
+            const text = tfEl('tfMgText').value;
+            if (!text.trim()) { showToast('Belum ada laporan untuk disalin.', 'error'); return; }
+            tfCopyText(text)
+                .then(() => showToast('Laporan gabungan disalin. Tempel di grup WhatsApp wali murid.'))
+                .catch(() => showToast('Gagal menyalin. Coba lagi.', 'error'));
+        }
+
+        function tfMgShare() {
+            const text = tfEl('tfMgText').value;
+            if (!text.trim()) { showToast('Belum ada laporan untuk dibagikan.', 'error'); return; }
+            if (navigator.share) {
+                navigator.share({ text }).catch(err => { if (err && err.name !== 'AbortError') showToast('Gagal membagikan. Gunakan tombol Salin.', 'error'); });
+                return;
+            }
+            tfCopyText(text)
+                .then(() => { showToast('Disalin. Tempel pesan di WhatsApp.'); window.open('https://wa.me/', '_blank'); })
+                .catch(() => showToast('Gagal menyalin. Coba lagi.', 'error'));
+        }
+
+        (function bindTahfizhMerge() {
+            const on = (id, ev, fn) => { const el = tfEl(id); if (el) el.addEventListener(ev, fn); };
+            on('tfMgKelas', 'change', () => tfMgLoadKelas());
+            on('tfMgPekan', 'change', tfMgRenderPekan);
+            on('tfMgCopy', 'click', tfMgCopy);
+            on('tfMgShare', 'click', tfMgShare);
+            on('tfMgReload', 'click', () => tfMgLoadKelas(true));
+        })();
     </script>
     <script>
       if ('serviceWorker' in navigator) {
